@@ -14,12 +14,20 @@
 	<body>
 		<div id="qunit"></div>
 		<script src="../vendor/qunit/qunit/qunit.js"></script>
+		<script src="../vendor/qunit-extras/qunit-extras.js"></script>
 		<script src="../vendor/lodash/dist/lodash.compat.js"></script>
-		<script src="../benchmark.js"></script>
 		<script src="../vendor/platform.js/platform.js"></script>
+		<script src="../benchmark.js"></script>
 		<script>
+			QUnit.config.hidepassed = true;
 			QUnit.urlParams.nojava = /[?&]nojava=true(?:&|$)/.test(location.search);
 			QUnit.urlParams.norequire = /[?&]norequire=true(?:&|$)/.test(location.search);
+
+			// assign results to `global_test_results` for Sauce Labs
+			var global_test_results;
+			QUnit.done(function(results) {
+				global_test_results = results;
+			});
 
 			(function() {
 				if (QUnit.urlParams.nojava) {
@@ -44,7 +52,7 @@
 			);
 		</script>
 		<script>
-			var Benchmark2;
+			var benchmarkModule;
 
 			if (window.require) {
 				QUnit.config.autostart = false;
@@ -60,7 +68,7 @@
 					}
 				},
 				['benchmark'], function(Benchmark) {
-					Benchmark2 = Benchmark;
+					benchmarkModule = Benchmark;
 					require(['test.js'], function() {
 						QUnit.start();
 					});
@@ -70,7 +78,7 @@
 			window.onload = function() {
 				var timeoutId = setInterval(function() {
 					var ua = document.getElementById('qunit-userAgent');
-					if (ua && (Benchmark2 || !window.require)) {
+					if (ua && (benchmarkModule || !window.require)) {
 						// set a more readable browser name
 						ua.innerHTML = platform;
 						clearInterval(timeoutId);

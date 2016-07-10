@@ -80,17 +80,21 @@
   (function() {
     test('supports loading Benchmark.js as a module', function() {
       if (root.define && define.amd) {
-        equal((Benchmark2 || {}).version, Benchmark.version);
-      } else {
+        equal((benchmarkModule || {}).version, Benchmark.version);
+      }
+      else {
         skipTest(1);
       }
     });
 
     test('supports loading Platform.js as a module', function() {
       if (root.define && define.amd) {
-        var platform = (Benchmark2 || {}).platform || {};
-        equal(typeof platform.name, 'string');
-      } else {
+        var platform = (benchmarkModule || {}).platform || {},
+            name = platform.name;
+
+        ok(typeof name == 'string' || name === null);
+      }
+      else {
         skipTest(1);
       }
     });
@@ -966,27 +970,6 @@
   QUnit.module('Benchmark.Suite#splice');
 
   (function() {
-    test('works with no arguments', function() {
-      var suite = Benchmark.Suite();
-      suite[0] = 0;
-      suite.length = 1;
-
-      var actual = suite.splice();
-      deepEqual(actual, []);
-      deepEqual(slice.call(suite), [0]);
-    });
-
-    test('works with only the `start` argument', function() {
-      var suite = Benchmark.Suite();
-      suite[0] = 0;
-      suite[1] = 1;
-      suite.length = 2;
-
-      var actual = suite.splice(1);
-      deepEqual(actual, [1]);
-      deepEqual(slice.call(suite), [0]);
-    });
-
     test('should have no elements when length is 0 after splice', function() {
       var suite = Benchmark.Suite();
       suite[0] = 0;
@@ -1288,6 +1271,8 @@
   }());
 
   /*--------------------------------------------------------------------------*/
+
+  QUnit.config.asyncRetries = 10;
 
   if (!root.document || root.phantom) {
     QUnit.config.noglobals = true;

@@ -1,4 +1,7 @@
+.coveralls.yml
 .DS_Store
+*.log
+coverage
 node_modules/
 tests/benchmark.air/src/*.js
 tests/benchmark.air/bin-debug/
