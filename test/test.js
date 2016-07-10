@@ -11,7 +11,7 @@
       root.addEventListener || (root.addEventListener = noop),
       root.setTimeout || (root.setTimeout = noop),
       root.QUnit = load('../vendor/qunit/qunit/qunit.js') || root.QUnit,
-      (load('../vendor/qunit-clib/qunit-clib.js') || { 'runInContext': noop }).runInContext(root),
+      (load('../vendor/qunit-extras/qunit-extras.js') || { 'runInContext': noop }).runInContext(root),
       addEventListener === noop && delete root.addEventListener,
       root.QUnit
     );
@@ -19,7 +19,7 @@
 
   /** The `lodash` utility function */
   var _ = root._ || (root._ = (
-    _ = load('../vendor/lodash/lodash.js') || root._,
+    _ = load('../vendor/lodash/dist/lodash.compat.js') || root._,
     _ = _._ || _,
     _.runInContext(root)
   ));
