@@ -1,20 +1,19 @@
-# Benchmark.js v2.0.0-pre
+# Benchmark.js v2.1.0
 
-A [robust](http://calendar.perfplanet.com/2010/bulletproof-javascript-benchmarks/ "Bulletproof JavaScript benchmarks") benchmarking library that supports high-resolution timers & returns statistically significant results. As seen on [jsPerf](http://jsperf.com/).
+A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof JavaScript benchmarks") benchmarking library that supports high-resolution timers & returns statistically significant results. As seen on [jsPerf](https://jsperf.com/).
 
 ## Documentation
 
-* [API Documentation](http://benchmarkjs.com/docs)
-* Check out our [unit tests](http://benchmarkjs.com/tests) & [roadmap](https://github.com/bestiejs/benchmark.js/wiki/Roadmap)
+* [API Documentation](https://benchmarkjs.com/docs)
 
 ## Download
 
- * [Development source](https://raw.github.com/bestiejs/benchmark.js/v1.0.0/benchmark.js)
+ * [Development source](https://raw.githubusercontent.com/bestiejs/benchmark.js/2.1.0/benchmark.js)
 
 ## Installation
 
 Benchmark.js’ only hard dependency is [lodash](https://lodash.com/).
-Include [platform.js](http://mths.be/platform) to populate [Benchmark.platform](http://benchmarkjs.com/docs#platform).
+Include [platform.js](https://mths.be/platform) to populate [Benchmark.platform](https://benchmarkjs.com/docs#platform).
 
 In a browser:
 
@@ -22,12 +21,6 @@ In a browser:
 <script src="lodash.js"></script>
 <script src="platform.js"></script>
 <script src="benchmark.js"></script>
-```
-
-Optionally, enable Chrome’s microsecond timer by using the [command line switch](http://peter.sh/experiments/chromium-command-line-switches/#enable-benchmarking):
-
-```
-  --enable-benchmarking
 ```
 
 In an AMD loader:
@@ -58,7 +51,7 @@ var Benchmark = require('benchmark');
 Optionally, use the [microtime module](https://github.com/wadey/node-microtime) by Wade Simmons:
 
 ```bash
-npm install microtime
+npm i --save microtime
 ```
 
 Usage example:
@@ -78,7 +71,7 @@ suite.add('RegExp#test', function() {
   console.log(String(event.target));
 })
 .on('complete', function() {
-  console.log('Fastest is ' + this.filter('fastest').pluck('name'));
+  console.log('Fastest is ' + this.filter('fastest').map('name'));
 })
 // run async
 .run({ 'async': true });
@@ -91,7 +84,7 @@ suite.add('RegExp#test', function() {
 
 ## Support
 
-Tested in Chrome 38-39, Firefox 34-35, IE 6-11, Opera 25-26, Safari 5-8, Node.js 0.8.28 & 0.10.35, PhantomJS 1.9.8, RingoJS 0.11, & Rhino 1.7RC5.
+Tested in Chrome 46-47, Firefox 42-43, IE 9-11, Edge 13, Safari 8-9, Node.js 0.10, 0.12, 4, & 5, & PhantomJS 1.9.8.
 
 ## BestieJS
 
