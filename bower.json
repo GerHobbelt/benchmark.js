@@ -1,12 +1,16 @@
 {
   "name": "benchmark.js",
   "version": "1.0.0",
-  "main": "./benchmark.js",
+  "main": "benchmark.js",
   "ignore": [
     ".*",
     "*.log",
     "*.md",
     "nano.*",
+    "index.js",
+    "component.json",
+    "package.json",
+    "coverage",
     "doc",
     "example",
     "node_modules",

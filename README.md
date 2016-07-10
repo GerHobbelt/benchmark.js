@@ -1,5 +1,4 @@
 # Benchmark.js <sup>v1.0.0</sup>
-[![build status](https://secure.travis-ci.org/bestiejs/benchmark.js.png)](http://travis-ci.org/bestiejs/benchmark.js)
 
 A [robust](http://calendar.perfplanet.com/2010/bulletproof-javascript-benchmarks/ "Bulletproof JavaScript benchmarks") benchmarking library that works on nearly all JavaScript platforms<sup><a name="fnref1" href="#fn1">1</a></sup>, supports high-resolution timers, and returns statistically significant results. As seen on [jsPerf](http://jsperf.com/).
 
@@ -15,7 +14,7 @@ For a list of upcoming features, check out our [roadmap](https://github.com/best
 
 ## Support
 
-Benchmark.js has been tested in at least Chrome 5~31, Firefox 2~26, IE 6-11, Opera 9.25~18, Safari 3-7, Node.js 0.6.21~0.10.24, Narwhal 0.3.2, PhantomJS 1.9.2, RingoJS 0.9, and Rhino 1.7RC5.
+Benchmark.js has been tested in at least Chrome 32-33, Firefox 27-28, IE 6-11, Opera 19-20, Safari 5-7, Node.js 0.6.21~0.10.26, Narwhal 0.3.2, PhantomJS 1.9.2, RingoJS 0.9, and Rhino 1.7RC5.
 
 ## Installation and usage
 

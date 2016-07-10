@@ -29,9 +29,8 @@ branches:
   only:
     - master
 before_install:
-  - "[ $TRAVIS_NODE_VERSION != '0.6' ] || npm conf set strict-ssl false"
-  - "[ $SAUCE_LABS == false ] || npm i ecstatic@\"~0.4.0\" request@\"~2.27.0\" sauce-tunnel@\"~1.1.0\""
-  - "[ $ISTANBUL == false ]   || npm i -g coveralls@\"~2.5.0\" istanbul@\"~0.1.0\""
+  - "[ $SAUCE_LABS == false ] || npm i ecstatic@\"^0.4.0\" request@\"^2.34.0\" sauce-tunnel@\"^1.1.0\""
+  - "[ $ISTANBUL == false ]   || npm i -g coveralls@\"^2.8.0\" istanbul@\"^0.2.0\""
   - "[ $BIN != 'narwhal' ] || (wget https://github.com/280north/narwhal/archive/v0.3.2.zip && sudo unzip v0.3.2 -d /opt/ && rm v0.3.2.zip)"
   - "[ $BIN != 'narwhal' ] || (sudo ln -s /opt/narwhal-0.3.2/bin/narwhal /usr/local/bin/narwhal && sudo chmod +x /usr/local/bin/narwhal)"
   - "[ $BIN != 'rhino' ] || (sudo mkdir /opt/rhino-1.7R5 && sudo wget -O /opt/rhino-1.7R5/js.jar https://oss.sonatype.org/content/repositories/snapshots/org/mozilla/rhino/1.7R5-SNAPSHOT/rhino-1.7R5-20120629.144839-4.jar)"
@@ -39,7 +38,7 @@ before_install:
   - "[ $BIN != 'ringo' ] || (wget http://ringojs.org/downloads/ringojs-0.9.zip && sudo unzip ringojs-0.9 -d /opt && rm ringojs-0.9.zip)"
   - "[ $BIN != 'ringo' ] || (sudo ln -s /opt/ringojs-0.9/bin/ringo /usr/local/bin/ringo && sudo chmod +x /usr/local/bin/ringo)"
 script:
-  - "[ $ISTANBUL == false ] || (istanbul cover -x \"**/vendor/**\" --report lcovonly ./test/test.js && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage)"
+  - "[ $ISTANBUL == true ]  && istanbul cover -x \"**/vendor/**\" --report lcovonly ./test/test.js && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage || true"
   - "[ $ISTANBUL == true ]  || [ $SAUCE_LABS == true ] || cd ./test" 
   - "[ $ISTANBUL == true ]  || [ $SAUCE_LABS == true ] || $BIN $OPTION ./test.js"
   - "[ $SAUCE_LABS == false ] || $BIN ./test/saucelabs.js name=\"benchmark tests\" runner=\"test/index.html\""
