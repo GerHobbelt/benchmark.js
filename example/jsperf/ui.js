@@ -49,7 +49,7 @@
     'localStorage': !!function() {
       try {
         return !localStorage.getItem(+new Date);
-      } catch(e) { }
+      } catch(e) {}
     }(),
     // used to distinguish between a regular test page and an embedded chart
     'runner': !!$('runner')
@@ -248,7 +248,7 @@
           if (console.firebug || /firebug/i.test(console.table())) {
             addClass('firebug', classNames.show);
           }
-        } catch(e) { }
+        } catch(e) {}
       }
       // clear length so tests can be manually queued
       ui.length = 0;
@@ -619,7 +619,7 @@
   window.ui = ui;
 
   // don't let users alert, confirm, prompt, or open new windows
-  window.alert = window.confirm = window.prompt = window.open = function() { };
+  window.alert = window.confirm = window.prompt = window.open = function() {};
 
   // parse hash query params when it changes
   addListener(window, 'hashchange', handlers.window.hashchange);
@@ -697,16 +697,19 @@
     // inject nano applet
     // (assumes ui.js is just before </body>)
     (function() {
+      if ('nojava' in ui.params) {
+        addClass('java', classNames.show);
+        return;
+      }
+      if (typeof Date.now == 'function') {
+        return;
+      }
       var measured,
-          perfNow,
           begin = new Date;
 
-      if ('nojava' in ui.params) {
-        return addClass('java', classNames.show);
-      }
       // is the applet really needed?
-      while (!(measured = new Date - begin)) { }
-      if (measured != 1 && !((perfNow = window.performance) && typeof (perfNow.now || perfNow.webkitNow) == 'function')) {
+      while (!(measured = new Date - begin)) {}
+      if (measured != 1) {
         // load applet using innerHTML to avoid an alert in some versions of IE6
         document.body.insertBefore(setHTML(createElement('div'),
           '<applet code=nano archive=' + archive + '>').lastChild, document.body.firstChild);
@@ -725,11 +728,11 @@
   }
   else {
     // short circuit unusable methods
-    ui.render = function() { };
+    ui.render = function() {};
     ui.off('start cycle complete');
     setTimeout(function() {
       ui.off();
-      ui.browserscope.post = function() { };
+      ui.browserscope.post = function() {};
       _.invoke(ui.benchmarks, 'off');
     }, 1);
   }

@@ -508,9 +508,9 @@
      * @param {*} value The value to clone.
      * @returns {*} The cloned value.
      */
-    var cloneDeep = _.partialRight(_.cloneDeep, function(value) {
+    var cloneDeep = _.partial(_.cloneDeep, _, function(value) {
       // only clone primitives, arrays, and plain objects
-      return (typeof value == 'object' && !_.isArray(value) && !_.isPlainObject(value))
+      return (_.isObject(value) && !_.isArray(value) && !_.isPlainObject(value))
         ? value
         : undefined;
     });
@@ -663,7 +663,7 @@
     function req(id) {
       try {
         var result = freeExports && freeRequire(id);
-      } catch(e) { }
+      } catch(e) {}
       return result || null;
     }
 
@@ -905,7 +905,7 @@
           }
           else if (async) {
             // resume execution if previously asynchronous but now synchronous
-            while (execute()) { }
+            while (execute()) {}
           }
           else {
             // continue synchronous execution
@@ -986,7 +986,7 @@
           if (isAsync(bench)) {
             delay(bench, execute);
           } else {
-            while (execute()) { }
+            while (execute()) {}
           }
         }
       }
@@ -1408,9 +1408,14 @@
      * @returns {number} Returns `-1` if slower, `1` if faster, and `0` if indeterminate.
      */
     function compare(other) {
+      var bench = this;
+
+      // exit early if comparing the same benchmark
+      if (bench == other) {
+        return 0;
+      }
       var critical,
           zStat,
-          bench = this,
           sample1 = bench.stats.sample,
           sample2 = other.stats.sample,
           size1 = sample1.length,
@@ -1435,11 +1440,6 @@
 
       function getZ(u) {
         return (u - ((size1 * size2) / 2)) / sqrt((size1 * size2 * (size1 + size2 + 1)) / 12);
-      }
-
-      // exit early if comparing the same benchmark
-      if (bench == other) {
-        return 0;
       }
       // reject the null hyphothesis the two samples come from the
       // same population (i.e. have the same median) if...
@@ -1471,8 +1471,8 @@
       }
       var event,
           index = 0,
-          changes = { 'length': 0 },
-          queue = { 'length': 0 };
+          changes = [],
+          queue = [];
 
       // a non-recursive solution to check if properties have changed
       // http://www.jslab.dk/articles/non.recursive.preorder.traversal.part4
@@ -1510,13 +1510,13 @@
             }
             // register a changed object
             if (changed) {
-              changes[changes.length++] = { 'destination': destination, 'key': key, 'value': currValue };
+              changes.push({ 'destination': destination, 'key': key, 'value': currValue });
             }
-            queue[queue.length++] = { 'destination': currValue, 'source': value };
+            queue.push({ 'destination': currValue, 'source': value });
           }
           // register a changed primitive
           else if (value !== currValue && !(value == null || _.isFunction(value))) {
-            changes[changes.length++] = { 'destination': destination, 'key': key, 'value': value };
+            changes.push({ 'destination': destination, 'key': key, 'value': value });
           }
         });
       }
@@ -1583,7 +1583,7 @@
         var bench = clone._original,
             stringable = isStringable(bench.fn),
             count = bench.count = clone.count,
-            decompilable = stringable || (support.decompilation && (_.has(clone, 'setup') || _.has(clone, 'teardown'))),
+            decompilable = stringable || (support.decompilation && (clone.setup !== _.noop || clone.teardown !== _.noop)),
             id = bench.id,
             name = bench.name || (typeof id == 'number' ? '<Test #' + id + '>' : id),
             result = 0;
@@ -1770,30 +1770,30 @@
             divisor = 1e6;
             if (ns.stop) {
               ns.start();
-              while (!(measured = ns.microseconds())) { }
+              while (!(measured = ns.microseconds())) {}
             } else {
               begin = ns();
-              while (!(measured = ns() - begin)) { }
+              while (!(measured = ns() - begin)) {}
             }
           }
           else if (unit == 'ns') {
             divisor = 1e9;
             if (ns.nanoTime) {
               begin = ns.nanoTime();
-              while (!(measured = ns.nanoTime() - begin)) { }
+              while (!(measured = ns.nanoTime() - begin)) {}
             } else {
               begin = (begin = ns())[0] + (begin[1] / divisor);
-              while (!(measured = ((measured = ns())[0] + (measured[1] / divisor)) - begin)) { }
+              while (!(measured = ((measured = ns())[0] + (measured[1] / divisor)) - begin)) {}
               divisor = 1;
             }
           }
           else if (ns.now) {
             begin = ns.now();
-            while (!(measured = ns.now() - begin)) { }
+            while (!(measured = ns.now() - begin)) {}
           }
           else {
             begin = new ns().getTime();
-            while (!(measured = new ns().getTime() - begin)) { }
+            while (!(measured = new ns().getTime() - begin)) {}
           }
           // check for broken timers (`nanoTime` may have issues)
           // http://alivebutsleepy.srnet.cz/unreliable-system-nanotime/
@@ -1813,7 +1813,7 @@
        */
       function interpolate(string) {
         // replaces all occurrences of `#` with a unique number and template tokens with content
-        return _.template(string.replace(/\#/g, /\d+/.exec(templateData.uid)), templateData);
+        return _.template(string.replace(/\#/g, /\d+/.exec(templateData.uid)))(templateData);
       }
 
       /*----------------------------------------------------------------------*/
@@ -1828,7 +1828,7 @@
         if (typeof timer.ns.nanoTime() == 'number') {
           timers.push({ 'ns': timer.ns, 'res': getRes('ns'), 'unit': 'ns' });
         }
-      } catch(e) { }
+      } catch(e) {}
 
       // detect Chrome's microsecond timer:
       // enable benchmarking via the --enable-benchmarking command
@@ -1837,7 +1837,7 @@
         if ((timer.ns = new (context.chrome || context.chromium).Interval)) {
           timers.push({ 'ns': timer.ns, 'res': getRes('us'), 'unit': 'us' });
         }
-      } catch(e) { }
+      } catch(e) {}
 
       // detect Node.js's nanosecond resolution timer available in Node.js >= 0.8
       if (processObject && typeof (timer.ns = processObject.hrtime) == 'function') {
