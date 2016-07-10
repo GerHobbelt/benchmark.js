@@ -15,8 +15,8 @@
 		<div id="qunit"></div>
 		<script src="../node_modules/qunitjs/qunit/qunit.js"></script>
 		<script src="../node_modules/qunit-extras/qunit-extras.js"></script>
-		<script src="../node_modules/lodash/dist/lodash.compat.js"></script>
-		<script src="../node_modules/platform.js/platform.js"></script>
+		<script src="../node_modules/lodash-compat/index.js"></script>
+		<script src="../node_modules/platform/platform.js"></script>
 		<script>
 			QUnit.config.hidepassed = true;
 			QUnit.urlParams.nojava = /[?&]nojava=true(?:&|$)/.test(location.search);
@@ -30,15 +30,15 @@
 				    perfNow,
 				    begin = new Date;
 
-				// is the applet really needed?
+				// Is the applet really needed?
 				while (!(measured = new Date - begin)) {}
 				if (measured != 1 && !((perfNow = window.performance) && typeof (perfNow.now || perfNow.webkitNow) == 'function')) {
-					// load applet
+					// Load the nano applet.
 					document.write('<applet code="nano" archive="../nano.jar"></applet>');
 				}
 			}());
 
-			// load test.js if not using require.js
+			// Load test.js if not using require.js.
 			document.write(QUnit.urlParams.norequire
 				? '<script src="../benchmark.js"><\/script><script src="test.js"><\/script>'
 				: '<script src="../node_modules/requirejs/require.js"><\/script>'
@@ -65,12 +65,12 @@
 						},
 						{
 							'name': 'lodash',
-							'location': '../node_modules/lodash/dist',
-							'main': 'lodash.compat'
+							'location': '../node_modules/lodash-compat',
+							'main': 'index'
 						},
 						{
 							'name': 'platform',
-							'location': '../node_modules/platform.js',
+							'location': '../node_modules/platform',
 							'main': 'platform'
 						},
 						{
@@ -81,7 +81,7 @@
 					]
 				});
 
-				// load Benchmark as a module
+				// Load Benchmark as a module.
 				require(['benchmark'], function(Benchmark) {
 					benchmarkModule = window.Benchmark = Benchmark;
 					require(['test'], function() {
@@ -90,7 +90,7 @@
 				});
 			}());
 
-			// set a more readable browser name
+			// Set a more readable browser name.
 			window.onload = function() {
 				var timeoutId = setInterval(function() {
 					var ua = document.getElementById('qunit-userAgent');
