@@ -54,7 +54,7 @@
   var contextProps = [
     'Array', 'Date', 'Function', 'Math', 'Object', 'RegExp', 'String', '_',
     'clearTimeout', 'chrome', 'chromium', 'document', 'navigator', 'phantom',
-    'platform', 'process', 'runtime', 'setTimeout'
+    'performance', 'platform', 'process', 'runtime', 'setTimeout'
   ];
 
   /** Used to avoid hz of Infinity. */
@@ -172,6 +172,15 @@
 
     /** Used to access Wade Simmons' Node.js `microtime` module. */
     var microtimeObject = req('microtime');
+
+    /** Used to access the browser's high resolution timer */
+    var perfObject = isHostType(context, 'performance') && context.performance;
+
+    /** Used to call the browser's high resolution timer */
+    var perfName = perfObject && (
+      perfObject.now && 'now' ||
+      perfObject.webkitNow && 'webkitNow'
+    );
 
     /** Used to access Node.js's high resolution timer. */
     var processObject = isHostType(context, 'process') && context.process;
@@ -1687,6 +1696,11 @@
               'begin': interpolate('s#=n#.start()'),
               'end': interpolate('r#=n#.microseconds()/1e6')
             });
+          } else if (perfName) {
+            _.assign(templateData, {
+              'begin': interpolate('s#=n#.' + perfName + '()'),
+              'end': interpolate('r#=(n#.' + perfName + '()-s#)/1e3')
+            });
           } else {
             _.assign(templateData, {
               'begin': interpolate('s#=n#()'),
@@ -1743,6 +1757,9 @@
             if (ns.stop) {
               ns.start();
               while (!(measured = ns.microseconds())) {}
+            } else if (ns[perfName]) {
+              divisor = 1e3;
+              measured = Function('n', 'var r,s=n.' + perfName + '();while(!(r=n.' + perfName + '()-s)){};return r')(ns);
             } else {
               begin = ns();
               while (!(measured = ns() - begin)) {}
@@ -1793,6 +1810,10 @@
         }
       } catch(e) {}
 
+      // Detect `performance.now` microsecond resolution timer
+      if ((timer.ns = perfName && perfObject)) {
+        timers.push({ 'ns': timer.ns, 'res': getRes('us'), 'unit': 'us' });
+      }
       // Detect Node.js's nanosecond resolution timer available in Node.js >= 0.8.
       if (processObject && typeof (timer.ns = processObject.hrtime) == 'function') {
         timers.push({ 'ns': timer.ns, 'res': getRes('ns'), 'unit': 'ns' });
