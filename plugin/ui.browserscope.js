@@ -7,8 +7,7 @@
     'lastChart': 'bar',
     'lastFilterBy': 'all',
     'responses': { /* 'all': null, 'desktop': null, 'major': null, ... */ },
-    'timers': { /* 'cleanup': null, 'load': null, 'post': null, ... */ },
-    'trash': createElement('div')
+    'timers': { /* 'load': null, 'post': null, ... */ }
   };
 
   /**
@@ -27,8 +26,11 @@
     'prerelease': 'top-d-e'
   };
 
-  /** Used to resolve a value's internal [[Class]] */
-  var toString = {}.toString;
+  /**
+   * The doctype used in the creation of iframes so Browserscope
+   * detects the correct IE compat mode.
+   */
+  var doctype = /css/i.test(document.compatMode) ? '<!doctype html>' : '';
 
   /**
    * The `uaToken` is prepended to the value of the data cell of the Google
@@ -45,17 +47,8 @@
       min = Math.min;
 
   /** Utility shortcuts */
-  var each = Benchmark.each,
-      extend = Benchmark.extend,
-      filter = Benchmark.filter,
-      forOwn = Benchmark.forOwn,
-      formatNumber = Benchmark.formatNumber,
-      hasKey = Benchmark.hasKey,
-      indexOf = Benchmark.indexOf,
-      interpolate = Benchmark.interpolate,
-      invoke = Benchmark.invoke,
-      map = Benchmark.map,
-      reduce = Benchmark.reduce;
+  var filter = Benchmark.filter,
+      formatNumber = Benchmark.formatNumber;
 
   /*--------------------------------------------------------------------------*/
 
@@ -90,7 +83,7 @@
    */
   function createElement(tagName, name, context) {
     var result;
-    name && name.nodeType && (context = name, name = 0);
+    name && name.nodeType && (context = name, name = '');
     context =  context ? context.ownerDocument || context : document;
     name || (name = '');
 
@@ -124,10 +117,11 @@
    *
    * @private
    * @param {Element} element The element.
+   * @param {Document|Element} context The element whose descendants are queried.
    * @returns {String} The text content of the element.
    */
-  function getText(element) {
-    element = query(element)[0];
+  function getText(element, context) {
+    element = query(element, context)[0];
     return element && (element.textContent || element.innerText) || '';
   }
 
@@ -166,8 +160,8 @@
       result = [selector];
     }
     else if (context) {
-      each(selector.split(','), function(selector) {
-        each(/^#/.test(selector)
+      _.each(selector.split(','), function(selector) {
+        _.each(/^#/.test(selector)
             ? [context.getElementById(selector.slice(1))]
             : context.getElementsByTagName(selector), function(node) {
           result.push(node);
@@ -188,7 +182,7 @@
    */
   function setHTML(element, html, object) {
     if ((element = query(element)[0])) {
-      element.innerHTML = interpolate(html, object);
+      element.innerHTML = _.template(html, object || {});
     }
     return element;
   }
@@ -222,26 +216,29 @@
   function addChartStyle() {
     var me = ui.browserscope,
         cssText = [],
-        iframe = query('iframe', me.container)[0],
         uaClass = me.uaClass;
+
+    var win = me.chartWindow,
+        doc = win.document,
+        iframe = query('iframe', me.container)[0];
 
     // the chart container may be an iframe in older browsers
     var chartContainer = iframe
-      ? frames[iframe.name].document
-      : query('#bs-chart')[0];
+      ? win.frames[iframe.name].document
+      : query('#bs-chart', doc)[0];
 
     var chartNodes = query('text,textpath', chartContainer),
-        context = iframe ? chartContainer : document,
+        context = iframe ? chartContainer : doc,
         result = false;
 
     if (iframe && chartNodes.length) {
       // extract CSS rules for `uaClass`
-      each(query('link,style'), function(node) {
+      _.each(query('link,style', doc), function(node) {
         // avoid access denied errors on external style sheets
         // outside the same origin policy
         try {
           var sheet = node.sheet || node.styleSheet;
-          each(sheet.cssRules || sheet.rules, function(rule) {
+          _.each(sheet.cssRules || sheet.rules, function(rule) {
             if ((rule.selectorText || rule.cssText).indexOf('.' + uaClass) > -1) {
               cssText.push(rule.style && rule.style.cssText || /[^{}]*(?=})/.exec(rule.cssText) || '');
             }
@@ -253,10 +250,10 @@
         createStyleSheet('.' + uaClass + '{' + cssText.join(';') + '}', context));
     }
     // scan chart elements for a match
-    each(chartNodes, function(node) {
+    _.some(chartNodes, function(node) {
       var nextSibling;
       if ((node.string || getText(node)).charAt(0) != uaToken) {
-        return;
+        return false;
       }
       // for VML
       if (node.string) {
@@ -269,38 +266,10 @@
       else {
         node.setAttribute('class', uaClass);
       }
-      return !(result = true);
+      return (result = true);
     });
 
     return result;
-  }
-
-  /**
-   * Periodically executed callback that removes injected script and iframe elements.
-   *
-   * @private
-   */
-  function cleanup() {
-    var me = ui.browserscope,
-        timings = me.timings,
-        timers = cache.timers,
-        trash = cache.trash,
-        delay = timings.cleanup * 1e3;
-
-    // remove injected scripts and old iframes when benchmarks aren't running
-    if (timers.cleanup && !ui.running) {
-      // if expired, destroy the element to prevent pseudo memory leaks.
-      // http://dl.dropbox.com/u/513327/removechild_ie_leak.html
-      each(query('iframe,script'), function(element) {
-        var expire = +(/^browserscope-\d+-(\d+)$/.exec(element.name) || 0)[1] + max(delay, timings.timeout * 1e3);
-        if (new Date > expire || /browserscope\.org|google\.com/.test(element.src)) {
-          trash.appendChild(element);
-          trash.innerHTML = '';
-        }
-      });
-    }
-    // schedule another round
-    timers.cleanup = setTimeout(cleanup, delay);
   }
 
   /**
@@ -315,13 +284,13 @@
         ctor,
         result = data;
 
-    if (isArray(data)) {
-      result = map(data, cloneData);
+    if (_.isArray(data)) {
+      result = _.map(data, cloneData);
     }
     else if (data === Object(data)) {
       ctor = data.constructor;
       result = ctor == Object ? {} : (fn = function(){}, fn.prototype = ctor.prototype, new fn);
-      forOwn(data, function(value, key) {
+      _.forOwn(data, function(value, key) {
         result[key] = cloneData(value);
       });
     }
@@ -336,23 +305,24 @@
    */
   function createSnapshot() {
     // clone benches, exclude those that are errored, unrun, or have hz of Infinity
-    var benches = invoke(filter(ui.benchmarks, 'successful'), 'clone'),
+    var benches = _.invoke(filter(ui.benchmarks, 'successful'), 'clone'),
         fastest = filter(benches, 'fastest'),
-        slowest = filter(benches, 'slowest'),
-        neither = filter(benches, function(bench) {
-          return indexOf(fastest, bench) + indexOf(slowest, bench) == -2;
-        });
+        slowest = filter(benches, 'slowest');
+
+    var neither = _.filter(benches, function(bench) {
+      return _.indexOf(fastest, bench) + _.indexOf(slowest, bench) == -2;
+    });
 
     function merge(destination, source) {
       destination.count = source.count;
       destination.cycles = source.cycles;
       destination.hz = source.hz;
-      destination.stats = extend({}, source.stats);
+      destination.stats = _.extend({}, source.stats);
     }
 
     // normalize results on slowest in each category
-    each(fastest.concat(slowest), function(bench) {
-      merge(bench, indexOf(fastest, bench) > -1 ? fastest[fastest.length - 1] : slowest[0]);
+    _.each(fastest.concat(slowest), function(bench) {
+      merge(bench, _.indexOf(fastest, bench) > -1 ? fastest[fastest.length - 1] : slowest[0]);
     });
 
     // sort slowest to fastest
@@ -363,7 +333,7 @@
     });
 
     // normalize the leftover benchmarks
-    reduce(neither, function(prev, bench) {
+    _.reduce(neither, function(prev, bench) {
       // if the previous slower benchmark is indistinguishable from
       // the current then use the previous benchmark's values
       if (prev.compare(bench) == 0) {
@@ -375,11 +345,11 @@
     // append benchmark ids for duplicate names or names with no alphanumeric/space characters
     // and use the upper limit of the confidence interval to compute a lower hz
     // to avoid recording inflated results caused by a high margin or error
-    return reduce(benches, function(result, bench, key) {
+    return _.reduce(benches, function(result, bench, key) {
       var stats = bench.stats;
       result || (result = {});
       key = toLabel(bench.name);
-      result[key && !hasKey(result, key) ? key : key + bench.id ] = floor(1 / (stats.mean + stats.moe));
+      result[key && !_.has(result, key) ? key : key + bench.id ] = floor(1 / (stats.mean + stats.moe));
       return result;
     }, null);
   }
@@ -394,11 +364,11 @@
   function getDataCells(object) {
     // resolve cells by duck typing because of munged property names
     var result = [];
-    forOwn(object, function(value) {
-      return !(isArray(value) && (result = value));
+    _.forOwn(object, function(value) {
+      return !(_.isArray(value) && (result = value));
     });
     // remove empty entries which occur when not all the tests are recorded
-    return filter(result, Boolean);
+    return _.compact(result);
   }
 
   /**
@@ -413,16 +383,16 @@
         labelMap = {};
 
     // resolve labels by duck typing because of munged property names
-    forOwn(object, function(value) {
-      return !(isArray(value) && 0 in value && 'type' in value[0] && (result = value));
+    _.forOwn(object, function(value) {
+      return !(_.isArray(value) && 0 in value && 'type' in value[0] && (result = value));
     });
     // create a data map of labels to names
-    each(ui.benchmarks, function(bench) {
+    _.each(ui.benchmarks, function(bench) {
       var key = toLabel(bench.name);
-      labelMap[key && !hasKey(labelMap, key) ? key : key + bench.id ] = bench.name;
+      labelMap[key && !_.has(labelMap, key) ? key : key + bench.id ] = bench.name;
     });
     // replace Browserscope's basic labels with benchmark names
-    return each(result, function(cell) {
+    return _.each(result, function(cell) {
       var name = labelMap[cell.label];
       name && (cell.label = name);
     });
@@ -437,19 +407,21 @@
    */
   function getDataRows(object) {
     var name,
+        me = ui.browserscope,
         filterBy = cache.lastFilterBy,
-        browserName = toBrowserName(getText(query('strong', '#bs-ua')[0]), filterBy),
-        uaClass = ui.browserscope.uaClass,
+        bsUa = query('#bs-ua', me.chartWindow.document)[0],
+        browserName = toBrowserName(getText(query('strong', bsUa)[0]), filterBy),
+        uaClass = me.uaClass,
         result = [];
 
     // resolve rows by duck typing because of munged property names
-    forOwn(object, function(value, key) {
-      return !(isArray(value) && 0 in value && !('type' in value[0]) && (name = key, result = value));
+    _.forOwn(object, function(value, key) {
+      return !(_.isArray(value) && 0 in value && !('type' in value[0]) && (name = key, result = value));
     });
     // remove empty rows and set the `p.className` on the browser
     // name cell that matches the user's browser name
     if (result.length) {
-      result = object[name] = filter(result, function(value) {
+      result = object[name] = _.filter(result, function(value) {
         var cells = getDataCells(value),
             first = cells[0],
             second = cells[1];
@@ -466,18 +438,6 @@
       });
     }
     return result;
-  }
-
-  /**
-   * Checks if a value has an internal [[Class]] of Array.
-   *
-   * @private
-   * @param {Mixed} value The value to check.
-   * @returns {Boolean} Returns `true` if the value has an internal [[Class]] of
-   *  Array, else `false`.
-   */
-  function isArray(value) {
-    return toString.call(value) == '[object Array]';
   }
 
   /**
@@ -550,6 +510,24 @@
     return (text || '').replace(/[^a-z0-9]+/gi, ' ');
   }
 
+  /**
+   * Updates the `ui.browserscope.chartFrame` height based on the height of its content.
+   *
+   * @private
+   */
+  function updateChartFrameHeight() {
+    var me = ui.browserscope,
+        doc = me.chartWindow.document,
+        docEl = doc.documentElement,
+        body = doc.body;
+
+    me.chartFrame.style.height = max(
+      docEl.clientHeight,
+      docEl.offsetHeight, body.offsetHeight,
+      docEl.scrollHeight, body.scrollHeight
+    ) + 'px';
+  }
+
   /*--------------------------------------------------------------------------*/
 
   /**
@@ -566,9 +544,10 @@
         me = ui.browserscope,
         cont = me.container,
         filterBy = cache.lastFilterBy = options.filterBy || cache.lastFilterBy,
+        google = me.chartWindow.google,
         responses = cache.responses,
         response = cache.responses[filterBy],
-        visualization = window.google && google.visualization;
+        visualization = google && google.visualization;
 
     function onComplete(response) {
       var lastResponse = responses[filterBy];
@@ -583,13 +562,13 @@
         }
       }
     }
-
     // set last action in case the load fails and a retry is needed
     setAction('load');
 
-    // exit early if there is no container element or the response is cached
-    // and retry if the visualization library hasn't loaded yet
     if (!cont || !visualization || !visualization.Query || response) {
+      // exit early if there is no container element or the response is cached
+      // and retry if the visualization library hasn't loaded yet
+      setMessage('');
       cont && onComplete(response);
     }
     else if (!ui.running) {
@@ -613,47 +592,46 @@
    * @memberOf ui.browserscope
    */
   function post() {
-    var idoc,
-        iframe,
-        body = document.body,
-        me = ui.browserscope,
+    var me = ui.browserscope,
         key = me.key,
-        timings = me.timings,
-        name = 'browserscope-' + (cache.counter++) + '-' + (+new Date),
         snapshot = createSnapshot();
 
     // set last action in case the post fails and a retry is needed
     setAction('post');
 
     if (key && snapshot && me.postable && !ui.running && !/Simulator/i.test(Benchmark.platform)) {
+      var win = me.chartWindow,
+          doc = win.document,
+          name = 'browserscope-' + cache.counter++,
+          iframe = createElement('iframe', name, doc);
+
       // create new beacon
-      // (the name contains a timestamp so `cleanup()` can determine when to remove it)
-      iframe = createElement('iframe', name);
-      body.insertBefore(iframe, body.firstChild);
-      idoc = frames[name].document;
+      doc.body.appendChild(iframe);
       iframe.style.display = 'none';
 
       // expose results snapshot
       me.snapshot = snapshot;
+
       // set "posting" message and attempt to post the results snapshot
       setMessage(me.texts.post);
+
       // Note: We originally created an iframe to avoid Browerscope's old limit
       // of one beacon per page load. It's currently used to implement custom
       // request timeout and retry routines.
-      idoc.write(interpolate(
-        // the doctype is required so Browserscope detects the correct IE compat mode
-        '#{doctype}<title></title><body><script>' +
+      var idoc = win.frames[name].document;
+      idoc.write(_.template(
+        '${doctype}<title></title><body><script>' +
         'with(parent.ui.browserscope){' +
         'var _bTestResults=snapshot,' +
-        '_bC=function(){clearTimeout(_bT);parent.setTimeout(function(){purge();load()},#{refresh}*1e3)},' +
-        '_bT=setTimeout(function(){_bC=function(){};render()},#{timeout}*1e3)' +
+        '_bC=function(){clearTimeout(_bT);parent.setTimeout(function(){purge();load()},${refresh}*1e3)},' +
+        '_bT=setTimeout(function(){_bC=function(){};render()},${timeout}*1e3)' +
         '}<\/script>' +
-        '<script src=//www.browserscope.org/user/beacon/#{key}?callback=_bC><\/script>',
+        '<script src=//www.browserscope.org/user/beacon/${key}?callback=_bC><\/script>',
         {
-          'doctype': /css/i.test(document.compatMode) ? '<!doctype html>' : '',
-          'key': key,
-          'refresh': timings.refresh,
-          'timeout': timings.timeout
+          'doctype': doctype,
+          'key': me.key,
+          'refresh': me.timings.refresh,
+          'timeout': me.timings.timeout
         }
       ));
       // avoid the IE spinner of doom
@@ -678,7 +656,7 @@
     if (key) {
       delete responses[key];
     } else {
-      forOwn(responses, function(value, key) {
+      _.forOwn(responses, function(value, key) {
         delete responses[key];
       });
     }
@@ -698,14 +676,11 @@
     // coordinates, dimensions, and sizes are in px
     var areaHeight,
         cellWidth,
-        data,
-        labels,
-        rowCount,
-        rows,
         me = ui.browserscope,
         cont = me.container,
+        google = me.chartWindow.google,
         responses = cache.responses,
-        visualization = window.google && google.visualization,
+        visualization = google && google.visualization,
         lastChart = cache.lastChart,
         chart = cache.lastChart = options.chart || lastChart,
         lastFilterBy = cache.lastFilterBy,
@@ -757,12 +732,16 @@
     // visualization chart gallary
     // http://code.google.com/apis/chart/interactive/docs/gallery.html
     else if (!ui.running) {
-      cont.className = '';
-      data = cloneData(response.getDataTable());
-      labels = getDataLabels(data);
-      rows = getDataRows(data);
-      rowCount = rows.length;
+      var data = cloneData(response.getDataTable()),
+          labels = getDataLabels(data),
+          rows = getDataRows(data),
+          rowCount = rows.length;
+
+      // capitalize chart
       chart = chart.charAt(0).toUpperCase() + chart.slice(1).toLowerCase();
+
+      // clear `bs-rt-message`
+      cont.className = '';
 
       // adjust data for non-tabular displays
       if (chart != 'Table') {
@@ -770,8 +749,8 @@
         labels.pop();
 
         // modify row data
-        each(rows, function(row) {
-          each(getDataCells(row), function(cell, index, cells) {
+        _.each(rows, function(row) {
+          _.each(getDataCells(row), function(cell, index, cells) {
             var lastIndex = cells.length - 1;
 
             // cells[1] through cells[lastIndex - 1] are ops/sec cells
@@ -805,7 +784,7 @@
               // (IE may render a negligible space in the tooltip of browser names truncated with ellipsis)
               cell.f = uaToken + cell.f;
               // poll until the chart elements exist and are styled
-              poll(function() { return !addChartStyle(); }, 0.01);
+              poll(function() { return !addChartStyle(me.chartWindow.document); }, 0.01);
             }
           });
         });
@@ -852,12 +831,14 @@
       }
 
       if (rowCount && visualization[chart]) {
-         new visualization[chart](cont).draw(data, {
+        var chartObject = new visualization[chart](cont);
+        visualization.events.addListener(chartObject, 'ready', updateChartFrameHeight);
+        chartObject.draw(data, {
           'colors': ui.browserscope.colors,
           'fontSize': fontSize,
+          'height': height,
           'is3D': true,
           'legend': legend,
-          'height': height,
           'title': title,
           'width': width,
           'chartArea': { 'height': areaHeight, 'left': left, 'top': top, 'width': areaWidth },
@@ -915,14 +896,6 @@
      * @type Object
      */
     'timings': {
-
-      /**
-       * The delay between removing abandoned script and iframe elements (secs).
-       *
-       * @memberOf ui.browserscope.timings
-       * @type Number
-       */
-      'cleanup': 10,
 
       /**
        * The delay before refreshing the cumulative results after posting (secs).
@@ -1018,34 +991,70 @@
         key = me.key,
         placeholder = key && query(me.selector)[0];
 
-    // create results html
-    if (placeholder) {
-      setHTML(placeholder,
-        '<h1 id=bs-logo><a href=//www.browserscope.org/user/tests/table/#{key}>' +
-        '<span>Browserscope</span></a></h1>' +
-        '<div class=bs-rt><div id=bs-chart></div></div>',
-        { 'key': key });
-
-      // the element the charts are inserted into
-      me.container = query('#bs-chart')[0];
-
-      // Browserscope's UA div is inserted before an element with the id of "bs-ua-script"
-      loadScript('//www.browserscope.org/ua?o=js', me.container).id = 'bs-ua-script';
-
-      // the "autoload" string can be created with
-      // http://code.google.com/apis/loader/autoloader-wizard.html
-      loadScript('//www.google.com/jsapi?autoload=' + encodeURIComponent('{' +
-        'modules:[{' +
-          'name:"visualization",' +
-          'version:1,' +
-          'packages:["corechart","table"],' +
-          'callback:ui.browserscope.load' +
-        '}]' +
-      '}'));
-
-      // init garbage collector
-      cleanup();
+    if (!placeholder) {
+      return;
     }
+    var name = 'bs-chart-frame',
+        iframe = createElement('iframe', name);
+
+    iframe.id = name;
+    iframe.frameBorder = 0;
+    iframe.scrolling = 'no';
+
+    placeholder.parentNode.replaceChild(iframe, placeholder);
+
+    var iwin = frames[name],
+        idoc = iwin.document,
+        href = 'main.css';
+
+    _.some(document.styleSheets, function(sheet) {
+      var value = sheet.href;
+      return value && value.indexOf(location.hostname) > -1 && (href = value);
+    });
+
+    idoc.write(_.template(
+      '${doctype}<html><head><meta charset="utf-8"><title></title>' +
+      '<link rel="stylesheet" href="${href}">' +
+      '<script>ui=parent.ui<\/script>' +
+      '</head><body>' +
+      '<div id=bs-results>' +
+      '<h1 id=bs-logo><a href=//www.browserscope.org/user/tests/table/${key}>' +
+      '<span>Browserscope</span></a></h1>' +
+      '<div class=bs-rt><div id=bs-chart></div></div>' +
+      '</div>' +
+      '</body></html>',
+      {
+        'doctype': doctype,
+        'href': href,
+        'key': key
+      }
+    ));
+    // avoid the IE spinner of doom
+    // http://www.google.com/search?q=IE+throbber+of+doom
+    idoc.close();
+
+    // the frame element of the charts
+    me.chartFrame = iframe;
+
+    // the frame window of the charts
+    me.chartWindow = iwin;
+
+    // the element the charts are inserted into
+    me.container = query('#bs-chart', idoc)[0];
+
+    // Browserscope's UA div is inserted before an element with the id of "bs-ua-script"
+    loadScript('//www.browserscope.org/ua?o=js', me.container).id = 'bs-ua-script';
+
+    // the "autoload" string can be created with
+    // http://code.google.com/apis/loader/autoloader-wizard.html
+    loadScript('//www.google.com/jsapi?autoload=' + encodeURIComponent('{' +
+      'modules:[{' +
+        'name:"visualization",' +
+        'version:1,' +
+        'packages:["corechart","table"],' +
+        'callback:ui.browserscope.load' +
+      '}]' +
+    '}'), idoc);
   });
 
   // hide the chart while benchmarks are running

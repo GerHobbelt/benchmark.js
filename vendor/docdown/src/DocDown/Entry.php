@@ -11,7 +11,7 @@ class Entry {
    * The documentation entry.
    *
    * @memberOf Entry
-   * @type String
+   * @type string
    */
   public $entry = '';
 
@@ -19,7 +19,7 @@ class Entry {
    * The language highlighter used for code examples.
    *
    * @memberOf Entry
-   * @type String
+   * @type string
    */
   public $lang = '';
 
@@ -27,7 +27,7 @@ class Entry {
    * The source code.
    *
    * @memberOf Entry
-   * @type String
+   * @type string
    */
   public $source = '';
 
@@ -37,9 +37,9 @@ class Entry {
    * The Entry constructor.
    *
    * @constructor
-   * @param {String} $entry The documentation entry to analyse.
-   * @param {String} $source The source code.
-   * @param {String} [$lang ='js'] The language highlighter used for code examples.
+   * @param {string} $entry The documentation entry to analyse.
+   * @param {string} $source The source code.
+   * @param {string} [$lang ='js'] The language highlighter used for code examples.
    */
   public function __construct( $entry, $source, $lang = 'js' ) {
     $this->entry = $entry;
@@ -54,11 +54,11 @@ class Entry {
    *
    * @static
    * @memberOf Entry
-   * @param {String} $source The source code.
+   * @param {string} $source The source code.
    * @returns {Array} The array of entries.
    */
   public static function getEntries( $source ) {
-    preg_match_all('#/\*\*(?![-!])[\s\S]*?\*/\s*[^\n]+#', $source, $result);
+    preg_match_all('#/\*\*(?![-!])[\s\S]*?\*/\s*.+#', $source, $result);
     return array_pop($result);
   }
 
@@ -69,7 +69,7 @@ class Entry {
    *
    * @private
    * @memberOf Entry
-   * @returns {Boolean} Returns `true` if the entry is a function reference, else `false`.
+   * @returns {boolean} Returns `true` if the entry is a function reference, else `false`.
    */
   private function isFunction() {
     if (!isset($this->_isFunction)) {
@@ -77,7 +77,7 @@ class Entry {
         $this->isCtor() ||
         count($this->getParams()) ||
         count($this->getReturns()) ||
-        preg_match('/\* *@function\b/', $this->entry)
+        preg_match('/\*[\t ]*@function\b/', $this->entry)
       );
     }
     return $this->_isFunction;
@@ -89,15 +89,15 @@ class Entry {
    * Extracts the entry's `alias` objects.
    *
    * @memberOf Entry
-   * @param {Number} $index The index of the array value to return.
-   * @returns {Array|String} The entry's `alias` objects.
+   * @param {number} $index The index of the array value to return.
+   * @returns {Array|string} The entry's `alias` objects.
    */
   public function getAliases( $index = null ) {
     if (!isset($this->_aliases)) {
-      preg_match('#\* *@alias\s+([^\n]+)#', $this->entry, $result);
+      preg_match('#\*[\t ]*@alias\s+(.+)#', $this->entry, $result);
 
       if (count($result)) {
-        $result = trim(preg_replace('/(?:^|\n)\s*\* ?/', ' ', $result[1]));
+        $result = trim(preg_replace('/(?:^|\n)[\t ]*\*[\t ]?/', ' ', $result[1]));
         $result = preg_split('/,\s*/', $result);
         natsort($result);
 
@@ -116,7 +116,7 @@ class Entry {
    * Extracts the function call from the entry.
    *
    * @memberOf Entry
-   * @returns {String} The function call.
+   * @returns {string} The function call.
    */
   public function getCall() {
     if (isset($this->_call)) {
@@ -129,7 +129,7 @@ class Entry {
     }
     // resolve name
     // avoid $this->getName() because it calls $this->getCall()
-    preg_match('#\* *@name\s+([^\n]+)#', $this->entry, $name);
+    preg_match('#\*[\t ]*@name\s+(.+)#', $this->entry, $name);
     if (count($name)) {
       $name = trim($name[1]);
     } else {
@@ -140,12 +140,15 @@ class Entry {
       // compose parts
       $result = array($result);
       $params = $this->getParams();
+
       foreach ($params as $param) {
-        $result[] = $param[1];
+        // skip params that are properties of other params (e.g. `options.leading`)
+        if (!preg_match('/\w+\.[\w.]+\s*=/', $param[1])) {
+          $result[] = $param[1];
+        }
       }
       // format
       $result = $name .'('. implode(array_slice($result, 1), ', ') .')';
-      $result = str_replace(', [', ' [, ', str_replace('], [', ', ', $result));
     }
 
     $this->_call = $result ? $result : $name;
@@ -156,16 +159,16 @@ class Entry {
    * Extracts the entry's `category` data.
    *
    * @memberOf Entry
-   * @returns {String} The entry's `category` data.
+   * @returns {string} The entry's `category` data.
    */
   public function getCategory() {
     if (isset($this->_category)) {
       return $this->_category;
     }
 
-    preg_match('#\* *@category\s+([^\n]+)#', $this->entry, $result);
+    preg_match('#\*[\t ]*@category\s+(.+)#', $this->entry, $result);
     if (count($result)) {
-      $result = trim(preg_replace('/(?:^|\n)\s*\* ?/', ' ', $result[1]));
+      $result = trim(preg_replace('/(?:^|\n)[\t ]*\*[\t ]?/', ' ', $result[1]));
     } else {
       $result = $this->getType() == 'Function' ? 'Methods' : 'Properties';
     }
@@ -177,7 +180,7 @@ class Entry {
    * Extracts the entry's description.
    *
    * @memberOf Entry
-   * @returns {String} The entry's description.
+   * @returns {string} The entry's description.
    */
   public function getDesc() {
     if (isset($this->_desc)) {
@@ -187,9 +190,9 @@ class Entry {
     preg_match('#/\*\*(?:\s*\*)?([\s\S]*?)(?=\*\s\@[a-z]|\*/)#', $this->entry, $result);
     if (count($result)) {
       $type = $this->getType();
-      $result = preg_replace('/:\n *\* */', ":<br>\n", $result[1]);
-      $result = preg_replace('/(?:^|\n) *\*\n *\* */', "\n\n", $result);
-      $result = preg_replace('/(?:^|\n) *\* ?/', ' ', $result);
+      $result = preg_replace('/:\n[\t ]*\*[\t ]*/', ":<br>\n", $result[1]);
+      $result = preg_replace('/(?:^|\n)[\t ]*\*\n[\t ]*\*[\t ]*/', "\n\n", $result);
+      $result = preg_replace('/(?:^|\n)[\t ]*\*[\t ]?/', ' ', $result);
       $result = trim($result);
       $result = ($type == 'Function' ? '' : '(' . str_replace('|', ', ', trim($type, '{}')) . '): ') . $result;
     }
@@ -201,16 +204,16 @@ class Entry {
    * Extracts the entry's `example` data.
    *
    * @memberOf Entry
-   * @returns {String} The entry's `example` data.
+   * @returns {string} The entry's `example` data.
    */
   public function getExample() {
     if (isset($this->_example)) {
       return $this->_example;
     }
 
-    preg_match('#\* *@example\s+([\s\S]*?)(?=\*\s\@[a-z]|\*/)#', $this->entry, $result);
+    preg_match('#\*[\t ]*@example\s+([\s\S]*?)(?=\*\s\@[a-z]|\*/)#', $this->entry, $result);
     if (count($result)) {
-      $result = trim(preg_replace('/(?:^|\n)\s*\* ?/', "\n", $result[1]));
+      $result = trim(preg_replace('/(?:^|\n)[\t ]*\*[\t ]?/', "\n", $result[1]));
       $result = '```' . $this->lang . "\n" . $result . "\n```";
     }
     $this->_example = $result;
@@ -221,7 +224,7 @@ class Entry {
    * Checks if the entry is an alias.
    *
    * @memberOf Entry
-   * @returns {Boolean} Returns `false`.
+   * @returns {boolean} Returns `false`.
    */
   public function isAlias() {
     return false;
@@ -231,11 +234,11 @@ class Entry {
    * Checks if the entry is a constructor.
    *
    * @memberOf Entry
-   * @returns {Boolean} Returns `true` if a constructor, else `false`.
+   * @returns {boolean} Returns `true` if a constructor, else `false`.
    */
   public function isCtor() {
     if (!isset($this->_isCtor)) {
-      $this->_isCtor = !!preg_match('/\* *@constructor\b/', $this->entry);
+      $this->_isCtor = !!preg_match('/\*[\t ]*@constructor\b/', $this->entry);
     }
     return $this->_isCtor;
   }
@@ -244,11 +247,11 @@ class Entry {
    * Checks if the entry is a license.
    *
    * @memberOf Entry
-   * @returns {Boolean} Returns `true` if a license, else `false`.
+   * @returns {boolean} Returns `true` if a license, else `false`.
    */
   public function isLicense() {
     if (!isset($this->_isLicense)) {
-      $this->_isLicense = !!preg_match('/\* *@license\b/', $this->entry);
+      $this->_isLicense = !!preg_match('/\*[\t ]*@license\b/', $this->entry);
     }
     return $this->_isLicense;
   }
@@ -257,7 +260,7 @@ class Entry {
    * Checks if the entry *is* assigned to a prototype.
    *
    * @memberOf Entry
-   * @returns {Boolean} Returns `true` if assigned to a prototype, else `false`.
+   * @returns {boolean} Returns `true` if assigned to a prototype, else `false`.
    */
   public function isPlugin() {
     if (!isset($this->_isPlugin)) {
@@ -270,11 +273,11 @@ class Entry {
    * Checks if the entry is private.
    *
    * @memberOf Entry
-   * @returns {Boolean} Returns `true` if private, else `false`.
+   * @returns {boolean} Returns `true` if private, else `false`.
    */
   public function isPrivate() {
     if (!isset($this->_isPrivate)) {
-      $this->_isPrivate = $this->isLicense() || !!preg_match('/\* *@private\b/', $this->entry) || !preg_match('/\* *@[a-z]+\b/', $this->entry);
+      $this->_isPrivate = $this->isLicense() || !!preg_match('/\*[\t ]*@private\b/', $this->entry) || !preg_match('/\*[\t ]*@[a-z]+\b/', $this->entry);
     }
     return $this->_isPrivate;
   }
@@ -283,7 +286,7 @@ class Entry {
    * Checks if the entry is *not* assigned to a prototype.
    *
    * @memberOf Entry
-   * @returns {Boolean} Returns `true` if not assigned to a prototype, else `false`.
+   * @returns {boolean} Returns `true` if not assigned to a prototype, else `false`.
    */
   public function isStatic() {
     if (isset($this->_isStatic)) {
@@ -291,7 +294,7 @@ class Entry {
     }
 
     $public = !$this->isPrivate();
-    $result = $public && !!preg_match('/\* *@static\b/', $this->entry);
+    $result = $public && !!preg_match('/\*[\t ]*@static\b/', $this->entry);
 
     // set in cases where it isn't explicitly stated
     if ($public && !$result) {
@@ -315,7 +318,7 @@ class Entry {
    * Resolves the entry's line number.
    *
    * @memberOf Entry
-   * @returns {Number} The entry's line number.
+   * @returns {number} The entry's line number.
    */
   public function getLineNumber() {
     if (!isset($this->_lineNumber)) {
@@ -329,14 +332,14 @@ class Entry {
    * Extracts the entry's `member` data.
    *
    * @memberOf Entry
-   * @param {Number} $index The index of the array value to return.
-   * @returns {Array|String} The entry's `member` data.
+   * @param {number} $index The index of the array value to return.
+   * @returns {Array|string} The entry's `member` data.
    */
   public function getMembers( $index = null ) {
     if (!isset($this->_members)) {
-      preg_match('#\* *@member(?:Of)?\s+([^\n]+)#', $this->entry, $result);
+      preg_match('#\*[\t ]*@member(?:Of)?\s+(.+)#', $this->entry, $result);
       if (count($result)) {
-        $result = trim(preg_replace('/(?:^|\n)\s*\* ?/', ' ', $result[1]));
+        $result = trim(preg_replace('/(?:^|\n)[\t ]*\*[\t ]?/', ' ', $result[1]));
         $result = preg_split('/,\s*/', $result);
         natsort($result);
       }
@@ -351,16 +354,16 @@ class Entry {
    * Extracts the entry's `name` data.
    *
    * @memberOf Entry
-   * @returns {String} The entry's `name` data.
+   * @returns {string} The entry's `name` data.
    */
   public function getName() {
     if (isset($this->_name)) {
       return $this->_name;
     }
 
-    preg_match('#\* *@name\s+([^\n]+)#', $this->entry, $result);
+    preg_match('#\*[\t ]*@name\s+(.+)#', $this->entry, $result);
     if (count($result)) {
-      $result = trim(preg_replace('/(?:^|\n)\s*\* ?/', ' ', $result[1]));
+      $result = trim(preg_replace('/(?:^|\n)[\t ]*\*[\t ]?/', ' ', $result[1]));
     } else {
       $result = array_shift(explode('(', $this->getCall()));
     }
@@ -372,23 +375,26 @@ class Entry {
    * Extracts the entry's `param` data.
    *
    * @memberOf Entry
-   * @param {Number} $index The index of the array value to return.
+   * @param {number} $index The index of the array value to return.
    * @returns {Array} The entry's `param` data.
    */
   public function getParams( $index = null ) {
     if (!isset($this->_params)) {
-      preg_match_all('#\* *@param\s+\{([^}]+)\}\s+(\[.+\]|[$\w|]+(?:\[.+\])?)\s+([\s\S]*?)(?=\*\s\@[a-z]|\*/)#i', $this->entry, $result);
-      if (count($result = array_filter(array_slice($result, 1)))) {
-        // repurpose array
-        foreach ($result as $param) {
-          foreach ($param as $key => $value) {
-            if (!is_array($result[0][$key])) {
-              $result[0][$key] = array();
+      preg_match_all('#\*[\t ]*@param\s+\{\(?([^})]+)\)?\}\s+(\[.+\]|[$\w|]+(?:\[.+\])?)\s+([\s\S]*?)(?=\*\s\@[a-z]|\*/)#i', $this->entry, $matchTuples);
+      $matchTuples = array_filter(array_slice($matchTuples, 1));
+      $result = array();
+
+      if (count($matchTuples)) {
+        foreach ($matchTuples as $tupleKey => $tuple) {
+          foreach ($tuple as $key => $value) {
+            if (!isset($result[$key])) {
+              $result[$key] = array();
             }
-            $result[0][$key][] = trim(preg_replace('/(?:^|\n)\s*\* */', ' ', $value));
+            $result[$key][] = $tupleKey
+              ? trim(preg_replace('/(?:^|\n)[\t ]*\*[\t ]*/', ' ', $value))
+              : trim($value);
           }
         }
-        $result = $result[0];
       }
       $this->_params = $result;
     }
@@ -401,18 +407,18 @@ class Entry {
    * Extracts the entry's `returns` data.
    *
    * @memberOf Entry
-   * @returns {String} The entry's `returns` data.
+   * @returns {string} The entry's `returns` data.
    */
   public function getReturns() {
     if (isset($this->_returns)) {
       return $this->_returns;
     }
 
-    preg_match('#\* *@returns\s+\{([^}]+)\}\s+([\s\S]*?)(?=\*\s\@[a-z]|\*/)#', $this->entry, $result);
+    preg_match('#\*[\t ]*@returns\s+\{([^}]+)\}\s+([\s\S]*?)(?=\*\s\@[a-z]|\*/)#', $this->entry, $result);
     if (count($result)) {
       $result = array_map('trim', array_slice($result, 1));
       $result[0] = str_replace('|', ', ', $result[0]);
-      $result[1] = preg_replace('/(?:^|\n)\s*\* ?/', ' ', $result[1]);
+      $result[1] = preg_replace('/(?:^|\n)[\t ]*\*[\t ]?/', ' ', $result[1]);
     }
     $this->_returns = $result;
     return $result;
@@ -422,18 +428,21 @@ class Entry {
    * Extracts the entry's `type` data.
    *
    * @memberOf Entry
-   * @returns {String} The entry's `type` data.
+   * @returns {string} The entry's `type` data.
    */
   public function getType() {
     if (isset($this->_type)) {
       return $this->_type;
     }
 
-    preg_match('#\* *@type\s+([^\n]+)#', $this->entry, $result);
+    preg_match('#\*[\t ]*@type\s(?:\{\(?)?([^)}\n]+)#', $this->entry, $result);
     if (count($result)) {
-      $result = trim(preg_replace('/(?:^|\n)\s*\* ?/', ' ', $result[1]));
+      $result = trim($result[1]);
+      if (preg_match('/^(?:array|function|object|regexp)$/', $result)) {
+        $result = ucfirst($result);
+      }
     } else {
-      $result = $this->isFunction() ? 'Function' : 'Unknown';
+      $result = $this->isFunction() ? 'Function' : 'unknown';
     }
     $this->_type = $result;
     return $result;

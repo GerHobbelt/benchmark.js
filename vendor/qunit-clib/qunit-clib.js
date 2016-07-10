@@ -4,16 +4,16 @@
  * Based on a gist by Jörn Zaefferer <https://gist.github.com/722381>
  * Available under MIT license <http://mths.be/mit>
  */
-;(function(window) {
+;(function(root) {
   'use strict';
 
   /** Detect free variable `exports` */
   var freeExports = typeof exports == 'object' && exports;
 
-  /** Detect free variable `global` and use it as `window` */
+  /** Detect free variable `global`, from Node.js or Browserified code, and use it as `root` */
   var freeGlobal = typeof global == 'object' && global;
-  if (freeGlobal.global === freeGlobal) {
-    window = freeGlobal;
+  if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+    root = freeGlobal;
   }
 
   /*--------------------------------------------------------------------------*/
@@ -34,11 +34,11 @@
      * Schedules timer-based callbacks.
      *
      * @private
-     * @param {Function|String} fn The function to call.
-     * @oaram {Number} delay The number of milliseconds to delay the `fn` call.
+     * @param {Function|string} fn The function to call.
+     * @param {number} delay The number of milliseconds to delay the `fn` call.
      * @param [arg1, arg2, ...] Arguments to invoke `fn` with.
-     * @param {Boolean} repeated A flag to specify whether `fn` is called repeatedly.
-     * @returns {Number} The the ID of the timeout.
+     * @param {boolean} repeated A flag to specify whether `fn` is called repeatedly.
+     * @returns {number} The the ID of the timeout.
      */
     function schedule(fn, delay, args, repeated) {
       // Rhino 1.7RC4 will error assigning `task` below
@@ -70,7 +70,7 @@
      * Clears the delay set by `setInterval` or `setTimeout`.
      *
      * @memberOf context
-     * @param {Number} id The ID of the timeout to be cleared.
+     * @param {number} id The ID of the timeout to be cleared.
      */
     function clearTimer(id) {
       if (ids[id]) {
@@ -84,10 +84,10 @@
      * Executes a code snippet or function repeatedly, with a delay between each call.
      *
      * @memberOf context
-     * @param {Function|String} fn The function to call or string to evaluate.
-     * @oaram {Number} delay The number of milliseconds to delay each `fn` call.
+     * @param {Function|string} fn The function to call or string to evaluate.
+     * @param {number} delay The number of milliseconds to delay each `fn` call.
      * @param [arg1, arg2, ...] Arguments to invoke `fn` with.
-     * @returns {Number} The the ID of the timeout.
+     * @returns {number} The the ID of the timeout.
      */
     function setInterval(fn, delay) {
       return schedule(fn, delay, slice.call(arguments, 2), true);
@@ -97,10 +97,10 @@
      * Executes a code snippet or a function after specified delay.
      *
      * @memberOf context
-     * @param {Function|String} fn The function to call or string to evaluate.
-     * @oaram {Number} delay The number of milliseconds to delay the `fn` call.
+     * @param {Function|string} fn The function to call or string to evaluate.
+     * @param {number} delay The number of milliseconds to delay the `fn` call.
      * @param [arg1, arg2, ...] Arguments to invoke `fn` with.
-     * @returns {Number} The the ID of the timeout.
+     * @returns {number} The the ID of the timeout.
      */
     function setTimeout(fn, delay) {
       return schedule(fn, delay, slice.call(arguments, 2));
@@ -108,14 +108,48 @@
 
     /*------------------------------------------------------------------------*/
 
+    /** Used to report the test module for failing tests */
+    var moduleName,
+        modulePrinted;
+
     /** Add `console.log()` support for Narwhal, Rhino, and RingoJS */
     var console = context.console || (context.console = { 'log': context.print });
+
+    /** Used as a horizontal rule in console output */
+    var hr = '----------------------------------------';
+
+    /** Used by `logInline` to clear previously logged messages */
+    var prevLine = '';
 
     /** Shorten `context.QUnit.QUnit` to `context.QUnit` */
     var QUnit = context.QUnit = context.QUnit.QUnit || context.QUnit;
 
-    /** Used as a horizontal rule in console output */
-    var hr = '----------------------------------------';
+    /**
+     * Logs an inline message to standard output.
+     *
+     * @private
+     * @param {string} text The text to log.
+     */
+    var logInline = (function() {
+      // exit early if not Node.js
+      if (!(typeof process == 'object' && process &&
+          process.on && process.stdout && process.platform != 'win32')) {
+        return function() {};
+      }
+      // cleanup any inline logs when exited via `ctrl+c`
+      process.on('SIGINT', function() {
+        logInline('');
+        process.exit();
+      });
+      return function(text) {
+        var blankLine = Array(prevLine.length + 1).join(' ');
+        if (text.length > hr.length) {
+          text = text.slice(0, hr.length - 3) + '...';
+        }
+        prevLine = text;
+        process.stdout.write(text + blankLine.slice(text.length) + '\r');
+      }
+    }());
 
     /**
      * A logging callback triggered when all testing is completed.
@@ -133,12 +167,13 @@
         }
         ran = true;
 
+        logInline('');
         console.log(hr);
         console.log('    PASS: ' + details.passed + '  FAIL: ' + details.failed + '  TOTAL: ' + details.total);
         console.log('    Finished in ' + details.runtime + ' milliseconds.');
         console.log(hr);
 
-        // exit out of Narhwal, Rhino, or Ringo
+        // exit out of Narhwal, Rhino, or RingoJS
         try {
           quit();
         } catch(e) { }
@@ -186,9 +221,11 @@
      * @param {Object} details An object with property `name`.
      */
     QUnit.moduleStart(function(details) {
-      console.log(hr);
-      console.log(details.name);
-      console.log(hr);
+      var newModuleName = details.name;
+      if (moduleName != newModuleName) {
+        moduleName = newModuleName;
+        modulePrinted = false;
+      }
     });
 
     /**
@@ -197,7 +234,7 @@
      * @memberOf QUnit
      * @type Function
      * @param {Object} object The object to stringify.
-     * @returns {String} The result string.
+     * @returns {string} The result string.
      */
     QUnit.jsDump.parsers.object = (function() {
       var func = QUnit.jsDump.parsers.object;
@@ -224,13 +261,19 @@
           testName = details.name;
 
       if (details.failed > 0) {
+        logInline('');
+        if (!modulePrinted) {
+          modulePrinted = true;
+          console.log(hr);
+          console.log(moduleName);
+          console.log(hr);
+        }
         console.log(' FAIL - '+ testName);
         assertions.forEach(function(value) {
           console.log('    ' + value);
         });
-      }
-      else {
-        console.log(' PASS - ' + testName);
+      } else {
+        logInline('Testing ' + moduleName + '...');
       }
       assertions.length = 0;
     });
@@ -244,7 +287,7 @@
     QUnit.config.testStats = {
 
       /**
-       * An array of test summaries (pipe separated).
+       * An array of test summaries.
        *
        * @memberOf QUnit.config.testStats
        * @type Array
@@ -276,17 +319,19 @@
       context[methodName] = QUnit[methodName];
     });
 
-    // must call `QUnit.start()` in the test file if using QUnit < 1.3.0 with
-    // Node.js or any version of QUnit with Narwhal, PhantomJS, Rhino, or RingoJS
-    QUnit.init();
+    // must call `QUnit.start()` in the test file if not loaded in a browser
+    if (!context.document || context.phantom) {
+      QUnit.config.autostart = false;
+      QUnit.init();
+    }
   }
 
   /*--------------------------------------------------------------------------*/
 
   // expose QUnit CLIB
-  if (freeExports) {
+  if (freeExports && !freeExports.nodeType) {
     freeExports.runInContext = runInContext;
   } else {
-    runInContext(window);
+    runInContext(root);
   }
 }(this));

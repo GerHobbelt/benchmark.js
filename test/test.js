@@ -1,35 +1,51 @@
-;(function(window, undefined) {
+;(function(root, undefined) {
   'use strict';
 
   /** Use a single "load" function */
-  var load = typeof require == 'function' ? require : window.load;
+  var load = typeof require == 'function' ? require : root.load;
 
   /** The unit testing framework */
   var QUnit = (function() {
     var noop = Function.prototype;
-    return  window.QUnit || (
-      window.addEventListener || (window.addEventListener = noop),
-      window.setTimeout || (window.setTimeout = noop),
-      window.QUnit = load('../vendor/qunit/qunit/qunit.js') || window.QUnit,
-      (load('../vendor/qunit-clib/qunit-clib.js') || { 'runInContext': noop }).runInContext(window),
-      addEventListener === noop && delete window.addEventListener,
-      window.QUnit
+    return  root.QUnit || (
+      root.addEventListener || (root.addEventListener = noop),
+      root.setTimeout || (root.setTimeout = noop),
+      root.QUnit = load('../vendor/qunit/qunit/qunit.js') || root.QUnit,
+      (load('../vendor/qunit-clib/qunit-clib.js') || { 'runInContext': noop }).runInContext(root),
+      addEventListener === noop && delete root.addEventListener,
+      root.QUnit
     );
   }());
 
   /** The `lodash` utility function */
-  var _ = window._ || (window._ = (
-    _ = load('../vendor/lodash/lodash.js') || window._,
+  var _ = root._ || (root._ = (
+    _ = load('../vendor/lodash/lodash.js') || root._,
     _ = _._ || _,
-    _.runInContext(window)
+    _.runInContext(root)
   ));
 
   /** The `Benchmark` constructor to test */
-  var Benchmark = window.Benchmark || (window.Benchmark = (
-    Benchmark = load('../benchmark.js') || window.Benchmark,
+  var Benchmark = root.Benchmark || (root.Benchmark = (
+    Benchmark = load('../benchmark.js') || root.Benchmark,
     Benchmark = Benchmark.Benchmark || Benchmark,
-    Benchmark.runInContext(window)
+    Benchmark.runInContext(root)
   ));
+
+  /** Used to create dummy benchmarks for comparisons */
+  var benchData = {
+    'hz': 1000,
+    'count': 10,
+    'cycles': 1,
+    'stats': {
+      'deviation': 0,
+      'mean': 1,
+      'moe': 0,
+      'rme': 0,
+      'sample': [1, 1, 1, 1, 1],
+      'sem': 0,
+      'variance': 0
+    }
+  };
 
   /** Shortcut used to convert array-like objects to arrays */
   var slice = Array.prototype.slice;
@@ -63,7 +79,7 @@
 
   (function() {
     test('supports loading Benchmark.js as a module', function() {
-      if (window.define && define.amd) {
+      if (root.define && define.amd) {
         equal((Benchmark2 || {}).version, Benchmark.version);
       } else {
         skipTest(1);
@@ -71,7 +87,7 @@
     });
 
     test('supports loading Platform.js as a module', function() {
-      if (window.define && define.amd) {
+      if (root.define && define.amd) {
         var platform = (Benchmark2 || {}).platform || {};
         equal(typeof platform.name, 'string');
       } else {
@@ -254,6 +270,49 @@
         deepEqual(actual, ['b', 'c', '']);
       });
     });
+
+    test('should correctly detect the fastest/slowest benchmark for small sample sizes', function() {
+      var data = _.cloneDeep(benchData),
+          bench = Benchmark(data);
+
+      var other = Benchmark(_.merge(data, {
+        'hz': 500,
+        'stats': {
+          'mean': 2,
+          'sample': [2, 2, 2, 2, 2]
+        }
+      }));
+
+      var actual = Benchmark.filter([bench, other], 'fastest');
+      deepEqual(actual, [bench], 'correctly detects the fastest');
+
+      actual = Benchmark.filter([bench, other], 'slowest');
+      deepEqual(actual, [other], 'correctly detects the slowest');
+    });
+
+    test('should correctly detect the fastest/slowest benchmark for large sample sizes', function() {
+      var data = _.cloneDeep(benchData);
+
+      var bench = Benchmark(_.merge(data, {
+        'stats': {
+          'sample': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        }
+      }));
+
+      var other = Benchmark(_.merge(data, {
+        'hz': 500,
+        'stats': {
+          'mean': 2,
+          'sample': [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        }
+      }));
+
+      var actual = Benchmark.filter([bench, other], 'fastest');
+      deepEqual(actual, [bench], 'correctly detects the fastest');
+
+      actual = Benchmark.filter([bench, other], 'slowest');
+      deepEqual(actual, [other], 'correctly detects the slowest');
+    });
   }());
 
   /*--------------------------------------------------------------------------*/
@@ -379,6 +438,55 @@
       var clone = bench.clone({ 'fn': '', 'name': 'foo' });
       ok(clone.fn === '' && clone.options.fn === '');
       ok(clone.name == 'foo' && clone.options.name == 'foo');
+    });
+  }());
+
+
+  /*--------------------------------------------------------------------------*/
+
+  QUnit.module('Benchmark#compare');
+
+  (function() {
+    test('should return `0` when compared to itself', function() {
+      var bench = Benchmark(benchData);
+      strictEqual(bench.compare(bench), 0);
+    });
+
+    test('should correctly detect the faster benchmark for small sample sizes', function() {
+      var data = _.cloneDeep(benchData),
+          bench = Benchmark(data);
+
+      var other = Benchmark(_.merge(data, {
+        'hz': 500,
+        'stats': {
+          'mean': 2,
+          'sample': [2, 2, 2, 2, 2]
+        }
+      }));
+
+      strictEqual(bench.compare(other), 1);
+      strictEqual(other.compare(bench), -1);
+    });
+
+    test('should correctly detect the faster benchmark for large sample sizes', function() {
+      var data = _.cloneDeep(benchData);
+
+      var bench = Benchmark(_.merge(data, {
+        'stats': {
+          'sample': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        }
+      }));
+
+      var other = Benchmark(_.merge(data, {
+        'hz': 500,
+        'stats': {
+          'mean': 2,
+          'sample': [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        }
+      }));
+
+      strictEqual(bench.compare(other), 1);
+      strictEqual(other.compare(bench), -1);
     });
   }());
 
@@ -995,7 +1103,7 @@
     asyncTest('should filter by fastest', function() {
       suite.on('complete', function() {
         suite.off();
-        deepEqual(_.pluck(this.filter('fastest'), 'name'), ['a']);
+        deepEqual(this.filter('fastest').pluck('name'), ['a']);
         QUnit.start();
       })
       .run({ 'async': true });
@@ -1004,7 +1112,7 @@
     asyncTest('should filter by slowest', function() {
       suite.on('complete', function() {
         suite.off();
-        deepEqual(_.pluck(this.filter('slowest'), 'name'), ['b']);
+        deepEqual(this.filter('slowest').pluck('name'), ['b']);
         QUnit.start();
       })
       .run({ 'async': true });
@@ -1013,7 +1121,7 @@
     asyncTest('should filter by successful', function() {
       suite.on('complete', function() {
         suite.off();
-        deepEqual(_.pluck(this.filter('successful'), 'name'), ['a', 'b']);
+        deepEqual(this.filter('successful').pluck('name'), ['a', 'b']);
         QUnit.start();
       })
       .run({ 'async': true });
@@ -1154,20 +1262,6 @@
       .run();
     });
 
-    asyncTest('should run recursively', function() {
-      Benchmark({
-        'defer': true,
-        'setup': 'var x = [3, 2, 1];',
-        'fn': 'for (var i = 0; i < 100; i++) x[ i % 2 ? "sort" : "reverse" ](); deferred.resolve();',
-        'teardown': 'x.length = 0;',
-        'onComplete': function() {
-          ok(true);
-          QUnit.start();
-        }
-      })
-      .run();
-    });
-
     asyncTest('should execute "setup", "fn", and "teardown" in correct order', function() {
       var fired = [];
 
@@ -1195,9 +1289,7 @@
 
   /*--------------------------------------------------------------------------*/
 
-  // configure QUnit and call `QUnit.start()` for
-  // Narwhal, Node.js, PhantomJS, Rhino, and RingoJS
-  if (!window.document || window.phantom) {
+  if (!root.document || root.phantom) {
     QUnit.config.noglobals = true;
     QUnit.start();
   }
