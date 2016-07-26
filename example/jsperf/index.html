@@ -64,52 +64,7 @@
             <th title="Operations per second (higher is better)">Ops/sec</th>
           </tr>
           </thead>
-          <tbody>
-          <tr>
-            <th scope="row" id="title-1">
-              <div>Normal</div>
-            </th>
-            <td id="code-1" class="code">
-              <pre><code>???</code></pre>
-            </td>
-            <td id="results-1" class="results"></td>
-          </tr>
-          <tr>
-            <th scope="row" id="title-2">
-              <div>Exit Early</div>
-            </th>
-            <td id="code-2" class="code">
-              <pre><code>???</code></pre>
-            </td>
-            <td id="results-2" class="results"></td>
-          </tr>
-          <tr>
-            <th scope="row" id="title-3">
-              <div>Async</div>
-            </th>
-            <td id="code-3" class="code">
-              <pre><code>???</code></pre>
-            </td>
-            <td id="results-3" class="results"></td>
-          </tr>
-          <tr>
-            <th scope="row" id="title-4">
-              <div>Error</div>
-            </th>
-            <td id="code-4" class="code">
-              <pre><code>???</code></pre>
-            </td>
-            <td id="results-4" class="results"></td>
-          </tr>
-          <tr>
-            <th scope="row" id="title-5">
-              <div>Comments</div>
-            </th>
-            <td id="code-5" class="code">
-              <pre><code>???</code></pre>
-            </td>
-            <td id="results-5" class="results"></td>
-          </tr>
+          <tbody id="test-rows-container">
           </tbody>
         </table>
 
@@ -124,6 +79,7 @@
         <div id="bs-results"></div>
       </section>
 
+<!--
       <section id="comments">
         <h1>0 comments</h1>
         <div id="comments-wrapper">
@@ -156,6 +112,7 @@
         </div>
       </section>
     </article>
+-->
 
     <footer>
       &copy; 2014 <a href="https://jsperf.com/">jsPerf.com</a>
@@ -173,7 +130,18 @@
     <script src="../../benchmark.js"></script>
     <script src="ui.js"></script>
     <script src="../../plugin/ui.browserscope.js"></script>
-    <script id="prep-spec-html" type="plain/text">
+    <script id="test-row-template" type="text/plain">
+          <tr>
+            <th scope="row" id="title-ID">
+              <div>Comments</div>
+            </th>
+            <td id="code-ID" class="code">
+              <pre><code>???</code></pre>
+            </td>
+            <td id="results-ID" class="results"></td>
+          </tr>
+    </script>
+    <script id="prep-spec-html" type="text/plain">
           <div>Lorem ipsum</div>
     </script>
     <script id="prep-spec-js">

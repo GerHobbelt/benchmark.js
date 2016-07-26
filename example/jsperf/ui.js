@@ -229,6 +229,7 @@
         // prefill author details
         if (has.localStorage) {
           _.each([$('author'), $('author-email'), $('author-url')], function(element) {
+            if (!element) return;
             element.value = localStorage[element.id] || '';
             element.oninput = element.onkeydown = function(event) {
               event && event.type < 'k' && (element.onkeydown = null);
@@ -572,10 +573,16 @@
   ui.on('add', function(event) {
     var bench = event.target,
         index = ui.benchmarks.length,
-        id = index + 1,
-        title = $('title-' + id),
+        id = index + 1;
+
+    var table = $('test-rows-container');
+    var table_row_template = $('test-row-template').innerHTML;
+    appendHTML(table, table_row_template.replace(/ID/g, id));
+
+    var title = $('title-' + id),
         sourceDisplay = $('code-' + id);
 
+    setHTML(title, '<div>' + escape(bench.name) + '</div>');
     setHTML(sourceDisplay, '<pre><code>' + escape(unindent(bench.fn)) + '</code></pre>');
 
     ui.benchmarks.push(bench);
