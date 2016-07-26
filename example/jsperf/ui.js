@@ -520,7 +520,10 @@
     var bench = event.target,
         index = ui.benchmarks.length,
         id = index + 1,
-        title = $('title-' + id);
+        title = $('title-' + id),
+        sourceDisplay = $('code-' + id);
+
+    setHTML(sourceDisplay, '<pre><code>' + bench.fn.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</code></pre>');
 
     ui.benchmarks.push(bench);
 
