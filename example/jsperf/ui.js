@@ -357,6 +357,59 @@
     return element;
   }
 
+  // strip the common leading whitespace block off all input lines
+  function unindent(s) {
+    var w = Infinity;
+    var end_of_leading = 0;
+    var is_leading = true;
+    var may_be_trailing = 0;
+    var a = s.split('\n').map(function (l, i) {
+      l = l.replace(/^\s+/, function (ws) {
+        // TAB = 4 spaces
+        return ws.replace(/\t/g, '    ');
+      });
+
+      if (l.trim().length > 0) {
+        is_leading = false;
+        may_be_trailing = 0;
+        var m = /^ +/.exec(l);
+        if (m) {
+          w = Math.min(w, m[0].length);
+        }
+      } else {
+        if (is_leading) {
+          end_of_leading = i + 1;
+        } else if (!may_be_trailing) {
+          may_be_trailing = i;
+        }
+        l = '';
+      }
+
+      return l;
+    });
+    if (w === Infinity) {
+      w = 0;
+    }
+    console.log('line ws width = ', w);
+
+    // strip off leading and trailing empty lines:
+    a = a.slice(end_of_leading, may_be_trailing ? may_be_trailing : a.length);
+
+    if (w > 0) {
+      var re = new RegExp('^' + (new Array(w + 1)).join(' '));
+      a = a.map(function (l) {
+        return l.replace(re, '');
+      });
+    }
+    return a.join('\n');
+  }
+
+  // escape a piece of text to be HTML-safe inside a <pre> block:
+  function escape(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  }
+
+
   /*--------------------------------------------------------------------------*/
 
   /**
@@ -523,7 +576,7 @@
         title = $('title-' + id),
         sourceDisplay = $('code-' + id);
 
-    setHTML(sourceDisplay, '<pre><code>' + bench.fn.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</code></pre>');
+    setHTML(sourceDisplay, '<pre><code>' + escape(unindent(bench.fn)) + '</code></pre>');
 
     ui.benchmarks.push(bench);
 
@@ -609,6 +662,15 @@
 
   // (re)render the results of one or more benchmarks
   ui.render = render;
+
+  // copy the content of these IDs to the setup display section of the test page:
+  ui.initPrepSections = function (dom, init, setup_teardown) {
+    dom = $(dom);
+    init = $(init);
+    setup_teardown = $(setup_teardown);
+    setHTML('user-output', dom.innerHTML);
+    setHTML('prep-code-display', '<code>' + escape(unindent(dom.innerHTML) + '\n<script>\n' + unindent(init.innerHTML) + '\n\n// -----------------\n// setup + teardown:\n// -----------------\n\n' + unindent(setup_teardown.innerHTML) + '\n</script>'));
+  }; 
 
   /*--------------------------------------------------------------------------*/
 
