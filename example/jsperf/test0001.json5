@@ -55,9 +55,16 @@
         }, 10);'
     },
     {
-      name: 'Error', 
+      name: 'NoError', 
       fn: '\
-        x.foo(); // unknown method'
+        x.push(1,2,3,4,5,6);\n\
+        x.shift();\n\
+        x.shift();\n\
+        x.shift();\n\
+        x.shift();\n\
+        x.shift();\n\
+        x.shift();\n\
+          '
     },
     {
       name: 'Comments', 
