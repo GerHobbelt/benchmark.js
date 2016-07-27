@@ -1542,14 +1542,15 @@
         var errorStr;
         if (!_.isObject(error)) {
           errorStr = String(error);
-        } else if (!(error instanceof Error)) {
+        } else if (!_.isError(Error)) {
           errorStr = join(error);
         } else {
-          errorStr = join(_.assign({name: error.name, message: error.message}, error));
+          // Error#name and Error#message properties are non-enumerable.
+          errorStr = join(_.assign({ 'name': error.name, 'message': error.message }, error));
         }
-
         result += ': ' + errorStr;
-      } else {
+      }
+      else {
         result += ' x ' + formatNumber(hz.toFixed(hz < 100 ? 2 : 0)) + ' ops/sec ' + pm +
           stats.rme.toFixed(2) + '% (' + size + ' run' + (size == 1 ? '' : 's') + ' sampled)';
       }
