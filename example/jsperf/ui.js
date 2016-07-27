@@ -679,6 +679,14 @@
   }; 
 
   ui.initFromJSON = function (json) {
+    setHTML('test-title-1', escape(json.title));
+    setHTML('test-title-2', escape(json.title));
+    setHTML('test-description', escape(json.description));
+
+    ui.browserscope.key = json.browserscope_API_key;
+
+    ui.browserscope.init();
+
     setHTML('user-output', json.HTML);
 
     var prep_source_code = unindent(json.init) + '\n\n// -----------------\n// setup:\n// -----------------\n\n' + unindent(json.setup) + '\n\n// -----------------\n// teardown:\n// -----------------\n\n' + unindent(json.teardown) + '\n';

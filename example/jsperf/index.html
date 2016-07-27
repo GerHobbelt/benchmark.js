@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="description" content="This is just a test document for Benchmark.js.">
-    <title>Benchmark.js test page | jsPerf</title>
+    <title id="test-title-1">???</title>
     <!-- https://jsperf.com/benchmark-js-test-page -->
     <link rel="stylesheet" href="main.css">
     <meta name="referrer" content="never">
@@ -14,7 +14,7 @@
   <body>
     <article>
       <hgroup>
-        <h1>Benchmark.js test page</h1>
+        <h1 id="test-title-2">???</h1>
         <h2>JavaScript performance comparison</h2>
       </hgroup>
 
@@ -26,8 +26,8 @@
 
       <section>
         <h2>Info</h2>
-        <p>
-          This is just a test document for Benchmark.js.
+        <p id="test-description">
+          ???
         </p>
       </section>
 
@@ -169,14 +169,14 @@
           <\/script>
       */
 
-      ui.browserscope.key = 'ahBzfnVhLXByb2ZpbGVyLWhychELEgRUZXN0GICA4LDez_EKDA';
+      //ui.browserscope.key = 'xxxxxxxxxxxxxxxxxxxxxxxx';
       ui.browserscope.selector = '#bs-results';
     </script>
     <script>
       // https://codepen.io/KryptoniteDove/post/load-json-file-locally-using-pure-javascript
-      function loadJSON(callback) {   
+      function loadFile(callback) {   
         var xobj = new XMLHttpRequest();
-            xobj.overrideMimeType("application/json");
+        //xobj.overrideMimeType("application/json");
         xobj.open('GET', 'test0001.json5', true);
         xobj.onreadystatechange = function () {
           if (xobj.readyState === 4 && xobj.status == "200") {
@@ -186,7 +186,7 @@
         xobj.send(null);  
       }
 
-      loadJSON(function benchmark_load_cb(response) {
+      loadFile(function benchmark_load_cb(response) {
         // Parse JSON string into object
         var actual_JSON = JSON5.parse(response);
         ui.initFromJSON(actual_JSON);

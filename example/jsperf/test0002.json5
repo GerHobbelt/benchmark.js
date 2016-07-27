@@ -22,8 +22,8 @@
 */
 
 {
-  title: 'Benchmark.js test page (for jsPerf &amp; alternatives) :: demo test #1',
-  description: 'This is just a test document for Benchmark.js.',
+  title: 'test #2',
+  description: 'bla bla bla',
   browserscope_API_key: 'ahBzfnVhLXByb2ZpbGVyLWhychELEgRUZXN0GICA4LDez_EKDA',
 
   HTML: "<div>Lorem ipsum</div>",
