@@ -690,7 +690,7 @@
     setHTML('user-output', json.HTML);
 
     var prep_source_code = unindent(json.init) + '\n\n// -----------------\n// setup:\n// -----------------\n\n' + unindent(json.setup) + '\n\n// -----------------\n// teardown:\n// -----------------\n\n' + unindent(json.teardown) + '\n';
-    setHTML('prep-code-display', '<code>' + escape(unindent(json.HTML) + '\n<script>\n' + escape(prep_source_code) + '\n</script>') + '</code>');
+    setHTML('prep-code-display', '<code>' + escape(unindent(json.HTML) + '\n<script>\n' + prep_source_code + '\n</script>') + '</code>');
     // run this code in global scope:
     console.log('init code loading into global scope:\n', prep_source_code);
     globalEval(prep_source_code);
