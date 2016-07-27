@@ -141,10 +141,10 @@
             <td id="results-ID" class="results"></td>
           </tr>
     </script>
-    <script id="prep-spec-html" type="text/plain">
+    <script id="test-prep-spec-html" type="text/plain">
           <div>Lorem ipsum</div>
     </script>
-    <script id="prep-spec-js">
+    <script id="test-prep-spec-js-init">
       var arr = [1, 5, 4, 2, 3];
 
       function init() {
@@ -178,7 +178,7 @@
       ui.browserscope.key = 'agt1YS1wcm9maWxlcnIRCxIEVGVzdBiAgICAiI2QCgw';
       ui.browserscope.selector = '#bs-results';
     </script>
-    <script id="test-spec">
+    <script id="test-spec-js">
       ui.add('Normal', '\
         x.sort(function(a, b) {\n\
           return a - b;\n\
@@ -208,7 +208,7 @@
         // comments at end'
       );
     </script>
-    <script id="setup-spec">
+    <script id="test-setup-teardown-spec">
       Benchmark.prototype.setup = '\
         window.foo = 42;\n\
         var x = arr;';
@@ -217,7 +217,7 @@
         window.foo = 24;';
     </script>
     <script>
-      ui.initPrepSections('prep-spec-html', 'prep-spec-js', 'setup-spec');
+      ui.initPrepSections('test-prep-spec-html', 'test-prep-spec-js-init', 'test-setup-teardown-spec');
     </script>
   </body>
 </html>
