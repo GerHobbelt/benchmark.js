@@ -184,13 +184,13 @@
           filterBy = params.filterby;
 
       if (pageLoaded) {
-        // configure browserscope
-        ui.browserscope.postable = has.runner && !('nopost' in params);
+        // // configure browserscope
+        // ui.browserscope.postable = has.runner && !('nopost' in params);
 
         // configure chart renderer
         if (chart || filterBy) {
           scrollTop = $('results').offsetTop;
-          ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
+          // ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
         }
         if (has.runner) {
           // call user provided init() function
@@ -642,7 +642,7 @@
       }
     });
 
-    ui.browserscope.post();
+    // ui.browserscope.post();
   });
 
   /*--------------------------------------------------------------------------*/
@@ -683,9 +683,9 @@
     setHTML('test-title-2', escape(json.title));
     setHTML('test-description', escape(json.description));
 
-    ui.browserscope.key = json.browserscope_API_key;
+    // ui.browserscope.key = json.browserscope_API_key;
 
-    ui.browserscope.init();
+    // ui.browserscope.init();
 
     setHTML('user-output', json.HTML);
 
@@ -740,11 +740,11 @@
       event || (event = window.event);
       var target = event.target || event.srcElement;
       if (target.href || (target = target.parentNode).href) {
-        ui.browserscope.render(
-          target.parentNode.id == 'charts'
-            ? { 'chart': target.innerHTML }
-            : { 'filterBy': target.innerHTML }
-        );
+        // ui.browserscope.render(
+        //   target.parentNode.id == 'charts'
+        //     ? { 'chart': target.innerHTML }
+        //     : { 'filterBy': target.innerHTML }
+        // );
       }
       // cancel the default action
       return false;
@@ -797,7 +797,7 @@
     ui.off('start cycle complete');
     setTimeout(function() {
       ui.off();
-      ui.browserscope.post = function() {};
+      // ui.browserscope.post = function() {};
       _.invoke(ui.benchmarks, 'off');
     }, 1);
   }

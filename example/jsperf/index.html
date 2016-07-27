@@ -132,7 +132,6 @@
     <script src="../../node_modules/json5/lib/json5.js"></script>
     <script src="../../benchmark.js"></script>
     <script src="ui.js"></script>
-    <script src="../../plugin/ui.browserscope.js"></script>
     <script src="../../plugin/globalEval.js"></script>
     <script id="test-row-template" type="text/plain">
           <tr>
@@ -144,33 +143,6 @@
             </td>
             <td id="results-ID" class="results"></td>
           </tr>
-    </script>
-    <script>
-      /*
-          Preparation code chunk:
-
-          <div>Lorem ipsum</div>                                              --> user-output
-          <script>                                                            --> prep-spec
-            var arr = [1, 5, 4, 2, 3];
-
-            function init() {
-              window.console && console.log('init called');
-            }
-          <\/script>
-          <script>                                                            --> setup-spec
-          Benchmark.prototype.setup = function() {
-            window.foo = 42;
-            var x = arr;
-          };
-
-          Benchmark.prototype.teardown = function() {
-            window.foo = 24;
-          };
-          <\/script>
-      */
-
-      //ui.browserscope.key = 'xxxxxxxxxxxxxxxxxxxxxxxx';
-      ui.browserscope.selector = '#bs-results';
     </script>
     <script>
       // https://codepen.io/KryptoniteDove/post/load-json-file-locally-using-pure-javascript
