@@ -127,9 +127,11 @@
 
     <script src="../../node_modules/lodash/lodash.js"></script>
     <script src="../../node_modules/platform/platform.js"></script>
+    <script src="../../node_modules/json5/lib/json5.js"></script>
     <script src="../../benchmark.js"></script>
     <script src="ui.js"></script>
     <script src="../../plugin/ui.browserscope.js"></script>
+    <script src="../../plugin/globalEval.js"></script>
     <script id="test-row-template" type="text/plain">
           <tr>
             <th scope="row" id="title-ID">
@@ -140,16 +142,6 @@
             </td>
             <td id="results-ID" class="results"></td>
           </tr>
-    </script>
-    <script id="test-prep-spec-html" type="text/plain">
-          <div>Lorem ipsum</div>
-    </script>
-    <script id="test-prep-spec-js-init">
-      var arr = [1, 5, 4, 2, 3];
-
-      function init() {
-        window.console && console.log('init called');
-      }
     </script>
     <script>
       /*
@@ -178,46 +170,25 @@
       ui.browserscope.key = 'agt1YS1wcm9maWxlcnIRCxIEVGVzdBiAgICAiI2QCgw';
       ui.browserscope.selector = '#bs-results';
     </script>
-    <script id="test-spec-js">
-      ui.add('Normal', '\
-        x.sort(function(a, b) {\n\
-          return a - b;\n\
-        });'
-      )
-      .add('Exit Early', '\
-        x.sort(function(a, b) {\n\
-          return a - b;\n\
-        });\n\
-        return;'
-      )
-      .add('Async', {
-        'defer': true,
-        'fn': '\
-          setTimeout(function() {\n\
-            deferred.resolve();\n\
-          }, 10);'
-      })
-      .add('Error', '\
-        x.foo(); // unknown method'
-      )
-      .add('Comments', '\
-        // comments at start\n\
-        x.reverse().sort(function(a, b) {\n\
-          return a - b;\n\
-        });\n\
-        // comments at end'
-      );
-    </script>
-    <script id="test-setup-teardown-spec">
-      Benchmark.prototype.setup = '\
-        window.foo = 42;\n\
-        var x = arr;';
-
-      Benchmark.prototype.teardown = '\
-        window.foo = 24;';
-    </script>
     <script>
-      ui.initPrepSections('test-prep-spec-html', 'test-prep-spec-js-init', 'test-setup-teardown-spec');
+      // https://codepen.io/KryptoniteDove/post/load-json-file-locally-using-pure-javascript
+      function loadJSON(callback) {   
+        var xobj = new XMLHttpRequest();
+            xobj.overrideMimeType("application/json");
+        xobj.open('GET', 'test0001.json5', true);
+        xobj.onreadystatechange = function () {
+          if (xobj.readyState === 4 && xobj.status == "200") {
+            callback(xobj.responseText);
+          }
+        };
+        xobj.send(null);  
+      }
+
+      loadJSON(function benchmark_load_cb(response) {
+        // Parse JSON string into object
+        var actual_JSON = JSON5.parse(response);
+        ui.initFromJSON(actual_JSON);
+      });
     </script>
   </body>
 </html>

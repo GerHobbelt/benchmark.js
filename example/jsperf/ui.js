@@ -679,6 +679,20 @@
     setHTML('prep-code-display', '<code>' + escape(unindent(dom.innerHTML) + '\n<script>\n' + unindent(init.innerHTML) + '\n\n// -----------------\n// setup + teardown:\n// -----------------\n\n' + unindent(setup_teardown.innerHTML) + '\n</script>'));
   }; 
 
+  ui.initFromJSON = function (json) {
+    setHTML('user-output', json.HTML);
+
+    var prep_source_code = unindent(json.init) + '\n\n// -----------------\n// setup:\n// -----------------\n\n' + unindent(json.setup) + '\n\n// -----------------\n// teardown:\n// -----------------\n\n' + unindent(json.teardown) + '\n';
+    setHTML('prep-code-display', '<code>' + escape(unindent(json.HTML) + '\n<script>\n' + escape(prep_source_code) + '\n</script>') + '</code>');
+    // run this code in global scope:
+    console.log('init code loading into global scope:\n', prep_source_code);
+    globalEval(prep_source_code);
+
+    for (var i = 0, l = json.tests; l[i]; i++) {
+      ui.add(l[i]);
+    }
+  }; 
+
   /*--------------------------------------------------------------------------*/
 
   // expose
