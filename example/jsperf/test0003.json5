@@ -1,0 +1,168 @@
+{
+  title: 'test #3 : custom FP value serialization',
+  description: 'determining the speed loss factor when we serialize FP (and integer) values to a custom string format vs. standard print+parse.',
+
+  HTML: "",
+  init: "\
+      //var x = Math.random();\n\
+      //var y = Math.tan(x - 0.5); \n\
+      //var z = Math.pow(2, 100 * y); \n\
+      //var a = (1 + Math.random() * 21) | 0; \n\
+      //var b = z.toPrecision(a); // accepted prec range: 1..21\n\
+      //console.log(x, y, z, a, b);\n\
+\n\
+      const test_serialization = true;\n\
+\n\
+      var data = [];\n\
+      var serialized_data = [];\n\
+      var data_length = 0;\n\
+\n\
+      function init() {\n\
+        for (var i = 0, l = 1000; i < l; i++) {\n\
+          var x = Math.random(); \n\
+          var y = Math.tan(x - 0.5); \n\
+          var z = Math.pow(2, 100 * y); \n\
+          var a = (1 + Math.random() * 21) | 0; \n\
+          var b = z.toPrecision(a); \n\
+          data[i] = parseFloat(b);\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      // serialize / deserialize functions:\n\
+      function classic_s_1(data, len, serialized_data) {\n\
+        for (var i = 0; i < len; i++) {\n\
+          var flt = data[i];\n\
+\n\
+          serialized_data[i] = flt.toString();\n\
+        }\n\
+      }\n\
+      function classic_s_2(data, len, serialized_data) {\n\
+        for (var i = 0; i < len; i++) {\n\
+          var flt = data[i];\n\
+\n\
+          serialized_data[i] = '' + flt;\n\
+        }\n\
+      }\n\
+      function classic_s_3(data, len, serialized_data) {\n\
+        for (var i = 0; i < len; i++) {\n\
+          var flt = data[i];\n\
+\n\
+          serialized_data[i] = flt.toPrecision(16);\n\
+        }\n\
+      }\n\
+\n\
+      function custom_s_1(data, len, serialized_data) {\n\
+        // sample JS code to encode a floating point value in a Unicode string. \n\
+        // \n\
+        // No provision yet to detect and store +0/-0 and +/-Inf and NaN\n\
+        // \n\
+        // \n\
+        // Post Scriptum: encoding a fp number like this takes 1-5 Unicode characters\n\
+        // (if we also encode mantissa length in the power character) so it MIGHT\n\
+        // be better to provide a separate encoding for when the fp value can be printed\n\
+        // in less bytes -- and then then there are the integers and decimal fractions\n\
+        // used often by humans: multiply by 1K or 1M and you get another series of\n\
+        // integers, most of the time!\n\
+\n\
+\n\
+        // modulo: we can use 0x8000 or any lower power of 2 to prevent producing illegal Unicode \n\
+        // sequences (the extra Unicode pages are triggered by a set of codes in the upper range\n\
+        // which we cannot create this way, so no unicode verifiers will ever catch us for being \n\
+        // illegal now!)\n\
+        // \n\
+        // The modulo 0x8000 takes 4 characters for a mantissa of 52 bits, while the same goes\n\
+        // for modulo 0x4000.\n\
+        // So we either have the upper bit at mask 0x4000 available on every char or we have\n\
+        // some spare bits in the last word...\n\
+        const M = 0x4000;\n\
+        var l = Math.log(Math.pow(2, 53)) / Math.log(M);   // number of chars = words required to store worst case fp values\n\
+        l += 1;\n\
+        l |= 0;\n\
+\n\
+        // and since we want to see how easy it is to have run-away output for some fp numbers,\n\
+        // we enlarge the boundary criterium for debugging/diagnostics:\n\
+        \n\
+        //l *= 4  // just to detect nasty edge cases: will produce very long strings\n\
+\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          // encode sign in bit 11\n\
+          var s;\n\
+          if (flt < 1) {\n\
+            s = 2048;\n\
+            flt = -flt;\n\
+          } else {\n\
+            s = 0;\n\
+          }\n\
+\n\
+          // extract power from fp value    (WARNING: MSIE does not support log2(), see MDN!)\n\
+          var p = Math.log2(flt) | 0;\n\
+\n\
+          // and produce the mantissa so that it's range now is [0..2>: for powers > 0\n\
+          // the value y will be >= 1 while for negative powers, i.e. tiny numbers, the\n\
+          // value 0 < y < 1.\n\
+          // I haven't checked +0 and -0 yet and not looked at values with power p=0 closely.\n\
+          var y = flt / Math.pow(2, p);\n\
+\n\
+          // encode sign + power in a Unicode char\n\
+          //var a = String.fromCharCode(p + 1024 + s);\n\
+          var a = '';\n\
+\n\
+          var b = y - 0;    // alt: y - 1, but that only gives numbers 0 < b < 1 for p > 0\n\
+\n\
+          // and show the unicode character codes for debugging/diagnostics:\n\
+          var dbg = [p + 1024 + s];\n\
+\n\
+          for (var i = 0; b && i < l; i++) {\n\
+            b *= M;\n\
+            var c = b | 0;\n\
+            var d = b - c;\n\
+            b = d;\n\
+            dbg[i + 1] = c;\n\
+            a += String.fromCharCode(c);\n\
+          }\n\
+          //console.log('a', JSON.stringify(a), dbg);\n\
+\n\
+          // encode sign + power + mantissa length in a Unicode char (i E {0..4} as maximum size l=4 ==> 3 bits of length @ bits 11.12.13 in word)\n\
+          var h = p + 1024 + s + (i << 11 /* i * 2048 */ );   // brackets needed as + comes before <<   :-(\n\
+          a = String.fromCharCode(h) + a;\n\
+          dbg[0] = h;\n\
+          console.log('dbg', flt, dbg);\n\
+\n\
+          serialized_data[ii] = a;\n\
+        }\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'Classic : toString', 
+      fn: '\
+        classic_s_1(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Classic : add to string', 
+      fn: '\
+        classic_s_2(data, data_length, serialized_data);'
+    },
+    { 
+      name: 'Classic :: toPrecision(max)', 
+      'fn': '\
+        classic_s_3(data, data_length, serialized_data);'
+    },
+    { 
+      name: 'Custom :: v1', 
+      'fn': '\
+        custom_s_1(data, data_length, serialized_data);'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () { };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}
