@@ -82,6 +82,18 @@ suite.add('RegExp#test', function() {
 // => Fastest is String#indexOf
 ```
 
+## Developing
+
+The following `npm` taska are available to assist during development and release:
+
+- `npm run server` will start `live-server` and open the base directory in your browser; then you can, for example, browse to /examples/jsperf/ to run the available tests in your browser using the local benchmark.js file. 
+
+- `npm run test` -- nuff said.
+
+- `npm run doc` -- will regenerate the documentation from source.
+
+
+
 ## Support
 
 Tested in Chrome 46-47, Firefox 42-43, IE 9-11, Edge 13, Safari 8-9, Node.js 0.10-6, & PhantomJS 1.9.8.
