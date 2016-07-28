@@ -92,7 +92,7 @@
 \n\
           // encode sign in bit 11\n\
           var s;\n\
-          if (flt < 1) {\n\
+          if (flt < 0) {\n\
             s = 2048;\n\
             flt = -flt;\n\
           } else {\n\
