@@ -31,6 +31,13 @@
         </p>
       </section>
 
+      <section>
+        <h2>Related tests</h2>
+        <ul id="related-tests">
+          <li>&lt;none&gt;</li>
+        </ul>
+      </section>
+
       <section id="prep-code">
         <h2>Preparation code</h2>
         <pre id="prep-code-display"><code>???</code></pre>
@@ -149,16 +156,19 @@
       function loadFile(callback) {   
         var xobj = new XMLHttpRequest();
         //xobj.overrideMimeType("application/json");
-        xobj.open('GET', 'test0003.json5', true);
+        var testfile = window.location.hash || 'testfile=test0001.json5';
+        testfile = testfile.replace(/^.*testfile=(.*?\.json5?).*$/, '$1');
+        console.info('loading test spec file:', testfile);
+        xobj.open('GET', testfile, true);
         xobj.onreadystatechange = function () {
           if (xobj.readyState === 4 && xobj.status == "200") {
-            callback(xobj.responseText);
+            callback(xobj.responseText, testfile);
           }
         };
         xobj.send(null);  
       }
 
-      loadFile(function benchmark_load_cb(response) {
+      loadFile(function benchmark_load_cb(response, file_uri) {
         // Parse JSON string into object
         var actual_JSON = JSON5.parse(response);
         ui.initFromJSON(actual_JSON);

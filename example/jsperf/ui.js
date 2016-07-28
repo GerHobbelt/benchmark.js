@@ -681,13 +681,23 @@
   ui.initFromJSON = function (json) {
     setHTML('test-title-1', escape(json.title));
     setHTML('test-title-2', escape(json.title));
-    setHTML('test-description', escape(json.description));
+    setHTML('test-description', json.description.replace(/\n\n/g, '</p><p>'));
 
     // ui.browserscope.key = json.browserscope_API_key;
 
     // ui.browserscope.init();
 
     setHTML('user-output', json.HTML);
+
+    if (json.related) {
+      var rellst = [];
+
+      for (var i = 0; i < json.related.length; i++) {
+        var link = json.related[i];
+        rellst.push('<li><a href="?' + ((Math.random() * 1000) | 0) /* hack: force reload */ + '#testfile=' + link + '">' + link.replace(/\.json5?/, '') + '</a></li>');
+      }
+      setHTML('related-tests', rellst.join('\n'));
+    }
 
     var prep_source_code = unindent(json.init) + '\n\n// -----------------\n// setup:\n// -----------------\n\n' + unindent(json.setup) + '\n\n// -----------------\n// teardown:\n// -----------------\n\n' + unindent(json.teardown) + '\n';
     setHTML('prep-code-display', '<code>' + escape(unindent(json.HTML) + '\n<script>\n' + prep_source_code + '\n</script>') + '</code>');
