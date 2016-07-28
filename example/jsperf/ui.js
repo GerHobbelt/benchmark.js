@@ -718,6 +718,8 @@
   // don't let users alert, confirm, prompt, or open new windows
   window.alert = window.confirm = window.prompt = window.open = function() {};
 
+  window.setHTML= setHTML;
+  
   // parse hash query params when it changes
   addListener(window, 'hashchange', handlers.window.hashchange);
 
