@@ -676,7 +676,7 @@
     setup_teardown = $(setup_teardown);
     setHTML('user-output', dom.innerHTML);
     setHTML('prep-code-display', '<code>' + escape(unindent(dom.innerHTML) + '\n<script>\n' + unindent(init.innerHTML) + '\n\n// -----------------\n// setup + teardown:\n// -----------------\n\n' + unindent(setup_teardown.innerHTML) + '\n</script>'));
-  }; 
+  };
 
   ui.initFromJSON = function (json) {
     setHTML('test-title-1', escape(json.title));
@@ -708,7 +708,7 @@
     for (var i = 0, l = json.tests; l[i]; i++) {
       ui.add(l[i]);
     }
-  }; 
+  };
 
   /*--------------------------------------------------------------------------*/
 
@@ -718,8 +718,8 @@
   // don't let users alert, confirm, prompt, or open new windows
   window.alert = window.confirm = window.prompt = window.open = function() {};
 
-  window.setHTML= setHTML;
-  
+  window.setHTML = setHTML;
+
   // parse hash query params when it changes
   addListener(window, 'hashchange', handlers.window.hashchange);
 

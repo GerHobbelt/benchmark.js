@@ -158,7 +158,7 @@
     </script>
     <script>
       // https://codepen.io/KryptoniteDove/post/load-json-file-locally-using-pure-javascript
-      function loadTestFile(callback) {   
+      function loadTestFile(callback) {
         var xobj = new XMLHttpRequest();
         //xobj.overrideMimeType("application/json");
         var testfile = window.location.hash || 'testfile=test0001.json5';
@@ -170,9 +170,9 @@
             callback(xobj.responseText, testfile);
           }
         };
-        xobj.send(null);  
+        xobj.send(null);
       }
-      function loadCatalogFile() {   
+      function loadCatalogFile() {
         var xobj = new XMLHttpRequest();
         var testfile = 'test-catalog.txt';
         xobj.open('GET', testfile, true);
@@ -191,7 +191,7 @@
             setHTML('test-catalog', '<ul>' + lst.join('\n') + '</ul>');
           }
         };
-        xobj.send(null);  
+        xobj.send(null);
       }
 
       loadTestFile(function benchmark_load_cb(response, file_uri) {
@@ -199,7 +199,7 @@
         var actual_JSON = JSON5.parse(response);
         ui.initFromJSON(actual_JSON);
       });
-      loadCatalogFile();   
+      loadCatalogFile();
     </script>
   </body>
 </html>
