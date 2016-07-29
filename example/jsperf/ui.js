@@ -811,7 +811,7 @@
     setTimeout(function() {
       ui.off();
       // ui.browserscope.post = function() {};
-      _.invoke(ui.benchmarks, 'off');
+      _.invokeMap(ui.benchmarks, 'off');
     }, 1);
   }
 
