@@ -161,7 +161,7 @@
       function loadTestFile(callback) {
         var xobj = new XMLHttpRequest();
         //xobj.overrideMimeType("application/json");
-        var testfile = window.location.hash || 'testfile=test0001.json5';
+        var testfile = window.location.hash || 'testfile=test0001-demo.json5';
         testfile = testfile.replace(/^.*testfile=(.*?\.json5?).*$/, '$1');
         console.info('loading test spec file:', testfile);
         xobj.open('GET', testfile, true);
@@ -194,12 +194,15 @@
         xobj.send(null);
       }
 
-      loadTestFile(function benchmark_load_cb(response, file_uri) {
-        // Parse JSON string into object
-        var actual_JSON = JSON5.parse(response);
-        ui.initFromJSON(actual_JSON);
-      });
-      loadCatalogFile();
+      function startItAll() {
+        loadTestFile(function benchmark_load_cb(response, file_uri) {
+          // Parse JSON string into object
+          var actual_JSON = JSON5.parse(response);
+          ui.initFromJSON(actual_JSON);
+        });
+        loadCatalogFile();
+      }
+      startItAll();
     </script>
   </body>
 </html>

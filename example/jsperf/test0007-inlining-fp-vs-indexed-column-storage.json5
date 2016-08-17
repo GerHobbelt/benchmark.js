@@ -1,0 +1,117 @@
+{
+  title: 'test #7 : custom FP value serialization vs. indexing FP column store',
+  description: 'which is faster: inlining FP values in the string \'stream\' or using an index, implicit or explicit, to access a FP values column store?',
+  related: [
+    'test0003.json5',
+    'test0004-fp-encode-only.json5',
+    'test0005-fp-decode-only.json5',
+    'test0006-fp-encode-plus-decode.json5',
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+        'fpcvt.js',\n\
+        'fpcvt-alt1.js',\n\
+        'fpcvt-alt2.js',\n\
+        'fpcvt-alt3.js',\n\
+        'fpcvt-alt4.js',\n\
+        'fpcvt-alt5.js',\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var serialized_data = [];\n\
+      var data_length = 0;\n\
+\n\
+      var indexes = [];\n\
+      var stream = '';\n\
+      var json_s;\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; i++) {\n\
+          var x = Math.random();\n\
+          var y = Math.tan(x - 0.5);\n\
+          var z = Math.pow(2, 100 * y);\n\
+          var a = (1 + Math.random() * 21) | 0;\n\
+          var b = z.toPrecision(a);\n\
+          data[i] = parseFloat(b);\n\
+          serialized_data[i] = encode_fp_value2(b);\n\
+          indexes[i] = i;\n\
+          stream += serialized_data[i];\n\
+        }\n\
+        data_length = l;\n\
+        json_s = JSON.stringify(data);\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      // access function under test:\n\
+      function indexed_native(data, indexes, len) {\n\
+        var total = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var idx = indexes[i];\n\
+          var flt = data[idx];\n\
+\n\
+          total += flt;\n\
+        }\n\
+        return total;\n\
+      }\n\
+\n\
+      function stream_inlined(stream) {\n\
+        var total = 0;\n\
+        var stepinfo = {\n\
+          consumed_length: 0\n\
+        };\n\
+        var len = stream.length;\n\
+        while (stepinfo.consumed_length < len) {\n\
+          var flt = decode_fp_value2(stream, stepinfo);\n\
+\n\
+          total += flt;\n\
+        }\n\
+        return total;\n\
+      }\n\
+\n\
+      function json_stream(json_s) {\n\
+        var total = 0;\n\
+        var a = JSON.parse(json_s);\n\
+\n\
+        for (var i = 0, len = a.length; i < len; i++) {\n\
+          var flt = a[i];\n\
+\n\
+          total += flt;\n\
+        }\n\
+        return total;\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'Indexed FP column store',
+      fn: '\
+        indexed_native(data, indexes, data_length);'
+    },
+    {
+      name: 'FP inlined stream',
+      fn: '\
+        stream_inlined(stream);'
+    },
+    {
+      name: 'JSON array',
+      fn: '\
+        json_stream(json_s);'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}

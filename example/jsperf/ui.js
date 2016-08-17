@@ -103,10 +103,11 @@
      * @private
      */
     'start': function() {
-        // call user provided init() function
-        if (isFunction(window.init)) {
-          init();
-        }
+      // call user provided init() function
+      if (isFunction(window.init) && !ui.has_executed_init) {
+        init();
+        ui.has_executed_init = true;
+      }
     }
   };
 
@@ -128,6 +129,12 @@
           return !bench.error && bench.reset();
         }));
         ui.run(runOptions);
+      } else {
+        // call user provided init() function
+        if (isFunction(window.init) && !ui.has_executed_init) {
+          init();
+          ui.has_executed_init = true;
+        }
       }
     }
   };
@@ -193,10 +200,11 @@
           // ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
         }
         if (has.runner) {
-          // call user provided init() function
-          if (isFunction(window.init)) {
-            init();
-          }
+          // // call user provided init() function
+          // if (isFunction(window.init)) {
+          //   init();
+          // }
+          ui.has_executed_init = false;
           // auto-run
           if ('run' in params) {
             scrollTop = $('runner').offsetTop;
@@ -223,6 +231,7 @@
         addListener('run', 'click', handlers.button.run);
 
         setHTML('run', texts.run.ready);
+        setHTML('user-agent', Benchmark.platform);
         setStatus(texts.status.ready);
 
         // prefill author details
@@ -590,8 +599,16 @@
       title.tabIndex = 0;
       title.title = 'Click to run this test again.';
 
-      addListener(title, 'click', handlers.title.click);
-      addListener(title, 'keyup', handlers.title.keyup);
+      // As the `appendHTML()` above will nuke any events registered with already 
+      // existing elements in the table, we better use Event Delegation here and
+      // bind the handler to the table instead!
+      // 
+      // The added benefit then is we only need to add it *once*, but we *may*
+      // register the same handler for every line again without any harm as the
+      // registered event handlers are deduped: see also 
+      // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Multiple_identical_event_listeners 
+      addListener(table, 'click', handlers.title.click);
+      addListener(table, 'keyup', handlers.title.keyup);
 
       bench.on('start', handlers.benchmark.start);
       bench.on('start cycle', handlers.benchmark.cycle);

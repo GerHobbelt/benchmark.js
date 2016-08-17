@@ -1,6 +1,12 @@
-test0001.json5
-test0002.json5
-test0003.json5
+test0001-demo.json5
+test0002-pass-by-reference-vs-parent-scope.json5
+test0003-floating-point-serialization-deserialization.json5
 test0004-fp-encode-only.json5
 test0005-fp-decode-only.json5
 test0006-fp-encode-plus-decode.json5
+test0007-inlining-fp-vs-indexed-column-storage.json5
+test0008-array-join-vs-string-add.json5
+test0009.2-parent-scope-vs-pass-by-reference-1000.json5
+test0009-parent-scope-vs-pass-by-reference.json5
+test0010-typechecking-before-type-coercion.json5
+test0011-large-switch-vs-if-and-small-switch.json5

@@ -83,6 +83,24 @@
         }\n\
       }\n\
 \n\
+      function custom_d_2(serialized_data, len, data) {\n\
+        var cps = {};\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var fltstr = serialized_data[ii];\n\
+\n\
+          data[ii] = decode_fp_value2(fltstr, cps);\n\
+        }\n\
+      }\n\
+\n\
+      function custom_d_3(serialized_data, len, data) {\n\
+        var cps = {};\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var fltstr = serialized_data[ii];\n\
+\n\
+          data[ii] = decode_fp_value3(fltstr, cps);\n\
+        }\n\
+      }\n\
+\n\
       function classic_d_1(serialized_data, len, data) {\n\
         for (var ii = 0; ii < len; ii++) {\n\
           var fltstr = serialized_data[ii];\n\
