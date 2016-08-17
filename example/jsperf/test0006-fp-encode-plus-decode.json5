@@ -14,6 +14,8 @@
         'fpcvt.js',\n\
         'fpcvt-alt1.js',\n\
         'fpcvt-alt2.js',\n\
+        'fpcvt-alt3.js',\n\
+        'fpcvt-alt4.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\
@@ -98,6 +100,18 @@
           //}\n\
         }\n\
       }\n\
+\n\
+      function custom_4(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value4(flt);\n\
+          var t = decode_fp_value(s);\n\
+          //if (t !== flt) {\n\
+          //  console.error('custom enc/dec mismatch: ', flt, s, t);\n\
+          //}\n\
+        }\n\
+      }\n\
       ",
   tests: [
     {
@@ -119,6 +133,11 @@
       name: 'Custom : v3', 
       fn: '\
         custom_3(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v4', 
+      fn: '\
+        custom_4(data, data_length, serialized_data);'
     },
   ],
   setup: "\

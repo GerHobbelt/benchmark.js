@@ -14,6 +14,8 @@
         'fpcvt.js',\n\
         'fpcvt-alt1.js',\n\
         'fpcvt-alt2.js',\n\
+        'fpcvt-alt3.js',\n\
+        'fpcvt-alt4.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\
@@ -72,6 +74,13 @@
           serialized_data[i] = flt.toPrecision(16);\n\
         }\n\
       }\n\
+      function classic_s_4(data, len, serialized_data) {\n\
+        for (var i = 0; i < len; i++) {\n\
+          var flt = data[i];\n\
+\n\
+          serialized_data[i] = JSON.stringify(flt);\n\
+        }\n\
+      }\n\
 \n\
       function custom_s_1(data, len, serialized_data) {\n\
         for (var ii = 0; ii < len; ii++) {\n\
@@ -94,6 +103,14 @@
           var flt = data[ii];\n\
 \n\
           serialized_data[ii] = encode_fp_value3(flt);\n\
+        }\n\
+      }\n\
+\n\
+      function custom_s_4(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          serialized_data[ii] = encode_fp_value4(flt);\n\
         }\n\
       }\n\
 \n\
