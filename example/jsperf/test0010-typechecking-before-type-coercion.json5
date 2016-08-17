@@ -1,0 +1,159 @@
+{
+  title: 'test #10 : typechecking before value type coercion',
+  description: 'which is faster: typechecking and performing a conditional type conversion (coercion) or simply barging on and always performing a type coercion call like parseFloat() even when it happens not to be strictly necessary?',
+  related: [
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var data2 = [];\n\
+      var data_length = 0;\n\
+\n\
+      var glob = 0;\n\
+      var glob2 = 0;\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
+          var x = Math.random() * 127;\n\
+          x = x | 0;\n\
+          var y = Math.random() * 1000 - 500;\n\
+          y *= y * y;\n\
+          var z = y;\n\
+          switch (x % 3) {\n\
+          default:\n\
+            // floating point numeric type\n\
+            break;\n\
+\n\
+          case 1:\n\
+            // string type\n\
+            z = y = y.toString();\n\
+            break;\n\
+\n\
+          case 2:\n\
+            // boolean type\n\
+            y = (y < 0);\n\
+            break;\n\
+          }\n\
+          data[i] = y;\n\
+          data2[i] = z;\n\
+          i++;\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        glob = always_coerce_1(data);\n\
+        glob2 = always_coerce_10(data2);\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      function assert(rv) {\n\
+        if (rv != glob) {\n\
+          console.error('test should have produced the number', glob, 'but instead it produced', rv);\n\
+          throw new Error('test should have produced the reference number');\n\
+        }\n\
+      }\n\
+\n\
+      function assert2(rv) {\n\
+        if (rv != glob2) {\n\
+          console.error('test should have produced the number', glob2, 'but instead it produced', rv);\n\
+          throw new Error('test should have produced the reference number');\n\
+        }\n\
+      }\n\
+\n\
+      function always_coerce_1(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          sum += parseFloat(v) || (1 * v);\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function coerce_2(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          switch (typeof v) {\n\
+          case 'boolean':\n\
+            sum += (1 * v);\n\
+            break;\n\
+\n\
+          case 'string':\n\
+            sum += parseFloat(v);\n\
+            break;\n\
+\n\
+          default:\n\
+            sum += v;\n\
+            break;\n\
+          }\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function always_coerce_10(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          sum += parseFloat(v);\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function coerce_11(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          if (typeof v === 'string') {\n\
+            sum += parseFloat(v);\n\
+          } else {\n\
+            sum += v;\n\
+          }\n\
+        }\n\
+        return sum;\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'always convert (string + FP + bool)',
+      fn: '\
+        assert(always_coerce_1(data));'
+    },
+    {
+      name: 'convert conditionally (string + FP + bool)',
+      fn: '\
+        assert(coerce_2(data));'
+    },
+    {
+      name: 'always convert (string + FP)',
+      fn: '\
+        assert2(always_coerce_10(data2));'
+    },
+    {
+      name: 'convert conditionally (string + FP)',
+      fn: '\
+        assert2(coerce_11(data2));'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}

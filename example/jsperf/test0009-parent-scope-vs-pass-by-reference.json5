@@ -1,0 +1,317 @@
+{
+  title: 'test #9 : accessing variables in parent scope vs. passing them by reference',
+  description: 'which is faster when parent function calls child/other function: referencing stuff in your parent scope or passing it by reference in a temporary object structure?\nOf course we play a little loose with the garbage collection (GC) consequences of the latter, as those are hard to include in the microbenchmark...',
+  related: [
+    "test0009.2-parent-scope-vs-pass-by-reference-1000.json5",
+    "test0002-pass-by-reference-vs-parent-scope.json5"
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var data_length = 0;\n\
+\n\
+      var glob = 0;\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 2 /* you may also try 1000 */; i < l; ) {\n\
+          var x = Math.random() * 0x10000;\n\
+          x = x | 0;\n\
+          if (x >= 0xD800 && x <= 0xDFFF) continue;\n\
+          if (x > 0xFFFF) continue;\n\
+          data[i] = x;\n\
+          i++;\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        glob = direct_5(data);\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      function assert(rv) {\n\
+        if (rv != glob) {\n\
+          console.error('test should have produced the number', glob, 'but instead it produced', rv);\n\
+          throw new Error('test should have produced the reference number');\n\
+        }\n\
+      }\n\
+\n\
+      function parent_1(data) {\n\
+        var len = data.length;\n\
+\n\
+        function child_1(i) {\n\
+          sum += data[i];\n\
+        }\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          child_1(i);\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function parent_2(data) {\n\
+        var len = data.length;\n\
+\n\
+        function child_2(i, data, sum) {\n\
+          return sum + data[i];\n\
+        }\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          sum = child_2(i, data, sum);\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function child_2B(i, data, sum) {\n\
+        return sum + data[i];\n\
+      }\n\
+\n\
+      function parent_2B(data) {\n\
+        var len = data.length;\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          sum = child_2B(i, data, sum);\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function parent_3(data) {\n\
+        var len = data.length;\n\
+\n\
+        function child_3(i, o) {\n\
+          return o.sum + o.data[i];\n\
+        }\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          sum = child_3(i, {\n\
+            data: data,\n\
+            sum: sum\n\
+          });\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function child_3A(i, o) {\n\
+        return o.sum + o.data[i];\n\
+      }\n\
+\n\
+      function parent_3A(data) {\n\
+        var len = data.length;\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          sum = child_3A(i, {\n\
+            data: data,\n\
+            sum: sum\n\
+          });\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function child_3B(i, o) {\n\
+        o.sum += o.data[i];\n\
+      }\n\
+\n\
+      function parent_3B(data) {\n\
+        var len = data.length;\n\
+        var o = { data: data, sum: 0 };\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          child_3B(i, o);\n\
+        }\n\
+        return o.sum;\n\
+      }\n\
+\n\
+      function parent_4_closure(data) {\n\
+        var len = data.length;\n\
+        var sum = 0;\n\
+\n\
+        return function child_4() {\n\
+          sum = 0;\n\
+          for (var i = 0; i < len; i++) {\n\
+            sum += data[i];\n\
+          }\n\
+          return sum;\n\
+        };\n\
+      }\n\
+      //var closure_4 = parent_4_closure(data); <-- this initialization would happen way too early, however we set this up as part of the test so that would be okay! As the second test does not do that, we must also set this up in the benchmark setup code!\n\
+      var closure_4;\n\
+\n\
+      function parent_4B_closure(data) {\n\
+        var len = data.length;\n\
+        var sum = 0;\n\
+\n\
+        return function child_4B(data) {\n\
+          sum = 0;\n\
+          for (var i = 0; i < len; i++) {\n\
+            sum += data[i];\n\
+          }\n\
+          return sum;\n\
+        };\n\
+      }\n\
+      //var closure_4B = parent_4B_closure(data); <-- this initialization would happen way too early, so we do it in the setup code instead!\n\
+      var closure_4B;\n\
+\n\
+      // nonclosure: no closure variables, but function acts like a kind of very crude code generator\n\
+      function parent_4C_nonclosure() {\n\
+        return function child_4C(data) {\n\
+          var len = data.length;\n\
+\n\
+          var sum = 0;\n\
+          for (var i = 0; i < len; i++) {\n\
+            sum += data[i];\n\
+          }\n\
+          return sum;\n\
+        };\n\
+      }\n\
+      var closure_4C = parent_4C_nonclosure();\n\
+\n\
+      // nonclosure: no closure variables, but function acts like a real code generator\n\
+      function parent_4D_codegen() {\n\
+        return new Function('data', '\\n' +\n\
+        '  var len = data.length;\\n' +\n\
+        '\\n' +\n\
+        '  var sum = 0;\\n' +\n\
+        '  for (var i = 0; i < len; i++) {\\n' +\n\
+        '    sum += data[i];\\n' +\n\
+        '  }\\n' +\n\
+        '  return sum;\\n' +\n\
+        '\\n');\n\
+      }\n\
+      var generated_4D = parent_4D_codegen();\n\
+\n\
+      // nonclosure: no closure variables, but function acts like a real code generator\n\
+      function parent_4E_codegen(len) {\n\
+        var code = '';\n\
+        for (var i = 1, l = len - 1; i < l; i++) {\n\
+          code += '  data[' + i + '] +\\n';\n\
+        }\n\
+        return new Function('data', '\\n' +\n\
+        '  var sum = data[0] +\\n' +\n\
+          code +\n\
+        '  data[' + (len - 1) + '];\\n' +\n\
+        '  return sum;\\n' +\n\
+        '\\n');\n\
+      }\n\
+      var generated_4E; // ### = parent_4E_codegen();\n\
+\n\
+      function direct_5(data) {\n\
+        var len = data.length;\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          sum += data[i];\n\
+        }\n\
+        return sum;\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'parent scope',
+      fn: '\
+        assert(parent_1(data));'
+    },
+    {
+      name: 'local scope only',
+      fn: '\
+        assert(parent_2(data));'
+    },
+    {
+      name: 'local scope only, no local function',
+      fn: '\
+        assert(parent_2B(data));'
+    },
+    {
+      name: 'pass by reference',
+      fn: '\
+        assert(parent_3(data));'
+    },
+    {
+      name: 'pass by reference, no local function',
+      fn: '\
+        assert(parent_3A(data));'
+    },
+    {
+      name: 'pass by reference, no local function, object re-use',
+      fn: '\
+        assert(parent_3B(data));'
+    },
+    {
+      name: 'closure scope',
+      fn: '\
+        var closure_4 = parent_4_closure(data);\n\
+        assert(closure_4());'
+    },
+    {
+      name: 'closure scope, init once and re-use',
+      fn: '\
+        assert(closure_4());'
+    },
+    {
+      name: 'closure scope, init once and re-use, no cached data ref',
+      fn: '\
+        assert(closure_4B(data));'
+    },
+    {
+      name: 'non-closure scope, init once and re-use',
+      fn: '\
+        // this should run as quickly as `direct_5`!\n\
+        assert(closure_4C(data));'
+    },
+    {
+      name: 'generated',
+      fn: '\
+        // this should run as quickly as `direct_5`!\n\
+        assert(generated_4D(data));'
+    },
+    {
+      name: 'generated, unrolled loop',
+      fn: '\
+        // this should run faster than `direct_5`!\n\
+        assert(generated_4E(data));'
+    },
+    {
+      name: 'direct, local scope',
+      fn: '\
+        assert(direct_5(data));'
+    },
+    {
+      name: 'direct sans function call',
+      fn: '\
+        var t = data;\n\
+        var len = t.length;\n\
+\n\
+        var sum = 0;\n\
+        for (var i = 0; i < len; i++) {\n\
+          sum += t[i];\n\
+        }\n\
+        assert(sum);\n\
+        '
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+          closure_4 = parent_4_closure(data);\n\
+          closure_4B = parent_4B_closure(data);\n\
+          generated_4E = parent_4E_codegen(data.length);\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}
