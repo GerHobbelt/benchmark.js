@@ -103,10 +103,11 @@
      * @private
      */
     'start': function() {
-        // call user provided init() function
-        if (isFunction(window.init)) {
-          init();
-        }
+      // call user provided init() function
+      if (isFunction(window.init) && !ui.has_executed_init) {
+        init();
+        ui.has_executed_init = true;
+      }
     }
   };
 
@@ -128,6 +129,12 @@
           return !bench.error && bench.reset();
         }));
         ui.run(runOptions);
+      } else {
+        // call user provided init() function
+        if (isFunction(window.init) && !ui.has_executed_init) {
+          init();
+          ui.has_executed_init = true;
+        }
       }
     }
   };
@@ -193,10 +200,11 @@
           // ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
         }
         if (has.runner) {
-          // call user provided init() function
-          if (isFunction(window.init)) {
-            init();
-          }
+          // // call user provided init() function
+          // if (isFunction(window.init)) {
+          //   init();
+          // }
+          ui.has_executed_init = false;
           // auto-run
           if ('run' in params) {
             scrollTop = $('runner').offsetTop;
