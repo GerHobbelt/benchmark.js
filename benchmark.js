@@ -778,9 +778,16 @@
           return bench.cycles && _.isFinite(bench.hz) && !bench.error;
         };
       }
+      else if (callback === 'ranking') {
+        // Callback to exclude those that do not participate in ranking.
+        callback = function(bench) {
+          var r = bench.options.ranking;
+          return (typeof r === 'undefined' || r);
+        };
+      }
       else if (callback === 'fastest' || callback === 'slowest') {
         // Get successful, sort by period + margin of error, and filter fastest/slowest.
-        var result = filter(array, 'successful').sort(function(a, b) {
+        var result = filter(filter(array, 'successful'), 'ranking').sort(function(a, b) {
           a = a.stats; b = b.stats;
           return (a.mean + a.moe > b.mean + b.moe ? 1 : -1) * (callback === 'fastest' ? 1 : -1);
         });
