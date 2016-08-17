@@ -72,6 +72,13 @@
           serialized_data[i] = flt.toPrecision(16);\n\
         }\n\
       }\n\
+      function classic_s_4(data, len, serialized_data) {\n\
+        for (var i = 0; i < len; i++) {\n\
+          var flt = data[i];\n\
+\n\
+          serialized_data[i] = JSON.stringify(flt);\n\
+        }\n\
+      }\n\
 \n\
       function custom_s_1(data, len, serialized_data) {\n\
         for (var ii = 0; ii < len; ii++) {\n\
@@ -145,6 +152,11 @@
       name: 'Classic :: toPrecision(max)', 
       'fn': '\
         classic_s_3(data, data_length, serialized_data);'
+    },
+    { 
+      name: 'JSON.stringify(float)', 
+      'fn': '\
+        classic_s_4(data, data_length, serialized_data);'
     },
     { 
       name: 'Custom :: v1', 
