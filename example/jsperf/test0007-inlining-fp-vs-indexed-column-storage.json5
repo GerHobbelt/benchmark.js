@@ -17,6 +17,7 @@
         'fpcvt-alt2.js',\n\
         'fpcvt-alt3.js',\n\
         'fpcvt-alt4.js',\n\
+        'fpcvt-alt5.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\
