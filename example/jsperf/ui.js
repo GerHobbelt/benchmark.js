@@ -588,10 +588,15 @@
     appendHTML(table, table_row_template.replace(/ID/g, id));
 
     var title = $('title-' + id),
-        sourceDisplay = $('code-' + id);
+        sourceDisplay = $('code-' + id),
+        row = $('test-row-' + id);
 
     setHTML(title, '<div>' + escape(bench.name) + '</div>');
     setHTML(sourceDisplay, '<pre><code>' + escape(unindent(bench.fn)) + '</code></pre>');
+
+    if (typeof bench.ranking !== 'undefined' && !bench.ranking) {
+      addClass(row, 'no-ranking');
+    }
 
     ui.benchmarks.push(bench);
 
@@ -643,8 +648,10 @@
         text += '<br>(&#x2715;&#x00a0;1)';
       }
       else {
+        var is_slower = (percent > 0);
+        percent = Math.abs(percent);
         text = isFinite(hz)
-          ? formatNumber(percent < 1 ? percent.toFixed(2) : Math.round(percent)) + '% slower<br>(&#x2715;&#x00a0;' + (fastestHz / hz).toFixed(1) + ')'
+          ? formatNumber(percent < 1 ? percent.toFixed(2) : Math.round(percent)) + '% ' + (is_slower ? 'slower' : 'faster') + '<br>(&#x2715;&#x00a0;' + (fastestHz / hz).toFixed(1) + ')'
           : '';
 
         // mark slowest

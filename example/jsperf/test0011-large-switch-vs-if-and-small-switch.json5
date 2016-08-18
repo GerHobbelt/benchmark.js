@@ -25,6 +25,7 @@
       var if_elif;\n\
       var dual_layer_switch_case;\n\
       var jump_table;\n\
+      var jump_table2;\n\
 \n\
       function init() {\n\
         if (data_length) return;\n\
@@ -44,12 +45,12 @@
         }\n\
         data_length = l;\n\
 \n\
-        var code1 = [], code2 = [], code3 = [], code3C = {}, code4 = [];\n\
+        var code1 = [], code2 = [], code3 = [], code3C = {}, code4 = [], code5C = [], code5 = [];\n\
         for (var i = 0, l = L; i < l; i++) {\n\
           var r = i & M;\n\
 \n\
           if (!code3C[r]) {\n\
-            code3C[r] = ['case ' + (i & M) + ':', '  switch (i2) {'];\n\
+            code3C[r] = ['case ' + (i & M) + ':', '  switch (i2 | 0) {'];\n\
           }\n\
           code3C[r].push('  case ' + (i & ~M) + ':');\n\
           if (i !== 0) {\n\
@@ -62,16 +63,18 @@
           var x = Math.random() * 0xFFFFF;\n\
           x = x | 0;\n\
           dataX[i] = x;\n\
+          code5.push('  do_' + i + ',');\n\
           code4.push('  jump_table_gv' + i + ',');\n\
           code3C[r].push('    sum += ' + x + ';', '    continue;');\n\
           code2.push('  sum += ' + x + ';');\n\
           code1.push('  sum += ' + x + ';', '  continue;');\n\
 \n\
           var f = new Function('', 'return ' + x + ';');\n\
-          // drop these helper functions in global namespace as that is fastest, \n\
-          // as shown in other performance tests (compared to having these as \n\
+          // drop these helper functions in global namespace as that is fastest,\n\
+          // as shown in other performance tests (compared to having these as\n\
           // sub-level functions internal to `jump_table()` itself!)\n\
           window['jump_table_gv' + i] = f;\n\
+          code5C.push(String(f).replace(/anonymous/, 'do_' + i));\n\
         }\n\
 \n\
         var k = Object.keys(code3C).map(function (k) { return +k; });\n\
@@ -82,6 +85,16 @@
           code3.push('  }', '  break;   // not really needed but signals that there is no chance at all of fall-through');\n\
         });\n\
 \n\
+        code5 = [].concat(code5C, 'const jt = [', code5, [\n\
+          '];',\n\
+          'var sum = 0;',\n\
+          'var d = data;',\n\
+          'for (var i = 0, l = data_length; i < l; i++) {',\n\
+          '  var idx = d[i];',\n\
+          '  sum += jt[idx]();',\n\
+          '}',\n\
+          'return sum;',\n\
+        ]);\n\
         code4 = ['const jt = ['].concat(code4, [\n\
           '];',\n\
           'var sum = 0;',\n\
@@ -131,11 +144,12 @@
         if_elif = new Function('', code2.join('\\n'));\n\
         dual_layer_switch_case = new Function('', code3.join('\\n'));\n\
         jump_table = new Function('', code4.join('\\n'));\n\
+        jump_table2 = new Function('', code5.join('\\n'));\n\
 \n\
         glob = direct_5(data);\n\
 \n\
         window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
-        window.console && console.log('init:: generated functions:', String(switch_case), String(if_elif), String(dual_layer_switch_case), String(jump_table));\n\
+        window.console && console.log('init:: generated functions:', String(switch_case), String(if_elif), String(dual_layer_switch_case), String(jump_table), String(jump_table2));\n\
       }\n\
 \n\
       function assert(rv) {\n\
@@ -178,8 +192,13 @@
         assert(jump_table());'
     },
     {
+      name: 'jump table v2 (internal subfunctions)',
+      fn: '\
+        assert(jump_table2());'
+    },
+    {
       name: 'direct (shows only overhead in sample code)',
-      rank: false,
+      ranking: false,
       fn: '\
         assert(direct_5(data));'
     },

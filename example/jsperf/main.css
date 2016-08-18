@@ -136,6 +136,15 @@ td.error {
   font-weight: bold;
 }
 
+tr.no-ranking {
+  background-color: rgb(227, 227, 227); 
+  color: rgb(104, 120, 134); 
+}
+tr.no-ranking th {
+  background-color: #c5cdd4;
+  color: rgb(93, 93, 93); 
+}
+
 button, .submit {
   padding: .35em .5em;
   cursor: pointer;
