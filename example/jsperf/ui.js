@@ -154,12 +154,15 @@
           index,
           target = event.target || event.srcElement;
 
-      while (target && !(id = target.id)) {
+      while (target && (!target.id || !target.id.match(/title-/))) {
         target = target.parentNode;
       }
-      index = id && --id.split('-')[1] || 0;
-      ui.push(ui.benchmarks[index].reset());
-      ui.running ? ui.render(index) : ui.run(runOptions);
+      if (target) {
+        id = target.id;
+        index = id && --id.split('-')[1] || 0;
+        ui.push(ui.benchmarks[index].reset());
+        ui.running ? ui.render(index) : ui.run(runOptions);
+      }
     },
 
     /**
