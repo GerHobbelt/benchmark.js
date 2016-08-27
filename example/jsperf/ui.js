@@ -533,7 +533,8 @@
       var parsed,
           cell = $(prefix + (++index)),
           error = bench.error,
-          hz = bench.hz;
+          hz = bench.hz,
+          ops_cnt = bench.operationsPerRound;
 
       // reset title and class
       cell.title = '';
@@ -558,6 +559,7 @@
             setHTML(cell, 'completed');
           }
           else {
+            hz *= ops_cnt;
             cell.title = 'Ran ' + formatNumber(bench.count) + ' times in ' +
               bench.times.cycle.toFixed(3) + ' seconds.';
             setHTML(cell, formatNumber(hz.toFixed(hz < 100 ? 2 : 0)) +
