@@ -1,5 +1,5 @@
 /*!
- * Benchmark.js v2.1.0 <https://benchmarkjs.com/>
+ * Benchmark.js v2.1.1 <https://benchmarkjs.com/>
  * Copyright 2010-2016 Mathias Bynens <https://mths.be/>
  * Based on JSLitmus.js, copyright Robert Kieffer <http://broofa.com/>
  * Modified by John-David Dalton <http://allyoucanleet.com/>
@@ -1541,6 +1541,8 @@
       var bench = this,
           error = bench.error,
           hz = bench.hz,
+          ops_cnt = bench.operationsPerRound,
+          f = hz * ops_cnt,
           id = bench.id,
           stats = bench.stats,
           size = stats.sample.length,
@@ -1560,7 +1562,7 @@
         result += ': ' + errorStr;
       }
       else {
-        result += ' x ' + formatNumber(hz.toFixed(hz < 100 ? 2 : 0)) + ' ops/sec ' + pm +
+        result += ' x ' + formatNumber(f.toFixed(f < 100 ? 2 : 0)) + ' ops/sec ' + pm +
           stats.rme.toFixed(2) + '% (' + size + ' run' + (size == 1 ? '' : 's') + ' sampled)';
       }
       return result;
@@ -2208,6 +2210,16 @@
          * @type number
          */
         'initCount': 1,
+
+        /**
+         * The default number of tests run per benchmark function call: set this if you 
+         * want the ops/sec to represent the number of single operations when your benchmark 
+         * code is a  loop or a repeating sequence of the same operations.
+         *
+         * @memberOf Benchmark.options
+         * @type number
+         */
+        'operationsPerRound': 1,
 
         /**
          * The maximum time a benchmark is allowed to run before finishing (secs).
