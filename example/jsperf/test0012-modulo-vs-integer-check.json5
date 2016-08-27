@@ -1,0 +1,154 @@
+{
+  title: 'test #12 : modulo vs. integer check',
+  description: 'which is faster: a modulo of 1 or comparing against the integer value when you want to know if the given value is an integer?',
+  related: [
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+\n\
+      var glob = 0;\n\
+\n\
+      function init() {\n\
+        if (data.length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
+          var x = Math.random() * 1000;\n\
+          var y = Math.random();\n\
+          if (y > 0.5) {\n\
+            x = x | 0;\n\
+          }\n\
+          data[i] = x;\n\
+          i++;\n\
+        }\n\
+\n\
+        glob = modulo_1(data);\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      function assert(rv) {\n\
+        if (rv != glob) {\n\
+          console.error('test should have produced the number', glob, 'but instead it produced', rv);\n\
+          throw new Error('test should have produced the reference number');\n\
+        }\n\
+      }\n\
+\n\
+      function modulo_1(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          // the check: calc modulo and check for zero next:\n\
+          var x = v % 1;\n\
+          if (x === 0) {\n\
+            sum += 42 + 3 * v;\n\
+          } else {\n\
+            sum -= v;\n\
+          }\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function check_against_int(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          // the check: force value to an int and then compare:\n\
+          var x = v | 0;\n\
+          if (x === v) {\n\
+            sum += 42 + 3 * v;\n\
+          } else {\n\
+            sum -= v;\n\
+          }\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function check_against_int_floor(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          // the check: force value to an int and then compare:\n\
+          var x = Math.floor(v);\n\
+          if (x === v) {\n\
+            sum += 42 + 3 * v;\n\
+          } else {\n\
+            sum -= v;\n\
+          }\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function check_against_int_round(data) {\n\
+        var sum = 0;\n\
+        var len = data.length;\n\
+        for (var i = 0; i < len; i++) {\n\
+          var v = data[i];\n\
+          // the check: force value to an int and then compare:\n\
+          var x = Math.round(v);\n\
+          if (x === v) {\n\
+            sum += 42 + 3 * v;\n\
+          } else {\n\
+            sum -= v;\n\
+          }\n\
+        }\n\
+        return sum;\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'modulo 1',
+      fn: '\
+        //   chk = value % 1\n\
+        //   if (chk === 0) ...\n\
+        assert(modulo_1(data));'
+    },
+    {
+      name: 'check against int',
+      fn: '\
+        //   chk = value | 0   (<-- the fastest known method to coerce a float to int)\n\
+        //   if (chk === value) ...\n\
+        assert(check_against_int(data));'
+    },
+    {
+      name: 'check against int, using floor()',
+      fn: '\
+        //   chk = Math.floor(value)\n\
+        //   if (chk === value) ...\n\
+        assert(check_against_int_floor(data));'
+    },
+    {
+      name: 'check against int, using round()',
+      fn: '\
+        //   chk = Math.round(value)\n\
+        //   if (chk === value) ...\n\
+        // (I expect this one to differ from the Math.floor() version\n\
+        // as I seem to recall Math.round() being considered for some\n\
+        // special activity regarding the ASM.JS initiative...)\n\
+        assert(check_against_int_round(data));'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length;\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}
