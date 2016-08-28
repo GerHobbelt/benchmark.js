@@ -421,6 +421,12 @@
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   }
 
+  // sanitize the input HTML
+  function sanitize(s) {
+    // TODO: use punkave/sanitize-html or almost/safe-html
+    return s;
+  }
+
 
   /*--------------------------------------------------------------------------*/
 
@@ -596,7 +602,7 @@
         sourceDisplay = $('code-' + id),
         row = $('test-row-' + id);
 
-    setHTML(title, '<div>' + escape(bench.name) + '</div>');
+    setHTML(title, '<div>' + sanitize(bench.name) + '</div>');
     setHTML(sourceDisplay, '<pre><code>' + escape(unindent(bench.fn)) + '</code></pre>');
 
     if (typeof bench.ranking !== 'undefined' && !bench.ranking) {
@@ -709,8 +715,8 @@
   };
 
   ui.initFromJSON = function (json) {
-    setHTML('test-title-1', escape(json.title));
-    setHTML('test-title-2', escape(json.title));
+    setHTML('test-title-1', sanitize(json.title));
+    setHTML('test-title-2', sanitize(json.title));
     setHTML('test-description', json.description.replace(/\n\n/g, '</p><p>'));
 
     // ui.browserscope.key = json.browserscope_API_key;
