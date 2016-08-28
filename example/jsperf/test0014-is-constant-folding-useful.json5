@@ -1,0 +1,294 @@
+{
+  title: 'test #14 : is constant folding useful',
+  description: 'does it matter—in terms of performance of repeatedly executed code—whether we perform constant folding at source code level?',
+  related: [
+      "test0015-is-constant-propagation-useful.json5"
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var data_length = 0;\n\
+      var mapping = [];\n\
+      var glob_sum = 0;\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
+          var x = Math.random() * 0x10000;\n\
+          x = x | 0;\n\
+          if (x >= 0xD800 && x <= 0xDFFF) continue;\n\
+          if (x > 0xFFFF) continue;\n\
+          data[i] = x;\n\
+          i++;\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        for (var i = 0, l = 0x10000; i < l; i++) {\n\
+          mapping[i] = String.fromCharCode(i);\n\
+        }\n\
+\n\
+        glob_sum = plain_calculus();\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      // Test result to prevent code removal\n\
+      function T(a) {\n\
+        if (a !== glob_sum) {\n\
+          throw new Error('test failed! ' + a + ' vs. ' + glob_sum);\n\
+        }\n\
+      }\n\
+\n\
+      function plain_calculus() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var c1 = Math.sin(1);\n\
+          var c2 = 1 / c1;\n\
+          var c3 = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;\n\
+          var c4 = c3 * 42 / 100;\n\
+          var c5 = c4 / c2;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function basic_const_folding() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var c1 = Math.sin(1);\n\
+          var c2 = 1 / c1;\n\
+          var c3 = 45;\n\
+          var c4 = c3 * 0.42;\n\
+          var c5 = c4 / c2;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function advanced_const_folding() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var c1 = 0.8414709848078965;\n\
+          var c2 = 1 / c1;\n\
+          var c3 = 45;\n\
+          var c4 = c3 * 0.42;\n\
+          var c5 = c4 / c2;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function all_folding_plus_constant_propagation() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var c1 = 0.8414709848078965;\n\
+          var c2 = 1 / 0.8414709848078965;\n\
+          var c3 = 45;\n\
+          var c4 = 45 * 0.42;\n\
+          var c5 = c4 / c2;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function plus_unused_variable_removal() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          //var c1 = 0.8414709848078965;\n\
+          //var c2 = 1.1883951057781212;\n\
+          //var c3 = 45;\n\
+          //var c4 = 18.9;\n\
+          //var c5 = 15.903801612869243;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * 15.903801612869243 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function plus_single_use_variable_inlining() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          //var c1 = 0.8414709848078965;\n\
+          //var c2 = 1.1883951057781212;\n\
+          //var c3 = 45;\n\
+          //var c4 = 18.9;\n\
+          //var c5 = 15.903801612869243;\n\
+          //var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (d & 0x0001) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * 15.903801612869243 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function plus_rewrite_to_ternairy_operator() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          //var c1 = 0.8414709848078965;\n\
+          //var c2 = 1.1883951057781212;\n\
+          //var c3 = 45;\n\
+          //var c4 = 18.9;\n\
+          //var c5 = 15.903801612869243;\n\
+          //var v1 = d & 0x0001;\n\
+          //var v2 = (d & 0x0001) ? -(sum / 1.1) : sum;\n\
+          sum = d * 15.903801612869243 + ( (d & 0x0001) ? -(sum / 1.1) : sum );\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function via_invariant_code_motion() {\n\
+        var sum = 0;\n\
+        var c1 = Math.sin(1);\n\
+        var c2 = 1 / c1;\n\
+        var c3 = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;\n\
+        var c4 = c3 * 42 / 100;\n\
+        var c5 = c4 / c2;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function via_invariant_code_motion_es5() {\n\
+        var sum = 0;\n\
+        const c1 = Math.sin(1);\n\
+        const c2 = 1 / c1;\n\
+        const c3 = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;\n\
+        const c4 = c3 * 42 / 100;\n\
+        const c5 = c4 / c2;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
+        }\n\
+        return sum;\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'REFERENCE: plain calculus',
+      fn: '\
+        T(plain_calculus());'
+    },
+    {
+      name: 'basic constant folding',
+      fn: '\
+        T(basic_const_folding());'
+    },
+    {
+      name: 'advanced constant folding\n(~ including function evaluation)',
+      fn: '\
+        T(advanced_const_folding());'
+    },
+    {
+      name: 'all that PLUS constant propagation',
+      fn: '\
+        T(all_folding_plus_constant_propagation());'
+    },
+    {
+      name: 'PLUS unused local variable removal',
+      fn: '\
+        T(plus_unused_variable_removal());'
+    },
+    {
+      name: 'PLUS single use of variable\n⇒ variable inlining',
+      fn: '\
+        T(plus_single_use_variable_inlining());'
+    },
+    {
+      name: 'PLUS rewriting if/else to ternairy operator\n<em>(if it helps to remove a local variable declaration!)</em>',
+      fn: '\
+        T(plus_rewrite_to_ternairy_operator());'
+    },
+    {
+      name: 'accomplishing the same by invariant code motion',
+      fn: '\
+        T(via_invariant_code_motion());'
+    },
+    {
+      name: 'accomplishing the same by invariant code motion\n, using ES5 <code>const</code> instead of <code>var</code>',
+      fn: '\
+        T(via_invariant_code_motion_es5());'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length;\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}

@@ -1,7 +1,8 @@
 {
   title: 'test #8 : array join vs. string concat (while using FromCharCode)',
-  description: 'which is faster: creating an array of tokens and then converting them all to a single string using fromCharCode and join, or creating tokens as little strings and concatenating those?',
+  description: 'which is faster: creating an array of tokens and then converting them all to a single string using fromCharCode and join, or creating tokens as little strings and concatenating those? Or mapping integer tokens to strings and concatenating those?',
   related: [
+      "test0013-encoding-numeric-data-to-blob-and-back.json5"
   ],
 
   HTML: "",
@@ -56,8 +57,32 @@
         return a.join('');\n\
       }\n\
 \n\
+      function join_em2a(data, len) {\n\
+        var a = [];\n\
+        for (var i = 0; i < len; i++) {\n\
+          a.push(String.fromCharCode(data[i]));\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function join_em2b(data, len) {\n\
+        var a = new Array(len);\n\
+        for (var i = 0; i < len; i++) {\n\
+          a[i] = String.fromCharCode(data[i]);\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
       function join_em3(data, len, mapping) {\n\
         var a = [];\n\
+        for (var i = 0; i < len; i++) {\n\
+          a[i] = mapping[data[i]];\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function join_em3b(data, len, mapping) {\n\
+        var a = new Array(len);\n\
         for (var i = 0; i < len; i++) {\n\
           a[i] = mapping[data[i]];\n\
         }\n\
@@ -101,36 +126,61 @@
     {
       name: 'map/conversion + join',
       fn: '\
+        // ~ data.map(String.fromCharCode).join()\n\
         join_em1(data, data_length);'
     },
     {
       name: 'loop/conversion + join',
       fn: '\
+        // ~ for-loop: { a[] = String.fromCharCode }, a.join()\n\
         join_em2(data, data_length);'
+    },
+    {
+      name: 'loop.push/conversion + join',
+      fn: '\
+        // ~ for-loop: { a.push(String.fromCharCode) }, a.join()\n\
+        join_em2a(data, data_length);'
+    },
+    {
+      name: 'prealloc + loop/conversion + join',
+      fn: '\
+        // ~ a = new [length], for-loop: { a[] = String.fromCharCode }, a.join()\n\
+        join_em2b(data, data_length);'
     },
     {
       name: 'loop/lookup + join',
       fn: '\
+        // ~ for-loop { a[] = mapping[data] }, join()\n\
         join_em3(data, data_length, mapping);'
+    },
+    {
+      name: 'prealloc + loop/lookup + join',
+      fn: '\
+        // ~ a = new [length], for-loop { a[] = mapping[data] }, join()\n\
+        join_em3b(data, data_length, mapping);'
     },
     {
       name: 'concat/conversion',
       fn: '\
+        // ~ for-loop { s+= String.fromCharCode }\n\
         concat_em1(data, data_length);'
     },
     {
       name: 'concat/lookup',
       fn: '\
+        // ~ arg:mapping :: for-loop { s+= mapping[data] }\n\
         concat_em2(data, data_length, mapping);'
     },
     {
       name: 'concat/global-lookup',
       fn: '\
+        // ~ global:mapping :: for-loop { s+= mapping[data] }\n\
         concat_em3(data, data_length);'
     },
     {
       name: 'concat/cached-global-lookup',
       fn: '\
+        // ~ local:mapping :: for-loop { s+= mapping[data] }\n\
         concat_em4(data, data_length);'
     },
   ],

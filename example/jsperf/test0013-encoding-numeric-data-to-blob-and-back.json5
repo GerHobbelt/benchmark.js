@@ -1,0 +1,109 @@
+{
+  title: 'test #13 : encoding numeric data to Blob and back',
+  description: 'how do Blobs compare to JSON et al when it comes to serialization? Hence, this means, for starters, we are wondering how fast one can convert a typed array or string or other data bits into a blob and how fast we can get them back? And how does that perform compared to JSON, msgpack, et al? And regarding our own travails, is converting large integer arrays to text faster via BLOBs compared to mapping+string concatenation (see test #0008)?',
+  related: [
+      "test0008-array-join-vs-string-add.json5"
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var data_length = 0;\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
+          var x = Math.random() * 0x10000;\n\
+          x = x | 0;\n\
+          if (x >= 0xD800 && x <= 0xDFFF) continue;\n\
+          if (x > 0xFFFF) continue;\n\
+          data[i] = x;\n\
+          i++;\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        for (var i = 0, l = 0x10000; i < l; i++) {\n\
+          mapping[i] = String.fromCharCode(i);\n\
+        }\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      // Test result to prevent code removal
+      function T(a) {
+        if (a == null) {
+          throw new Error('test failed!');
+        }
+      }
+
+      // Produce a BLOB
+      function structure_to_blob(obj) {
+
+      }
+
+      // Produce the original structure from the given blob
+      function blob_to_structure(blob) {
+        var reader = new FileReader();
+        reader.addEventListener("loadend", function() {
+          // reader.result contains the contents of blob as a typed array: instanceof ArrayBuffer
+          console.log('loadend: ', {
+            result: reader.result,
+            args: arguments
+          });
+
+          //var buffer = new ArrayBuffer(8);
+          var buffer = reader.result;
+          var view   = new Uint16Array(buffer);
+
+
+
+          var littleEndian = (function() {
+            var buffer = new ArrayBuffer(2);
+            new DataView(buffer).setInt16(0, 256, true /* littleEndian */);
+            // Int16Array uses the platform's endianness.
+            return new Int16Array(buffer)[0] === 256;
+          })();
+          console.log(littleEndian); // true or false
+        });
+        reader.readAsArrayBuffer(blob);
+      }
+      ",
+  tests: [
+    {
+      name: 'struct to blob',
+      fn: '\
+        T(structure_to_blob(struct));'
+    },
+    {
+      name: 'blob to struct',
+      fn: '\
+        T(blob_to_structure(blob_stream));'
+    },
+    {
+      name: 'struct to JSON',
+      fn: '\
+        T(JSON.stringify(struct));'
+    },
+    {
+      name: 'JSON to struct',
+      fn: '\
+        T(JSON.parse(json_stream));'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}

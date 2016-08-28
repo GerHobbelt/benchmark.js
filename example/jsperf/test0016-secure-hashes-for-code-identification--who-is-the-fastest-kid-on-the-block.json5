@@ -1,0 +1,78 @@
+{
+  title: "test #16 : using 'secure hashes' for data identification a la GIT: who is the fastest kid on the block",
+  description: 'it matters how fast a good hash of the given (long) input string can be calculated. GIT uses SHA-1. We can use the same, or maybe a <em>faster</em> hash which is comparable in collision performance (where we <em>ignore</em> the security aspects as we are <em>not interested</em> in those: we merely want the hash for its collision avoidance characteristics!',
+  related: [
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var data_length = 0;\n\
+      var data_as_string;\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
+          var x = Math.random() * 0x10000;\n\
+          x = x | 0;\n\
+          if (x >= 0xD800 && x <= 0xDFFF) continue;\n\
+          if (x > 0xFFFF) continue;\n\
+          data[i] = x;\n\
+          i++;\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        for (var i = 0, l = 0x10000; i < l; i++) {\n\
+          mapping[i] = String.fromCharCode(i);\n\
+        }\n\
+\n\
+        data_as_string = JSON.stringify(data);\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      // Test result to prevent code removal\n\
+      function T(a) {\n\
+        if (a != null) {\n\
+          throw new Error('test failed!');\n\
+        }\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'REFERENCE: plain calculus',
+      fn: '\
+        T(plain_calculus());'
+    },
+    {
+      name: 'basic constant propagation from global to local',
+      fn: '\
+        T(constant_propagation());'
+    },
+    {
+      name: 'PLUS unused local variable removal',
+      fn: '\
+        T(plus_unused_variable_removal());'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length;\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}

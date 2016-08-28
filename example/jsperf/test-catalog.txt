@@ -11,3 +11,7 @@ test0009-parent-scope-vs-pass-by-reference.json5
 test0010-typechecking-before-type-coercion.json5
 test0011-large-switch-vs-if-and-small-switch.json5
 test0012-modulo-vs-integer-check.json5
+test0013-encoding-numeric-data-to-blob-and-back.json5
+test0014-is-constant-folding-useful.json5
+test0015-is-constant-propagation-useful.json5
+test0016-secure-hashes-for-code-identification--who-is-the-fastest-kid-on-the-block.json5
