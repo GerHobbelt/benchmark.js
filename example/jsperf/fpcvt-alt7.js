@@ -1,37 +1,14 @@
 
 
-
-// This function is very close to `decode_fp_value()` (fpcvt.js), where the only change is following 
-// the findings from test0006 where a large-ish set (30+ only!) cases in a `switch/case` 
-// causes a drop in performance in Chrome V8 engines as that engine doesn't convert a
-// switch/case to a jump table like the other browsers do (MSIE Edge is much faster thanks
-// to this, for example, but Mozilla FireFox also clearly performs a jump-table optimization
-// on switch/case given the performance numbers obtained from that one; it seems V8 is
-// the only one who doesn't inspect switch/case this way, so we resort to using if/elif/else
-// constructs in here as then we code the subrange checks in fewer checks and thus *win*,
-// at least in V8...)
-// 
-// As a result, this function differs very little from decode_fp_value(), except maybe for
-// some conditional flow decisions being executed in a different order.
-//
-// ---
-//
-// Preliminary tests (test0005) indicate that this code is 30% (!) faster than the original
-// in Chrome V8.
-// Ditto in MSIE (Internet Explorer Edge) and this stuff is a whopping 50% faster on FireFox (v49a2, Developer Channel)!
+// A near copy of decode_fp_value3() but with a approach to the optional `opt.consumed_length`
+// feedback.
 
 
-function decode_fp_value3(s, opt) {
+function decode_fp_value4(s, opt) {
   // sample JS code to decode a IEEE754 floating point value from a Unicode string.
   //
   // With provision to detect +0/-0 and +/-Inf and NaN
-  if (opt) {
-    opt.consumed_length = 1;
-  } else {
-    opt = { 
-      consumed_length: 1 
-    };
-  }
+  var consumed_length;
 
   var c0 = s.charCodeAt(0);
   //console.log('decode task: ', s, s.length, c0, '0x' + c0.toString(16));
@@ -80,6 +57,9 @@ function decode_fp_value3(s, opt) {
         sflt = -sflt;
       }
       //console.log('decode-short-1', sflt, ds, dm, dp, c0, '0x' + c0.toString(16));
+      if (opt) {
+        opt.consumed_length = 1;
+      }
       return sflt;
     } else if (c0 < 0xD800) {
       // 'short float' range 0xA800..0xD7FF
@@ -107,6 +87,9 @@ function decode_fp_value3(s, opt) {
         sflt = -sflt;
       }
       //console.log('decode-short-1', sflt, ds, dm, dp, c0, '0x' + c0.toString(16));
+      if (opt) {
+        opt.consumed_length = 1;
+      }
       return sflt;
     } else if (c0 >= 0xE000 && c0 < 0xF800) {
       // 'short float' range 0xE000..0xF7FF
@@ -129,9 +112,6 @@ function decode_fp_value3(s, opt) {
 
       //console.log('decode-short-0C', ds, dm, '0x' + dp.toString(16), dp >>> 11, c0, '0x' + c0.toString(16));
       dp >>>= 11;
-      if (dp >= 15) {
-        throw new Error('illegal fp encoding value in 0xF8xx-0xFFxx unicode range');
-      }
       dp -= 3 + 2 + 1;            // like above, but now also compensate for exponent bumping (0xB --> 0xC, ...)
 
       var sflt = dm * Math.pow(10, dp);
@@ -139,6 +119,9 @@ function decode_fp_value3(s, opt) {
         sflt = -sflt;
       }
       //console.log('decode-short-1C', sflt, ds, dm, dp, c0, '0x' + c0.toString(16));
+      if (opt) {
+        opt.consumed_length = 1;
+      }
       return sflt;
     } else if (c0 >= 0xF800) {
       // Specials or 'reserved for future use':
@@ -170,7 +153,7 @@ function decode_fp_value3(s, opt) {
           // 1 more 15-bit word:
           im = s.charCodeAt(1);
           m = im / FPC_ENC_MODULO;
-          opt.consumed_length++;
+          consumed_length = 1 + 1;
           //console.log('decode-normal-len=1', m, s.charCodeAt(1));
           break;
 
@@ -180,7 +163,7 @@ function decode_fp_value3(s, opt) {
           im <<= 15;
           im |= s.charCodeAt(2);
           m = im / (FPC_ENC_MODULO * FPC_ENC_MODULO);
-          opt.consumed_length += 2;
+          consumed_length = 2 + 1;
           //console.log('decode-normal-len=2', m, s.charCodeAt(1), s.charCodeAt(2));
           break;
 
@@ -195,7 +178,7 @@ function decode_fp_value3(s, opt) {
           im <<= 15;
           im |= s.charCodeAt(3);
           m += im / (FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO);
-          opt.consumed_length += 3;
+          consumed_length = 3 + 1;
           //console.log('decode-normal-len=3', m, s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3));
           break;
 
@@ -219,7 +202,7 @@ function decode_fp_value3(s, opt) {
           // that we don't need to mask them bits anyway as they would disappear as
           // noise below the least significant mantissa bit anyway. :-)
           m += im / (FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO);
-          opt.consumed_length += 4;
+          consumed_length = 4 + 1;
           //console.log('decode-normal-len=4', m, s.charCodeAt(1) / FPC_ENC_MODULO, s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3), s.charCodeAt(4));
           break;
         }
@@ -234,8 +217,14 @@ function decode_fp_value3(s, opt) {
           m = -m;
         }
         //console.log('decode-normal-2', m);
+        if (opt) {
+          opt.consumed_length = consumed_length;
+        }
         return m;
       } else {
+        if (opt) {
+          opt.consumed_length = 1;
+        }
         switch (c0) {
         case FPC_ENC_POSITIVE_ZERO:
           return 0;
@@ -253,7 +242,7 @@ function decode_fp_value3(s, opt) {
           return NaN;
 
         default:
-          throw new Error('illegal fp encoding value in 0xF9xx-0xFFxx unicode range');
+          throw new Error('illegal fp encoding value in 0xF900-0xFFFF Unicode range');
         }
       }
     } else {
@@ -265,7 +254,7 @@ function decode_fp_value3(s, opt) {
       //   Z̤̺̦̤̰̠̞̃̓̓̎ͤ͒a̮̩̞͎̦̘̮l̖̯̞̝̗̥͙͋̔̆͊ͤ͐̚g͖̣̟̼͙ͪ̆͌̇ỏ̘̯̓ ̮̣͉̺̽͑́i̶͎̳̲ͭͅs̗̝̱̜̱͙̽ͥ̋̄ͨ̑͠ ̬̲͇̭̖ͭ̈́̃G̉̐̊ͪ͟o͓̪̗̤̳̱̅ȍ̔d̳̑ͥͧ̓͂ͤ ́͐́̂to̮̘̖̱͉̜̣ͯ̄͗ǫ̬͚̱͈̮̤̞̿̒ͪ!͆̊ͬͥ̆̊͋
       // 
       // which reside in the other ranges that we DO employ for our own nefarious encoding purposes!
-      throw new Error('illegal fp encoding value in 0xDXXX unicode range');
+      throw new Error('illegal fp encoding value in 0xD800-0xDFFF Unicode range');
     }
   } else {
     // range 0x0000..0x7FFF:
@@ -295,7 +284,7 @@ function decode_fp_value3(s, opt) {
       // 1 more 15-bit word:
       im = s.charCodeAt(1);
       m = im / FPC_ENC_MODULO;
-      opt.consumed_length++;
+      consumed_length = 1 + 1;
       //console.log('decode-normal-len=1', m, s.charCodeAt(1));
       break;
 
@@ -305,7 +294,7 @@ function decode_fp_value3(s, opt) {
       im <<= 15;
       im |= s.charCodeAt(2);
       m = im / (FPC_ENC_MODULO * FPC_ENC_MODULO);
-      opt.consumed_length += 2;
+      consumed_length = 2 + 1;
       //console.log('decode-normal-len=2', m, s.charCodeAt(1), s.charCodeAt(2));
       break;
 
@@ -320,7 +309,7 @@ function decode_fp_value3(s, opt) {
       im <<= 15;
       im |= s.charCodeAt(3);
       m += im / (FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO);
-      opt.consumed_length += 3;
+      consumed_length = 3 + 1;
       //console.log('decode-normal-len=3', m, s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3));
       break;
 
@@ -344,7 +333,7 @@ function decode_fp_value3(s, opt) {
       // that we don't need to mask them bits anyway as they would disappear as
       // noise below the least significant mantissa bit anyway. :-)
       m += im / (FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO);
-      opt.consumed_length += 4;
+      consumed_length = 4 + 1;
       //console.log('decode-normal-len=4', m, s.charCodeAt(1) / FPC_ENC_MODULO, s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3), s.charCodeAt(4));
       break;
     }
@@ -354,6 +343,9 @@ function decode_fp_value3(s, opt) {
       m = -m;
     }
     //console.log('decode-normal-2', m);
+    if (opt) {
+      opt.consumed_length = consumed_length;
+    }
     return m;
   }
 }
@@ -365,5 +357,5 @@ function decode_fp_value3(s, opt) {
 
 
 
-console.info('fpcvt-alt5 loaded');
+console.info('fpcvt-alt7 loaded');
 

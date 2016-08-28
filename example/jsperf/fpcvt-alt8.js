@@ -1,264 +1,87 @@
 
-
-// See also:
 //
-//   - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
-//     + https://ece.uwaterloo.ca/~dwharder/NumericalAnalysis/02Numerics/Double/paper.pdf
-//     + http://perso.ens-lyon.fr/jean-michel.muller/goldberg.pdf
-//   - http://steve.hollasch.net/cgindex/coding/ieeefloat.html
-//   - https://en.wikipedia.org/wiki/IEEE_floating_point
-//   - https://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Data/float.html
-//   - https://www.doc.ic.ac.uk/~eedwards/compsys/float/
+// These alternative implementations apply a very important performance shortcut
+// for the 'short notation' floating point values, where the thinking goes 
+// like this:
 //
+// The 'short notation' always results in a single Unicode character. For
+// 'short notation' that character's range is within the bounds of the range
+// 0x8000-0xFFFF, if we include the specials and everything else that's
+// 'short noted' -- we *ignore* the 'very high exponent' floating point 
+// values encoded in range 0xF800-0xF8FF for now).
+// 
+// This is, at worst, a 32K range, hence why not try to **replace all the code**
+// with a lookup table?
+// test0011 has shown us that a hand-coded lookup table serving as a jump table
+// representing a large switch/case has absolutely *rotten* performance, but
+// now we are considering a direct lookup table where we do not need to jump
+// to any code as the lookup table would serve as a direct mapping from
+// Unicode character code to floating point value!
+// 
+// The remaining question there would be: can we also use that table for 
+// speeding up our *encoding*?
+// 
+// The answer is YES, **IFF** a few criteria are kept intact:
+// 
+// - The encoded Unicode range is continuously increasing with floating point
+//   *exponent* (again, we are ignoring the 'high exponent' values at 0xF800!)
+//   
+// - As long as we DO NOT re-map the 'denormalized' value holes in the encoded
+//   range, we can guarantee that the mantissas always land between +100..+999
+//   and given the contiguously increasing mapping for *exponents* AND the fact
+//   that the mantissa is encoded in the lower bits of the word, we can also
+//   GUARANTEE that the Unicode code map is contiguously increasing with the
+//   *encoded floating point value*.
+//   
+// - Though there are known holes, these do not matter much, as we can then
+//   transform the *encoding* process for 'short notation' floating point 
+//   values to a binary search or similar search variant: an exact match would
+//   then produce the Unicode *encoding* within a few cycles.
+//   
+// - 'Specials' such as NaN and 'very high exponent' values can be marked 
+//   in the 32K lookup table for the *decoder* to execute a fast dispatch,
+//   iff direct value lookup is not feasible -- it is for NaN, Infinity, et al!
+// 
+// WARNING:
+// The trouble is that NEGATIVE floating point values are interspersed with
+// POSITIVE floating point values as the sign bit is located at bit 12.
+// Any search routine used to encode floating point values MUST reckon with
+// this artifact as this is the only 'dis-contiguous' aspect of the mapping.
+//   
+// 
+// Given the above, we would need 'offset' tables to help the search routine
+// jump over the holes, plus we would need advanced logic to only scan the
+// portion of the range that matches the SIGN of our floating value. The
+// need for such 'hole jumping' and the need for 'complicated code' means a
+// search routine like that would be SLOW; we envision the need for TWO
+// offset tables: one to move to the next valid entry BELOW the sampled slot
+// and another offset table to move to the next valid entry ABOVE the 
+// sampled slot, thus clocking in a memory cost in lookup tables of at least
+// 3*32K!
+// 
+// If we however encode the *encoding* lookup table separately, where we
+// guarantee the table to be contiguous in both floating point VALUE and SIGN
+// and having NO HOLES AT ALL, then we would be able to construct very fast
+// binary search or other search algorithms to help deliver a fast *encode*,
+// while only clocking in a 2*32K table cost!
+//    
+// Extra: we might want to consider creating an 'initial guess' helper table
+// to cut down the binary search O(log N) from 15 iterations down to only
+// a single exponent range (N=1000 --> 10 iterations), while we might then
+// be able to use a numeric 
 
 
 
 
-// The modulo 0x8000 takes 4 characters for a mantissa of 52 bits, while the same goes
-// for modulo 0x4000.
-// So we either have the upper bit at mask 0x4000 available on every char or we have
-// some spare bits in the last word... We decide the few spare bits at the end is more beneficiary
-// for our purposes as that gives us a little slack at least when encoding mantissas
-// for high exponent values, etc.
-const FPC_ENC_MODULO = 0x8000;
-const FPC_ENC_MODULO_RECIPROCAL = 1 / FPC_ENC_MODULO;
-const FPC_ENC_MAXLEN = (function () {
-  var l = Math.log(Math.pow(2, 53)) / Math.log(FPC_ENC_MODULO);   // number of chars = words required to store worst case fp values
-  l += 1;
-  l |= 0;
-  //
-  // and since we want to see how easy it is to have run-away output for some fp numbers,
-  // we enlarge the boundary criterium for debugging/diagnostics:
-  //l *= 4  // just to detect nasty edge cases: will produce very long strings
-  return l;
-})();
-const FPC_ENC_LOG2_TO_LOG10 = 1 / Math.log2(10);
-
-// mask: 0x000F; offset: 0xFFF0:
-const FPC_ENC_POSITIVE_ZERO     = 0xFFF0;
-const FPC_ENC_NEGATIVE_ZERO     = 0xFFF1;
-const FPC_ENC_POSITIVE_INFINITY = 0xFFF2;
-const FPC_ENC_NEGATIVE_INFINITY = 0xFFF3;
-const FPC_ENC_NAN               = 0xFFF4;
-
-const FPC_DEC_POSITIVE_ZERO     = 0;
-const FPC_DEC_NEGATIVE_ZERO     = -0;
-const FPC_DEC_POSITIVE_INFINITY = Infinity;
-const FPC_DEC_NEGATIVE_INFINITY = -Infinity;
-const FPC_DEC_NAN               = NaN;
+// mapping Unicode character code to fp value or FALSE
+const encode_fp_decode_lookup_table = encode_fp_init_decode_lookup_table();
+// mapping floating point value to Unicode character code () to fp value or FALSE
+const encode_fp_encode_lookup_table = encode_fp_init_encode_lookup_table();
 
 
 
 
-
-
-/*
-Performance Test of encode_fp_value() vs. vanilla JS:
-
-Test                                    Ops/sec
-
-Chrome 
-Version 54.0.2810.2 canary (64-bit)
-
-Classic : toString                      14,361
-                                        ±1.46%
-                                        49% slower
-
-Classic : add to string (= '' + val)    28,519
-                                        ±2.66%
-                                        fastest
-
-Classic :: toPrecision(max)             2,304
-                                        ±0.23%
-                                        92% slower
-
-Custom :: v1                            2,659
-                                        ±0.30%
-                                        90% slower
-
-Custom :: v2                            2,907
-                                        ±0.43%
-                                        90% slower
-
-Custom :: v3                            2,752
-                                        ±0.90%
-                                        90% slower
-
-Chrome 
-Version 51.0.2704.3 m
-
-Classic : toString                      17,234
-                                        ±1.93%
-                                        18% slower
-
-Classic : add to string (= '' + val)    20,962
-                                        ±1.65%
-                                        fastest
-
-Classic :: toPrecision(max)             1,813
-                                        ±0.46%
-                                        91% slower
-
-Custom :: v1                            2,313
-                                        ±0.72%
-                                        89% slower
-
-Custom :: v2                            2,566
-                                        ±1.07%
-                                        88% slower
-
-Custom :: v3                            2,486
-                                        ±0.72%
-                                        88% slower
-
-Chrome 
-Version 52.0.2743.82 m
-
-Classic : toString                      20,120
-                                        ±1.85%
-                                        20% slower
-
-Classic : add to string (= '' + val)    25,011
-                                        ±1.89%
-                                        fastest
-
-Classic :: toPrecision(max)             1,871
-                                        ±0.98%
-                                        92% slower
-
-Custom :: v1                            2,318
-                                        ±0.99%
-                                        91% slower
-
-Custom :: v2                            2,593
-                                        ±0.71%
-                                        90% slower
-
-Custom :: v3                            2,477
-                                        ±0.88%
-                                        90% slower
-
-MSIE 
-Version Edge 25.10586.0.0
-
-Classic : toString                      1,942 
-                                        ±0.59%
-                                        26% slower
-                                        (✕ 1.4) 
-
-Classic : add to string                 2,147 
-                                        ±0.40%
-                                        18% slower
-                                        (✕ 1.2) 
-
-Classic :: toPrecision(max)             1,821 
-                                        ±0.63%
-                                        31% slower
-                                        (✕ 1.4) 
-
-Custom :: v1                            2,261 
-                                        ±1.42%
-                                        15% slower
-                                        (✕ 1.2) 
-
-Custom :: v2                            2,655 
-                                        ±1.24%
-                                        fastest
-                                        (✕ 1) 
-
-Custom :: v3                            2,403 
-                                        ±1.12%
-                                        9% slower
-                                        (✕ 1.1) 
-
-FireFox
-Version 47.0.1
-
-Classic : toString                      1,754
-                                        ±1.57%
-                                        50% slower
-                                        (✕ 2.0)
-
-Classic : add to string                 1,785
-                                        ±0.50%
-                                        49% slower
-                                        (✕ 2.0)
-
-Classic :: toPrecision(max)             1,290
-                                        ±1.68%
-                                        64% slower
-                                        (✕ 2.7)
-
-Custom :: v1                            3,285
-                                        ±2.67%
-                                        8% slower
-                                        (✕ 1.1)
-
-Custom :: v2                            3,568
-                                        ±2.45%
-                                        fastest
-                                        (✕ 1)
-
-Custom :: v3                            3,558
-                                        ±2.85%
-                                        fastest
-                                        (✕ 1)
-
-FireFox
-Version 49.0a2 (developer / aurora)
-
-Classic : toString                      2,033
-                                        ±1.01%
-                                        37% slower
-                                        (✕ 1.6)
-
-Classic : add to string                 2,063
-                                        ±0.77%
-                                        36% slower
-                                        (✕ 1.6)
-
-Classic :: toPrecision(max)             1,342
-                                        ±2.19%
-                                        59% slower
-                                        (✕ 2.4)
-
-Custom :: v1                            2,835
-                                        ±2.43%
-                                        13% slower
-                                        (✕ 1.2)
-
-Custom :: v2                            3,272
-                                        ±2.60%
-                                        fastest
-                                        (✕ 1)
-
-Custom :: v3                            3,140
-                                        ±2.57%
-                                        4% slower
-                                        (✕ 1.0)
-
-
-Note: 
-When you take out the sanity checks `if (...) throw new Error(...)` then you gain about 10%:
-2367 ops/sec -> 2657 ops/sec in another test run.
-
-Note: 
-There's a *huge* difference in performance, both relative and absolute, for these buggers in MSIE, FF and Chrome!
-
-The 'classic' code wins by a factor of about 2 in Chrome, but amazingly enough our custom encoder wins in FF and is on par in MSIE.
-Our *encoder* revision 2 is the fastest of our bunch, relatively speaking, so it seems
-the big switch/case in there wins over the two nested `if()`s in the other two, while extra `if()`s
-in the code slow it down a lot -- compare v1 and v3: the 'short float' decision making alteration
-only adds very little to the performance while it turned out getting rid of the error-throwing
-sanity checks made up the brunt of the gain of v3 vs. v1.
-
----
-
-At least that's what the initial set of test runs seems to indicate...
-*/
-
-
-function encode_fp_value(flt) {
+function encode_fp_value5(flt) {
   // sample JS code to encode a IEEE754 floating point value in a Unicode string.
   //
   // With provision to detect and store +0/-0 and +/-Inf and NaN
@@ -679,26 +502,12 @@ function encode_fp_value(flt) {
 
 
 
-/*
-Performance Test of decode_fp_value() vs. vanilla JS:
-
-Test                                    Ops/sec
-
-CustomD :: v1                           21,885
-                                        ±1.24%
-                                        fastest
-
-ClassicD : parseFloat                   5,143
-                                        ±0.61%
-                                        76% slower
-
-ClassicD : multiply (= 1 * string)      4,744
-                                        ±0.49%
-                                        78% slower
-*/
 
 
-function decode_fp_value(s, opt) {
+
+
+
+function decode_fp_value5(s, opt) {
   // sample JS code to decode a IEEE754 floating point value from a Unicode string.
   //
   // With provision to detect +0/-0 and +/-Inf and NaN
@@ -1042,5 +851,291 @@ function decode_fp_value(s, opt) {
 
 
 
-console.info('fpcvt loaded');
+function encode_fp_init_lookup_tables(low_offsets, high_offsets) {
+  var last_known_good = 0;                // WARNING: off by +1 so that we can easily encode 'don't know' in here!
+  var first_pending_empty_slot = 0;       // WARNING: off by +1 so that we can easily encode 'don't know' in here!
+  var tbl = new Array(0x8000);
+
+  for (var c0 = 0xF800; c0 < 0x10000; c0++) { 
+    tbl[c0 - 0x8000] = false;
+  }
+  for (var c0 = 0xD800; c0 < 0xE000; c0++) { 
+    tbl[c0 - 0x8000] = false;
+  }
+
+  tbl[FPC_ENC_POSITIVE_ZERO - 0x8000] = 0;
+  tbl[FPC_ENC_NEGATIVE_ZERO - 0x8000] = 0;
+  tbl[FPC_ENC_POSITIVE_INFINITY - 0x8000] = Infinity;
+  tbl[FPC_ENC_NEGATIVE_INFINITY - 0x8000] = Infinity;
+  tbl[FPC_ENC_NAN - 0x8000] = NaN;
+                                                    
+  for (var c0 = 0x8000; c0 < 0xF800; c0++) { 
+    switch (c0 & 0xF800) {
+    // This range spans the Unicode extended character ranges ('Surrogates') and MUST NOT be used by us for 'binary encoding'
+    // purposes as we would than clash with any potential Unicode validators out there! The key of the current
+    // design is that the encoded output is, itself, *legal* Unicode -- though admittedly I don't bother with
+    // the Unicode conditions surrounding shift characters such as these:
+    // 
+    //   Z̤̺̦̤̰̠̞̃̓̓̎ͤ͒a̮̩̞͎̦̘̮l̖̯̞̝̗̥͙͋̔̆͊ͤ͐̚g͖̣̟̼͙ͪ̆͌̇ỏ̘̯̓ ̮̣͉̺̽͑́i̶͎̳̲ͭͅs̗̝̱̜̱͙̽ͥ̋̄ͨ̑͠ ̬̲͇̭̖ͭ̈́̃G̉̐̊ͪ͟o͓̪̗̤̳̱̅ȍ̔d̳̑ͥͧ̓͂ͤ ́͐́̂to̮̘̖̱͉̜̣ͯ̄͗ǫ̬͚̱͈̮̤̞̿̒ͪ!͆̊ͬͥ̆̊͋
+    // 
+    // which reside in the other ranges that we DO employ for our own nefarious encoding purposes!
+    case 0xD800:
+      if (!first_pending_empty_slot) {
+        first_pending_empty_slot = c0 + 1;
+      }
+      c0 = 0xDFFF - 1;  // speed up the loop!
+      break;
+
+    case 0x8000:
+    case 0x8800:
+    case 0x9000:
+    case 0x9800:
+    case 0xA000:
+      // 'human values' encoded as 'short floats' (negative decimal powers):
+      //
+      // Bits in word:
+      // - 0..9: integer mantissa; values 0..1023
+      // - 10: sign
+      // - 11..14: exponent 0..9 with offset -3 --> -3..+6
+      // - 15: set to signal special values; this bit is also set for some special Unicode characters,
+      //       so we can only set this bit and have particular values in bits 0..14 at the same time
+      //       in order to prevent a collision with those Unicode specials at 0xF800..0xFFFF.
+      //
+      var dm = c0 & 0x03FF;      // 10 bits
+      var ds = c0 & 0x0400;      // bit 10 = sign
+      var dp = c0 & 0x7800;      // bits 11..14: exponent
+
+      // skip 'denormalized' values:
+      if (dm < 100) {
+        if (!first_pending_empty_slot) {
+          first_pending_empty_slot = c0 + 1;
+        }
+        tbl[c0 - 0x8000] = false;
+        continue;
+      }
+      if (dm >= 1000) {
+        if (!first_pending_empty_slot) {
+          first_pending_empty_slot = c0 + 1;
+        }
+        tbl[c0 - 0x8000] = false;
+        continue;
+      }
+
+      //console.log('decode-short-0', ds, dm, '0x' + dp.toString(16), dp >>> 11, c0, '0x' + c0.toString(16));
+      dp >>>= 11;
+      dp -= 3 + 2;
+
+      // Because `dm * Math.pow(10, dp)` causes bitrot in LSB (so that, for example, input value 0.0036 becomes 0..0036000000000000003)
+      // we reproduce the value another way, which does *not* produce the bitrot in the LSBit of the *decimal* mantissa:
+      var sflt = dm / Math.pow(10, -dp);
+      if (ds) {
+        sflt = -sflt;
+      }
+      //console.log('decode-short-1', sflt, ds, dm, dp, c0, '0x' + c0.toString(16));
+      return sflt;
+
+    case 0xA800:
+    case 0xB000:
+    case 0xB800:
+    case 0xC000:
+    case 0xC800:
+    case 0xD000:
+      // 'human values' encoded as 'short floats' (non-negative decimal powers):
+      //
+      // Bits in word:
+      // - 0..9: integer mantissa; values 0..1023
+      // - 10: sign
+      // - 11..14: exponent 0..9 with offset -3 --> -3..+6
+      // - 15: set to signal special values; this bit is also set for some special Unicode characters,
+      //       so we can only set this bit and have particular values in bits 0..14 at the same time
+      //       in order to prevent a collision with those Unicode specials at 0xF800..0xFFFF.
+      //
+      var dm = c0 & 0x03FF;      // 10 bits
+      var ds = c0 & 0x0400;      // bit 10 = sign
+      var dp = c0 & 0x7800;      // bits 11..14: exponent
+
+      //console.log('decode-short-0', ds, dm, '0x' + dp.toString(16), dp >>> 11, c0, '0x' + c0.toString(16));
+      dp >>>= 11;
+      dp -= 3 + 2;
+
+      var sflt = dm * Math.pow(10, dp);
+      if (ds) {
+        sflt = -sflt;
+      }
+      //console.log('decode-short-1', sflt, ds, dm, dp, c0, '0x' + c0.toString(16));
+      return sflt;
+
+    // (0xF900..0xFFF0: reserved for future use)
+    case 0xE000:
+    case 0xE800:
+    case 0xF000:
+      // 'human values' encoded as 'short floats':
+      //
+      // Bits in word:
+      // - 0..9: integer mantissa; values 0..1023
+      // - 10: sign
+      // - 11..14: exponent 10..12 with offset -3 --> 7..9
+      // - 15: set to signal special values; this bit is also set for some special Unicode characters,
+      //       so we can only set this bit and have particular values in bits 0..14 at the same time
+      //       in order to prevent a collision with those Unicode specials at 0xF800..0xFFFF.
+      //
+      var dm = c0 & 0x03FF;      // 10 bits
+      var ds = c0 & 0x0400;      // bit 10 = sign
+      var dp = c0 & 0x7800;      // bits 11..14: exponent
+
+      //console.log('decode-short-0C', ds, dm, '0x' + dp.toString(16), dp >>> 11, c0, '0x' + c0.toString(16));
+      dp >>>= 11;
+      if (dp >= 15) {
+        throw new Error('illegal fp encoding value in 0xF8xx-0xFFxx unicode range');
+      }
+      dp -= 3 + 2 + 1;            // like above, but now also compensate for exponent bumping (0xB --> 0xC, ...)
+
+      var sflt = dm * Math.pow(10, dp);
+      if (ds) {
+        sflt = -sflt;
+      }
+      //console.log('decode-short-1C', sflt, ds, dm, dp, c0, '0x' + c0.toString(16));
+      return sflt;
+
+    default:
+      // 'regular' floating point values:
+      //
+      // Bits in word:
+      // - 0..11: exponent; values -1024..+1023 with an offset of 1024 to make them all positive numbers
+      // - 12: sign
+      // - 13,14: length 1..4: the number of words following to define the mantissa
+      // - 15: 0 (zero)
+      //
+      var len = c0 & 0x6000;
+      var vs = c0 & 0x1000;
+      var p = c0 & 0x0FFF;
+
+      p -= 1024;
+      //console.log('decode-normal-0', vs, p, len, '0x' + len.toString(16), c0, '0x' + c0.toString(16));
+
+      // we don't need to loop to decode the mantissa: we know how much stuff will be waiting for us still
+      // so this is fundamentally an unrolled loop coded as a switch/case:
+      var m;
+      var im;
+      // no need to shift len before switch()ing on it: it's still the same number of possible values anyway:
+      switch (len) {
+      case 0x0000:
+        // 1 more 15-bit word:
+        im = s.charCodeAt(1);
+        m = im / FPC_ENC_MODULO;
+        opt.consumed_length++;
+        //console.log('decode-normal-len=1', m, s.charCodeAt(1));
+        break;
+
+      case 0x2000:
+        // 2 more 15-bit words:
+        im = s.charCodeAt(1);
+        im <<= 15;
+        im |= s.charCodeAt(2);
+        m = im / (FPC_ENC_MODULO * FPC_ENC_MODULO);
+        opt.consumed_length += 2;
+        //console.log('decode-normal-len=2', m, s.charCodeAt(1), s.charCodeAt(2));
+        break;
+
+      case 0x4000:
+        // 3 more 15-bit words: WARNING: this doesn't fit in an *integer* of 31 bits any more,
+        // so we'll have to use floating point for at least one intermediate step!
+        //
+        // Oh, by the way, did you notice we use a Big Endian type encoding mechanism?  :-)
+        im = s.charCodeAt(1);
+        m = im / FPC_ENC_MODULO;
+        im = s.charCodeAt(2);
+        im <<= 15;
+        im |= s.charCodeAt(3);
+        m += im / (FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO);
+        opt.consumed_length += 3;
+        //console.log('decode-normal-len=3', m, s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3));
+        break;
+
+      case 0x6000:
+        // 4 more 15-bit words, where the last one doesn't use all bits. We don't use
+        // those surplus bits yet, so we're good to go when taking the entire word
+        // as a value, no masking required there.
+        //
+        // WARNING: this doesn't fit in an *integer* of 31 bits any more,
+        // so we'll have to use floating point for at least one intermediate step!
+        im = s.charCodeAt(1);
+        im <<= 15;
+        im |= s.charCodeAt(2);
+        m = im / (FPC_ENC_MODULO * FPC_ENC_MODULO);
+        im = s.charCodeAt(3);
+        im <<= 15;
+        im |= s.charCodeAt(4);
+        // Nasty Thought(tm): as we don't mask the lowest bits of that byte we MAY
+        // receive some cruft below the lowest significant bit of the encoded mantissa
+        // when we re-use those bits for other purposes one day. However, we can argue
+        // that we don't need to mask them bits anyway as they would disappear as
+        // noise below the least significant mantissa bit anyway. :-)
+        m += im / (FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO * FPC_ENC_MODULO);
+        opt.consumed_length += 4;
+        //console.log('decode-normal-len=4', m, s.charCodeAt(1) / FPC_ENC_MODULO, s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3), s.charCodeAt(4));
+        break;
+      }
+      //console.log('decode-normal-1', vs, m, p, opt.consumed_length);
+      m *= Math.pow(2, p);
+      if (vs) {
+        m = -m;
+      }
+      //console.log('decode-normal-2', m);
+      return m;
+    }
+  }
+}
+
+
+
+
+
+
+
+//
+// Code to check the radix hash approach: M=683 @ size=34056
+//  
+function __find_fp_radix_hash_settings__() {
+  var M, B, a, collisions, minv, maxv;
+
+  var B = Math.log2( (100 / 1000) * Math.pow(10, -3 + 1) ); 
+
+  for (var M = 1; M <= 1500; M += 1) { 
+    a = []; 
+    collisions = 0; 
+    minv = Infinity; 
+    maxv = -Infinity; 
+
+    for (var i = -3; i < 15-3; i++) { 
+      for (var j = 100; j < 1000; j++) { 
+        var v = (j / 1000) * Math.pow(10, i + 1); 
+        minv = Math.min(v, minv); 
+        maxv = Math.max(v, maxv);
+
+        // the hash math under test:
+        var y = (Math.log2(v) - B) * M; 
+        var z = y | 0; 
+        if (!a[z]) { 
+          a[z] = v; 
+        } else { 
+          collisions++; 
+          if (0) { 
+            console.log('collision: ', collisions, i, j, v, y, z, a[z]); 
+          } 
+          if (collisions > 20) { 
+            break; 
+          } 
+        } 
+      } 
+    } 
+    if (!collisions) 
+      break; 
+  } 
+  console.log('end: ', a.length, collisions, M, minv, maxv); 
+}
+__find_fp_radix_hash_settings__();
+
+
+console.info('fpcvt-alt8 loaded');
 

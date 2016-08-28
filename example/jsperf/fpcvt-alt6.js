@@ -1,264 +1,10 @@
 
 
-// See also:
-//
-//   - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
-//     + https://ece.uwaterloo.ca/~dwharder/NumericalAnalysis/02Numerics/Double/paper.pdf
-//     + http://perso.ens-lyon.fr/jean-michel.muller/goldberg.pdf
-//   - http://steve.hollasch.net/cgindex/coding/ieeefloat.html
-//   - https://en.wikipedia.org/wiki/IEEE_floating_point
-//   - https://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Data/float.html
-//   - https://www.doc.ic.ac.uk/~eedwards/compsys/float/
-//
 
 
+// Exact replica of the original in fpcvt.js, but now with all error checks stripped for performance checking:
 
-
-// The modulo 0x8000 takes 4 characters for a mantissa of 52 bits, while the same goes
-// for modulo 0x4000.
-// So we either have the upper bit at mask 0x4000 available on every char or we have
-// some spare bits in the last word... We decide the few spare bits at the end is more beneficiary
-// for our purposes as that gives us a little slack at least when encoding mantissas
-// for high exponent values, etc.
-const FPC_ENC_MODULO = 0x8000;
-const FPC_ENC_MODULO_RECIPROCAL = 1 / FPC_ENC_MODULO;
-const FPC_ENC_MAXLEN = (function () {
-  var l = Math.log(Math.pow(2, 53)) / Math.log(FPC_ENC_MODULO);   // number of chars = words required to store worst case fp values
-  l += 1;
-  l |= 0;
-  //
-  // and since we want to see how easy it is to have run-away output for some fp numbers,
-  // we enlarge the boundary criterium for debugging/diagnostics:
-  //l *= 4  // just to detect nasty edge cases: will produce very long strings
-  return l;
-})();
-const FPC_ENC_LOG2_TO_LOG10 = 1 / Math.log2(10);
-
-// mask: 0x000F; offset: 0xFFF0:
-const FPC_ENC_POSITIVE_ZERO     = 0xFFF0;
-const FPC_ENC_NEGATIVE_ZERO     = 0xFFF1;
-const FPC_ENC_POSITIVE_INFINITY = 0xFFF2;
-const FPC_ENC_NEGATIVE_INFINITY = 0xFFF3;
-const FPC_ENC_NAN               = 0xFFF4;
-
-const FPC_DEC_POSITIVE_ZERO     = 0;
-const FPC_DEC_NEGATIVE_ZERO     = -0;
-const FPC_DEC_POSITIVE_INFINITY = Infinity;
-const FPC_DEC_NEGATIVE_INFINITY = -Infinity;
-const FPC_DEC_NAN               = NaN;
-
-
-
-
-
-
-/*
-Performance Test of encode_fp_value() vs. vanilla JS:
-
-Test                                    Ops/sec
-
-Chrome 
-Version 54.0.2810.2 canary (64-bit)
-
-Classic : toString                      14,361
-                                        ±1.46%
-                                        49% slower
-
-Classic : add to string (= '' + val)    28,519
-                                        ±2.66%
-                                        fastest
-
-Classic :: toPrecision(max)             2,304
-                                        ±0.23%
-                                        92% slower
-
-Custom :: v1                            2,659
-                                        ±0.30%
-                                        90% slower
-
-Custom :: v2                            2,907
-                                        ±0.43%
-                                        90% slower
-
-Custom :: v3                            2,752
-                                        ±0.90%
-                                        90% slower
-
-Chrome 
-Version 51.0.2704.3 m
-
-Classic : toString                      17,234
-                                        ±1.93%
-                                        18% slower
-
-Classic : add to string (= '' + val)    20,962
-                                        ±1.65%
-                                        fastest
-
-Classic :: toPrecision(max)             1,813
-                                        ±0.46%
-                                        91% slower
-
-Custom :: v1                            2,313
-                                        ±0.72%
-                                        89% slower
-
-Custom :: v2                            2,566
-                                        ±1.07%
-                                        88% slower
-
-Custom :: v3                            2,486
-                                        ±0.72%
-                                        88% slower
-
-Chrome 
-Version 52.0.2743.82 m
-
-Classic : toString                      20,120
-                                        ±1.85%
-                                        20% slower
-
-Classic : add to string (= '' + val)    25,011
-                                        ±1.89%
-                                        fastest
-
-Classic :: toPrecision(max)             1,871
-                                        ±0.98%
-                                        92% slower
-
-Custom :: v1                            2,318
-                                        ±0.99%
-                                        91% slower
-
-Custom :: v2                            2,593
-                                        ±0.71%
-                                        90% slower
-
-Custom :: v3                            2,477
-                                        ±0.88%
-                                        90% slower
-
-MSIE 
-Version Edge 25.10586.0.0
-
-Classic : toString                      1,942 
-                                        ±0.59%
-                                        26% slower
-                                        (✕ 1.4) 
-
-Classic : add to string                 2,147 
-                                        ±0.40%
-                                        18% slower
-                                        (✕ 1.2) 
-
-Classic :: toPrecision(max)             1,821 
-                                        ±0.63%
-                                        31% slower
-                                        (✕ 1.4) 
-
-Custom :: v1                            2,261 
-                                        ±1.42%
-                                        15% slower
-                                        (✕ 1.2) 
-
-Custom :: v2                            2,655 
-                                        ±1.24%
-                                        fastest
-                                        (✕ 1) 
-
-Custom :: v3                            2,403 
-                                        ±1.12%
-                                        9% slower
-                                        (✕ 1.1) 
-
-FireFox
-Version 47.0.1
-
-Classic : toString                      1,754
-                                        ±1.57%
-                                        50% slower
-                                        (✕ 2.0)
-
-Classic : add to string                 1,785
-                                        ±0.50%
-                                        49% slower
-                                        (✕ 2.0)
-
-Classic :: toPrecision(max)             1,290
-                                        ±1.68%
-                                        64% slower
-                                        (✕ 2.7)
-
-Custom :: v1                            3,285
-                                        ±2.67%
-                                        8% slower
-                                        (✕ 1.1)
-
-Custom :: v2                            3,568
-                                        ±2.45%
-                                        fastest
-                                        (✕ 1)
-
-Custom :: v3                            3,558
-                                        ±2.85%
-                                        fastest
-                                        (✕ 1)
-
-FireFox
-Version 49.0a2 (developer / aurora)
-
-Classic : toString                      2,033
-                                        ±1.01%
-                                        37% slower
-                                        (✕ 1.6)
-
-Classic : add to string                 2,063
-                                        ±0.77%
-                                        36% slower
-                                        (✕ 1.6)
-
-Classic :: toPrecision(max)             1,342
-                                        ±2.19%
-                                        59% slower
-                                        (✕ 2.4)
-
-Custom :: v1                            2,835
-                                        ±2.43%
-                                        13% slower
-                                        (✕ 1.2)
-
-Custom :: v2                            3,272
-                                        ±2.60%
-                                        fastest
-                                        (✕ 1)
-
-Custom :: v3                            3,140
-                                        ±2.57%
-                                        4% slower
-                                        (✕ 1.0)
-
-
-Note: 
-When you take out the sanity checks `if (...) throw new Error(...)` then you gain about 10%:
-2367 ops/sec -> 2657 ops/sec in another test run.
-
-Note: 
-There's a *huge* difference in performance, both relative and absolute, for these buggers in MSIE, FF and Chrome!
-
-The 'classic' code wins by a factor of about 2 in Chrome, but amazingly enough our custom encoder wins in FF and is on par in MSIE.
-Our *encoder* revision 2 is the fastest of our bunch, relatively speaking, so it seems
-the big switch/case in there wins over the two nested `if()`s in the other two, while extra `if()`s
-in the code slow it down a lot -- compare v1 and v3: the 'short float' decision making alteration
-only adds very little to the performance while it turned out getting rid of the error-throwing
-sanity checks made up the brunt of the gain of v3 vs. v1.
-
----
-
-At least that's what the initial set of test runs seems to indicate...
-*/
-
-
-function encode_fp_value(flt) {
+function encode_fp_value0(flt) {
   // sample JS code to encode a IEEE754 floating point value in a Unicode string.
   //
   // With provision to detect and store +0/-0 and +/-Inf and NaN
@@ -352,18 +98,9 @@ function encode_fp_value(flt) {
       p--;                          // drop power p by 1 so that we can safely encode p=+1024 (and p=+1023)
       var y = flt / Math.pow(2, p);
       y /= 4;                       // we do this in two steps to allow handling even the largest floating point values, which have p>=1023: Math.pow(2, p + 1) would fail for those!
-      if (y >= 1) {
-        throw new Error('fp float encoding: mantissa above allowed max for ' + flt);
-      }
 
       var a = '';
       var b = y;
-      if (b < 0) {
-        throw new Error('fp encoding: negative mantissa for ' + flt);
-      }
-      if (b === 0) {
-        throw new Error('fp encoding: ZERO mantissa for ' + flt);
-      }
 
       // and show the Unicode character codes for debugging/diagnostics:
       //var dbg = [0 /* Note: this slot will be *correctly* filled at the end */];
@@ -396,16 +133,7 @@ function encode_fp_value(flt) {
       //       in order to prevent a collision with those Unicode specials at 0xF900..0xFFFF.
       //
       --i;
-      if (i > 3) {
-        throw new Error('fp encode length too large');
-      }
-      if (b) {
-        console.warn('lingering mantissa remainder for near-INF: ', b, inf);
-      }
       var h = 0xF800 + p - 1020 + (s >> 12 - 7) + (i << 5);   // brackets needed as + comes before <<   :-(
-      if (h < 0xF800 || h >= 0xF900) {
-        throw new Error('fp decimal long float near-inifinity number encoding: internal error: initial word out of range');
-      }
       a = String.fromCharCode(h) + a;
       //dbg[0] = h;
       //console.log('dbg @ end', i, h, flt, dbg, s, p, y, b, '0x' + h.toString(16));
@@ -424,15 +152,6 @@ function encode_fp_value(flt) {
       var dp = (exp2 * FPC_ENC_LOG2_TO_LOG10 + 1) | 0;
       var dy = flt / Math.pow(10, dp - 3);    // take mantissa (which is guaranteed to be in range [0.999 .. 0]) and multiply by 1000
       //console.log('decimal float test:', flt, exp2, exp2 * FPC_ENC_LOG2_TO_LOG10, p, dp, dy);
-      if (dy < 0) {
-        throw new Error('fp decimal short float encoding: negative mantissa');
-      }
-      if (dy === 0) {
-        throw new Error('fp decimal short float encoding: ZERO mantissa');
-      }
-      if (dy > 1000) {
-        throw new Error('fp decimal short float encoding: 3 digits check');
-      }
       var chk = dy % 1;
       //console.log('decimal float eligible? A:', flt, dy, chk, dp);
       if (chk === 0) {                     // alt check:   `(dy | 0) === dy`
@@ -514,52 +233,6 @@ function encode_fp_value(flt) {
         // is used to represent special IEEE754 values such as NaN or Infinity.
         // 
         // ---
-        //
-        // Note: we now have our own set of 'denormalized' floating point values:
-        // given the way we calculate decimal exponent and mantissa (by multiplying
-        // with 1000), we will always have a minimum mantissa value of +100, as
-        // any *smaller* value would have produced a lower *exponent*!
-        // 
-        // Next to that, note that we allocate a number of *binary bits* for the
-        // mantissa, which can never acquire a value of +!000 or larger as there
-        // the same reasoning applies: if such a value were possible, the exponent
-        // would have been *raised* by +1 and the mantissa would have been reduced
-        // to land within the +100..+999 range once again.
-        // 
-        // This means that a series of sub-ranges cannot ever be produced by this 
-        // function:
-        // 
-        // - 0x8000      .. 0x8000+  99    (exponent '0', sign bit CLEAR) 
-        // - 0x8000+1000 .. 0x8000+1023 
-        // - 0x8400      .. 0x8400+  99    (exponent '0', sign bit SET) 
-        // - 0x8400+1000 .. 0x8400+1023 
-        // - 0x8800      .. 0x8800+  99    (exponent '1', sign bit CLEAR) 
-        // - 0x8800+1000 .. 0x8800+1023 
-        // - 0x8C00      .. 0x8C00+  99    (exponent '1', sign bit SET) 
-        // - 0x8C00+1000 .. 0x8C00+1023 
-        // - ... etc ...
-        // 
-        // One might be tempted to re-use these 'holes' in the output for other
-        // purposes, but it's faster to have any special codes use their
-        // own 'reserved range' as that would only take one extra conditional
-        // check and since we now know (since perf test0006) that V8 isn't
-        // too happy about long switch/case constructs, we are better off, 
-        // performance wise, to strive for the minimum number of comparisons, 
-        // rather than striving for a maximum fill of the available Unicode
-        // space.
-        // 
-        // BTW: We could have applied this same reasoning when we went looking for
-        // a range to use to encode those pesky near-infinity high exponent
-        // floating point values (p >= 1023), but at the time we hadn't 
-        // realized yet that we would have these (large) holes in the output 
-        // range.
-        // Now that we know these exist, we *might* consider filling one of
-        // those 'holes' with those high-exponent values as those really only
-        // take 5 bits (2 bits for exponent: 1023 or 1024, 1 bit for sign,
-        // 2 bits for length) while they currently usurp the range 0xF800..0xF8FF
-        // (with large holes in there as well!)
-        // 
-        // ---
         // 
         // Offset the exponent so it's always positive when encoded:
         dp += 2;
@@ -586,12 +259,6 @@ function encode_fp_value(flt) {
           //
           // alt:                    __(!!s << 10)_   _dy_____
           dc = 0x8000 + (dp << 11) + (s ? 1024 : 0) + (dy | 0);                  // the `| 0` shouldn't be necessary but is there as a precaution
-          if (dc >= 0xF800) {
-            throw new Error('fp decimal short float encoding: internal error: beyond 0xF800');
-          }
-          if (dc >= 0xD800 && dc < 0xE000) {
-            throw new Error('fp decimal short float encoding: internal error: landed in 0xD8xx block');
-          }
           //console.log('d10-dbg', dp, dy, s, '0x' + dc.toString(16), flt);
           return String.fromCharCode(dc);
         }
@@ -603,18 +270,9 @@ function encode_fp_value(flt) {
     // value 0 < y < 1.
     p++;                          // increase power p by 1 so that we get a mantissa in the range [0 .. +1>; this causes trouble when the exponent is very high, hence those values are handled elsewhere
     var y = flt / Math.pow(2, p);
-    if (y >= 1) {
-      throw new Error('fp float encoding: mantissa above allowed max for ' + flt);
-    }
 
     var a = '';
     var b = y;       // alt: y - 1, but that only gives numbers 0 < b < 1 for p > 0
-    if (b < 0) {
-      throw new Error('fp encoding: negative mantissa for ' + flt);
-    }
-    if (b === 0) {
-      throw new Error('fp encoding: ZERO mantissa for ' + flt);
-    }
 
     // and show the Unicode character codes for debugging/diagnostics:
     //var dbg = [0 /* Note: this slot will be *correctly* filled at the end */];
@@ -652,16 +310,7 @@ function encode_fp_value(flt) {
     // - +0    (positive zero)
     //
     --i;
-    if (i > 3) {
-      throw new Error('fp encode length too large');
-    }
-    if (b) {
-      console.warn('lingering mantissa remainder for regular FP value: ', b, inf);
-    }
     var h = p + 1024 + s + (i << 13 /* i * 8192 */ );   // brackets needed as + comes before <<   :-(
-    if (h >= 0xD800) {
-      throw new Error('fp decimal long float encoding: internal error: initial word beyond 0xD800');
-    }
     a = String.fromCharCode(h) + a;
     //dbg[0] = h;
     //console.log('dbg @ end', i, h, flt, dbg, s, p, y, b, '0x' + h.toString(16));
@@ -679,26 +328,13 @@ function encode_fp_value(flt) {
 
 
 
-/*
-Performance Test of decode_fp_value() vs. vanilla JS:
-
-Test                                    Ops/sec
-
-CustomD :: v1                           21,885
-                                        ±1.24%
-                                        fastest
-
-ClassicD : parseFloat                   5,143
-                                        ±0.61%
-                                        76% slower
-
-ClassicD : multiply (= 1 * string)      4,744
-                                        ±0.49%
-                                        78% slower
-*/
 
 
-function decode_fp_value(s, opt) {
+
+
+
+
+function decode_fp_value0(s, opt) {
   // sample JS code to decode a IEEE754 floating point value from a Unicode string.
   //
   // With provision to detect +0/-0 and +/-Inf and NaN
@@ -733,7 +369,7 @@ function decode_fp_value(s, opt) {
   // 
   // which reside in the other ranges that we DO employ for our own nefarious encoding purposes!
   case 0xD800:
-    throw new Error('illegal fp encoding value in 0xD800-0xDFFF unicode range');
+    throw new Error('illegal fp encoding value in 0xD8xx-0xDFxx unicode range');
 
   case 0xF800:
     // specials:
@@ -846,7 +482,7 @@ function decode_fp_value(s, opt) {
         return NaN;
 
       default:
-        throw new Error('illegal fp encoding value in 0xF900-0xFFFF Unicode range');
+        throw new Error('illegal fp encoding value in 0xF9xx-0xFFxx unicode range');
       }
     }
     break;
@@ -934,9 +570,6 @@ function decode_fp_value(s, opt) {
 
     //console.log('decode-short-0C', ds, dm, '0x' + dp.toString(16), dp >>> 11, c0, '0x' + c0.toString(16));
     dp >>>= 11;
-    if (dp >= 15) {
-      throw new Error('illegal fp encoding value in 0xF8xx-0xFFxx unicode range');
-    }
     dp -= 3 + 2 + 1;            // like above, but now also compensate for exponent bumping (0xB --> 0xC, ...)
 
     var sflt = dm * Math.pow(10, dp);
@@ -1042,5 +675,5 @@ function decode_fp_value(s, opt) {
 
 
 
-console.info('fpcvt loaded');
+console.info('fpcvt-alt6 loaded');
 

@@ -2,7 +2,7 @@
   title: 'test #3 : custom FP value serialization',
   description: 'determining the speed loss factor when we serialize FP (and integer) values to a custom string format vs. standard print+parse.',
   related: [
-    'test0003.json5',
+    'test0003-floating-point-serialization-deserialization.json5',
     'test0004-fp-encode-only.json5',
     'test0006-fp-encode-plus-decode.json5',
   ],
@@ -17,6 +17,7 @@
         'fpcvt-alt3.js',\n\
         'fpcvt-alt4.js',\n\
         'fpcvt-alt5.js',\n\
+        'fpcvt-alt6.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\
@@ -30,15 +31,56 @@
       //var b = z.toPrecision(a); // accepted prec range: 1..21\n\
       //console.log(x, y, z, a, b);\n\
 \n\
-      const test_serialization = true;\n\
+      var test_serialization = true;\n\
 \n\
       var data = [];\n\
       var serialized_data = [];\n\
       var serialized_data2 = [];\n\
+      var serialized_data3 = [];\n\
       var data_length = 0;\n\
 \n\
       function init() {\n\
         if (data_length) return;\n\
+\n\
+        //debugger;\n\
+        data.push(3676483910);\n\
+        data.push(Math.pow(2,1023) * 1.9999999999999998);\n\
+        data.push(1.7976931348623158e308); // == 1.7976931348623157e308\n\
+        data.push(1.7976931348623157e308);\n\
+        data.push(1.7976931348623156e308); // == 1.7976931348623155e308\n\
+        data.push(Math.pow(2,-1024) * 0.999999999999999);\n\
+        data.push(Math.pow(2,-1025) * 0.999999999999999);\n\
+        data.push(Math.pow(2,-1023) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1023) * 1.999999999999998);\n\
+        data.push(Math.pow(2, 1022) * 1.999999999999999);\n\
+        data.push(Math.pow(2, 1022) * 1.999999999999998);\n\
+        data.push(Math.pow(2, 1023) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1022) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1021) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1020) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1019) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1019) * 1.999999999999998);\n\
+        data.push(Math.pow(2, 1023) * 1.9999999999999999);  // +Infinity\n\
+        data.push(Math.pow(2, 1023) * 1.9999999999999998);\n\
+        data.push(Math.pow(2, 1023) * 1.9999999999999997);\n\
+        data.push(5e-324);\n\
+        data.push(1.5e-323);\n\
+        data.push(2.5e-323);\n\
+        data.push(3.5e-323);\n\
+        data.push(4.2388366884150523e-308);\n\
+        data.push(28e9);\n\
+        data.push(0.036);\n\
+        data.push(0.36);\n\
+        data.push(3.6);\n\
+        data.push(0.0036);\n\
+        data.push(0.00036);\n\
+        data.push(0.000036);\n\
+        data.push(1.5e-320);\n\
+        data.push(NaN);\n\
+        data.push(+0);\n\
+        data.push(-0);\n\
+        data.push(+Infinity);\n\
+        data.push(-Infinity);\n\
 \n\
         for (var i = 0, l = 1000; i < l; i++) {\n\
           var x = Math.random();\n\
@@ -46,9 +88,68 @@
           var z = Math.pow(2, 100 * y);\n\
           var a = (1 + Math.random() * 21) | 0;\n\
           var b = z.toPrecision(a);\n\
-          data[i] = parseFloat(b);\n\
+          data.push(parseFloat(b));\n\
         }\n\
-        data_length = l;\n\
+        // test all powers of 2 which fit in a floating point value\n\
+        for (var i = -1074; i <= 1023; i++) {\n\
+          var z = Math.pow(2, i);\n\
+          data.push(z);\n\
+        }\n\
+        for (var i = -1074; i <= 1023; i++) {\n\
+          for (var j = 0; j < 20; j++) {\n\
+            var x = Math.random();\n\
+            var y = x / 20 + j / 20 + 1;  // stay within the next power of 2: 1.0000 .. 1.9999\n\
+            var z = Math.pow(2, i) * y;\n\
+            data.push(z);\n\
+          }\n\
+        }\n\
+        for (var i = -1074; i <= -1022; i++) {\n\
+          for (var j = 0; j < 50; j++) {\n\
+            var x = Math.random();\n\
+            var z = Math.pow(2, i) * x;\n\
+            data.push(z);\n\
+          }\n\
+        }\n\
+        for (var i = 1017; i <= 1023; i++) {\n\
+          for (var j = 0; j < 50; j++) {\n\
+            var x = Math.random();\n\
+            var y = x + 1;  // stay within the next power of 2: 1.0000 .. 1.9999\n\
+            var z = Math.pow(2, i) * y;\n\
+            data.push(z);\n\
+          }\n\
+        }\n\
+        // test the ranges which are treated special plus a little *outside* those ranges to detect incorrect handling\n\
+        for (var i = -6; i <= 16; i++) {\n\
+          for (var j = 0; j < 1000; j++) {\n\
+            var x = Math.random();\n\
+            var y = x / 2 + 0.5;  // stay within the current power of 2\n\
+            var z = Math.pow(2, i) * y;\n\
+            var w = (Math.random() * 6) | 0;\n\
+            var b;\n\
+            switch (w) {\n\
+            case 0:\n\
+              b = z.toPrecision(3);\n\
+              break;\n\
+            case 1:\n\
+              b = z.toPrecision(2);\n\
+              break;\n\
+            case 2:\n\
+              b = z.toPrecision(1);\n\
+              break;\n\
+            case 3:\n\
+              b = z.toPrecision(4);\n\
+              break;\n\
+            case 4:\n\
+              b = z.toPrecision(5);\n\
+              break;\n\
+            default:\n\
+              break;\n\
+            }\n\
+            data.push(parseFloat(b));\n\
+          }\n\
+        }\n\
+        //data.length = 30;\n\
+        data_length = data.length;\n\
 \n\
         window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
       }\n\
@@ -83,6 +184,14 @@
         }\n\
       }\n\
 \n\
+      function custom_s_0(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          serialized_data[ii] = encode_fp_value0(flt);\n\
+        }\n\
+      }\n\
+\n\
       function custom_s_1(data, len, serialized_data) {\n\
         for (var ii = 0; ii < len; ii++) {\n\
           var flt = data[ii];\n\
@@ -112,6 +221,15 @@
           var flt = data[ii];\n\
 \n\
           serialized_data[ii] = encode_fp_value4(flt);\n\
+        }\n\
+      }\n\
+\n\
+      function custom_d_0(serialized_data, len, data) {\n\
+        var cps = {};\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var fltstr = serialized_data[ii];\n\
+\n\
+          data[ii] = decode_fp_value0(fltstr, cps);\n\
         }\n\
       }\n\
 \n\
@@ -168,7 +286,12 @@
       ",
   tests: [
     { 
-      name: 'CustomD :: v1', 
+      name: 'CustomD :: v0 ~ v1-CLEAN', 
+      'fn': '\
+        custom_d_0(serialized_data2, data_length, data);'
+    },
+    { 
+      name: 'CustomD :: v1 ~ REF', 
       'fn': '\
         custom_d_1(serialized_data2, data_length, data);'
     },
@@ -195,13 +318,19 @@
     {
       name: 'ClassicD : JSON.parse', 
       fn: '\
-        classic_d_3(serialized_data, data_length, data);'
+        classic_d_3(serialized_data3, data_length, data);'
     },
   ],
   setup: "\
         Benchmark.prototype.setup = function () {\n\
           classic_s_1(data, data_length, serialized_data);\n\
           custom_s_1(data, data_length, serialized_data2);\n\
+          classic_s_4(data, data_length, serialized_data3);\n\
+\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data_length;\n\
         };\n\
         ",
   teardown: "\

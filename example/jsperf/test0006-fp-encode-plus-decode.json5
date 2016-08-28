@@ -1,8 +1,8 @@
 {
-  title: 'test #3 : custom FP value serialization',
+  title: 'test #6 : custom FP value serialization',
   description: 'determining the speed loss factor when we serialize FP (and integer) values to a custom string format vs. standard print+parse.\n\nThis particular test compares the <em>back and forth conversion of floating point values to strings</em> using a series of random numbers.</p>\n<blockquote>Note: I ignore the probable speedups available in the "custom" encoders when they hit <em>usual numbers</em>, e.g. 1 or 12 or 0.3 and ditto for <em>special values</em> such as <code>NaN</code> and <code>+/-Infinity</code> as the random set has very low probability of generating any of these.</blockquote>\n<p>The point of the test is to see who is the fastest <strong>combo</strong> on the block for the <def>float → string → float</def> conversion process.',
   related: [
-    'test0003.json5',
+    'test0003-floating-point-serialization-deserialization.json5',
     'test0004-fp-encode-only.json5',
     'test0005-fp-decode-only.json5',
   ],
@@ -17,6 +17,8 @@
         'fpcvt-alt3.js',\n\
         'fpcvt-alt4.js',\n\
         'fpcvt-alt5.js',\n\
+        'fpcvt-alt6.js',\n\
+        'fpcvt-alt7.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\
@@ -30,15 +32,59 @@
       //var b = z.toPrecision(a); // accepted prec range: 1..21\n\
       //console.log(x, y, z, a, b);\n\
 \n\
-      const test_serialization = true;\n\
+      var test_serialization = true;\n\
 \n\
       var data = [];\n\
       var serialized_data = [];\n\
       var serialized_data2 = [];\n\
+      var serialized_data3 = [];\n\
       var data_length = 0;\n\
+\n\
+      console.clear();\n\
 \n\
       function init() {\n\
         if (data_length) return;\n\
+\n\
+        //debugger;\n\
+        data.push(0.00001);\n\
+        data.push(3676483910);\n\
+        data.push(Math.pow(2,1023) * 1.9999999999999998);\n\
+        data.push(1.7976931348623158e308); // == 1.7976931348623157e308\n\
+        data.push(1.7976931348623157e308);\n\
+        data.push(1.7976931348623156e308); // == 1.7976931348623155e308\n\
+        data.push(Math.pow(2,-1024) * 0.999999999999999);\n\
+        data.push(Math.pow(2,-1025) * 0.999999999999999);\n\
+        data.push(Math.pow(2,-1023) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1023) * 1.999999999999998);\n\
+        data.push(Math.pow(2, 1022) * 1.999999999999999);\n\
+        data.push(Math.pow(2, 1022) * 1.999999999999998);\n\
+        data.push(Math.pow(2, 1023) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1022) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1021) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1020) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1019) * 0.999999999999999);\n\
+        data.push(Math.pow(2, 1019) * 1.999999999999998);\n\
+        data.push(Math.pow(2, 1023) * 1.9999999999999999);  // +Infinity\n\
+        data.push(Math.pow(2, 1023) * 1.9999999999999998);\n\
+        data.push(Math.pow(2, 1023) * 1.9999999999999997);\n\
+        data.push(5e-324);\n\
+        data.push(1.5e-323);\n\
+        data.push(2.5e-323);\n\
+        data.push(3.5e-323);\n\
+        data.push(4.2388366884150523e-308);\n\
+        data.push(28e9);\n\
+        data.push(0.036);\n\
+        data.push(0.36);\n\
+        data.push(3.6);\n\
+        data.push(0.0036);\n\
+        data.push(0.00036);\n\
+        data.push(0.000036);\n\
+        data.push(1.5e-320);\n\
+        data.push(NaN);\n\
+        data.push(+0);\n\
+        data.push(-0);\n\
+        data.push(+Infinity);\n\
+        data.push(-Infinity);\n\
 \n\
         for (var i = 0, l = 1000; i < l; i++) {\n\
           var x = Math.random();\n\
@@ -46,9 +92,89 @@
           var z = Math.pow(2, 100 * y);\n\
           var a = (1 + Math.random() * 21) | 0;\n\
           var b = z.toPrecision(a);\n\
-          data[i] = parseFloat(b);\n\
+          data.push(parseFloat(b));\n\
         }\n\
-        data_length = l;\n\
+        // test all powers of 2 which fit in a floating point value\n\
+        for (var i = -1074; i <= 1023; i++) {\n\
+          var z = Math.pow(2, i);\n\
+          data.push(z);\n\
+        }\n\
+        for (var i = -1074; i <= 1023; i++) {\n\
+          for (var j = 0; j < 20; j++) {\n\
+            var x = Math.random();\n\
+            var y = x / 20 + j / 20 + 1;  // stay within the next power of 2: 1.0000 .. 1.9999\n\
+            var z = Math.pow(2, i) * y;\n\
+            data.push(z);\n\
+          }\n\
+        }\n\
+        for (var i = -1074; i <= -1022; i++) {\n\
+          for (var j = 0; j < 50; j++) {\n\
+            var x = Math.random();\n\
+            var z = Math.pow(2, i) * x;\n\
+            data.push(z);\n\
+          }\n\
+        }\n\
+        for (var i = 1017; i <= 1023; i++) {\n\
+          for (var j = 0; j < 50; j++) {\n\
+            var x = Math.random();\n\
+            var y = x + 1;  // stay within the next power of 2: 1.0000 .. 1.9999\n\
+            var z = Math.pow(2, i) * y;\n\
+            data.push(z);\n\
+          }\n\
+        }\n\
+        // test the ranges which are treated special plus a little *outside* those ranges to detect incorrect handling\n\
+        debugger;\n\
+\n\
+        // also test the reserve to ensure we cover the entire *decodable* range as wll as the entire *encodable* range!\n\
+        //\n\
+	// Note the comment about 'holes' in fpcvt.js -- here we happen to test those holes alongside expected encoder outputs!\n\
+        for (var i = 0x8000; i < 0xF900; i++) {\n\
+          if (i >= 0xD800 && i <= 0xDFFF) continue;\n\
+          var t = String.fromCharCode(i);\n\
+          var z = decode_fp_value(t);\n\
+          // and test if the *encoder* handles all these 'short notation' samples correctly:\n\
+          var s = encode_fp_value(z);\n\
+          if (s !== t && i !== 0x8000) {\n\
+            console.warn('custom enc mismatch for shorthand Unicode encoding: ', z, s, t, s.length, t.length);\n\
+          }\n\
+          // ZERO has a special encoding so 0x8000 is a shorthand code which can NEVER OCCUR:\n\
+          // however, the *actual* encoding for ZERO (+0) is also a shorthand hence the actual ZERO must also have length =1:\n\
+          if (s.length !== t.length) {\n\
+            console.warn('custom enc mismatch for shorthand Unicode encoding: ', z, s, t, s.length, t.length);\n\
+          }\n\
+          data.push(z);\n\
+        }\n\
+        for (var i = -6; i <= 16; i++) {\n\
+          for (var j = 0; j < 1000; j++) {\n\
+            var x = Math.random();\n\
+            var y = x / 2 + 0.5;  // stay within the current power of 2\n\
+            var z = Math.pow(2, i) * y;\n\
+            var w = (Math.random() * 6) | 0;\n\
+            var b;\n\
+            switch (w) {\n\
+            case 0:\n\
+              b = z.toPrecision(3);\n\
+              break;\n\
+            case 1:\n\
+              b = z.toPrecision(2);\n\
+              break;\n\
+            case 2:\n\
+              b = z.toPrecision(1);\n\
+              break;\n\
+            case 3:\n\
+              b = z.toPrecision(4);\n\
+              break;\n\
+            case 4:\n\
+              b = z.toPrecision(5);\n\
+              break;\n\
+            default:\n\
+              break;\n\
+            }\n\
+            data.push(parseFloat(b));\n\
+          }\n\
+        }\n\
+        data.length = 30;\n\
+        data_length = data.length;\n\
 \n\
         window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
       }\n\
@@ -60,21 +186,82 @@
 \n\
           var s = '' + flt; // fastest solution for encode\n\
           var t = parseFloat(s); // fastest solution for decode\n\
-          //if (t !== flt) {\n\
-          //  console.error('classic enc/dec mismatch: ', flt, s, t);\n\
-          //}\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('classic enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
         }\n\
       }\n\
 \n\
-      function custom_1(data, len, serialized_data) {\n\
+      function custom_0(data, len, serialized_data) {\n\
+        debugger;\n\
+        var dec_opt = {\n\
+          consumed_length: 0\n\
+        };\n\
         for (var ii = 0; ii < len; ii++) {\n\
           var flt = data[ii];\n\
 \n\
           var s = encode_fp_value(flt);\n\
+          dec_opt.consumed_length = 0;\n\
+          var t = decode_fp_value(s, dec_opt);\n\
+          if (/* test_serialization && */ t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+          if (dec_opt.consumed_length !== s.length) {\n\
+            console.warn('custom dec length feedback mismatch: ', flt, dec_opt.consumed_length, s, s.length);\n\
+          }\n\
+          var s2 = encode_fp_value0(flt);\n\
+          if (s2 !== s) {\n\
+            console.warn('custom enc0 vs. enc-REF mismatch: ', flt, s2, s, t);\n\
+          }\n\
+          s2 = encode_fp_value2(flt);\n\
+          if (s2 !== s) {\n\
+            console.warn('custom enc2 vs. enc-REF mismatch: ', flt, s2, s, t);\n\
+          }\n\
+          s2 = encode_fp_value3(flt);\n\
+          if (s2 !== s) {\n\
+            console.warn('custom enc3 vs. enc-REF mismatch: ', flt, s2, s, t);\n\
+          }\n\
+          s2 = encode_fp_value4(flt);\n\
+          if (s2 !== s) {\n\
+            console.warn('custom enc4 vs. enc-REF mismatch: ', flt, s2, s, t);\n\
+          }\n\
+          dec_opt.consumed_length = 0;\n\
+          var t2 = decode_fp_value2(s, dec_opt);\n\
+          if (t2 !== flt && (!isNaN(t2) || !isNaN(flt))) {\n\
+            console.warn('custom dec2 vs. dec-REF mismatch: ', flt, t2, s, t);\n\
+          }\n\
+          if (dec_opt.consumed_length !== s.length) {\n\
+            console.warn('custom dec2 length feedback mismatch: ', flt, dec_opt.consumed_length, s, s.length);\n\
+          }\n\
+          dec_opt.consumed_length = 0;\n\
+          t2 = decode_fp_value3(s, dec_opt);\n\
+          if (t2 !== flt && (!isNaN(t2) || !isNaN(flt))) {\n\
+            console.warn('custom dec3 vs. dec-REF mismatch: ', flt, t2, s, t);\n\
+          }\n\
+          if (dec_opt.consumed_length !== s.length) {\n\
+            console.warn('custom dec3 length feedback mismatch: ', flt, dec_opt.consumed_length, s, s.length);\n\
+          }\n\
+          dec_opt.consumed_length = 0;\n\
+          t2 = decode_fp_value4(s, dec_opt);\n\
+          if (t2 !== flt && (!isNaN(t2) || !isNaN(flt))) {\n\
+            console.warn('custom dec4 vs. dec-REF mismatch: ', flt, t2, s, t);\n\
+          }\n\
+          if (dec_opt.consumed_length !== s.length) {\n\
+            console.warn('custom dec4 length feedback mismatch: ', flt, dec_opt.consumed_length, s, s.length);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_1(data, len, serialized_data) {\n\
+        //debugger;\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value0(flt);\n\
           var t = decode_fp_value(s);\n\
-          //if (t !== flt) {\n\
-          //  console.error('custom enc/dec mismatch: ', flt, s, t);\n\
-          //}\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
         }\n\
       }\n\
 \n\
@@ -84,9 +271,9 @@
 \n\
           var s = encode_fp_value2(flt);\n\
           var t = decode_fp_value(s);\n\
-          //if (t !== flt) {\n\
-          //  console.error('custom enc/dec mismatch: ', flt, s, t);\n\
-          //}\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
         }\n\
       }\n\
 \n\
@@ -96,9 +283,9 @@
 \n\
           var s = encode_fp_value3(flt);\n\
           var t = decode_fp_value(s);\n\
-          //if (t !== flt) {\n\
-          //  console.error('custom enc/dec mismatch: ', flt, s, t);\n\
-          //}\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
         }\n\
       }\n\
 \n\
@@ -108,13 +295,162 @@
 \n\
           var s = encode_fp_value4(flt);\n\
           var t = decode_fp_value(s);\n\
-          //if (t !== flt) {\n\
-          //  console.error('custom enc/dec mismatch: ', flt, s, t);\n\
-          //}\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_5(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value(flt);\n\
+          var t = decode_fp_value2(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_6(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value2(flt);\n\
+          var t = decode_fp_value2(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_7(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value3(flt);\n\
+          var t = decode_fp_value2(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_8(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value4(flt);\n\
+          var t = decode_fp_value2(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_9(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value(flt);\n\
+          var t = decode_fp_value3(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_10(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value2(flt);\n\
+          var t = decode_fp_value3(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_11(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value3(flt);\n\
+          var t = decode_fp_value3(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_12(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value4(flt);\n\
+          var t = decode_fp_value3(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_13(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value(flt);\n\
+          var t = decode_fp_value4(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_14(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value2(flt);\n\
+          var t = decode_fp_value4(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_15(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value3(flt);\n\
+          var t = decode_fp_value4(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function custom_16(data, len, serialized_data) {\n\
+        for (var ii = 0; ii < len; ii++) {\n\
+          var flt = data[ii];\n\
+\n\
+          var s = encode_fp_value4(flt);\n\
+          var t = decode_fp_value4(s);\n\
+          if (test_serialization && t !== flt && (!isNaN(t) || !isNaN(flt))) {\n\
+            console.warn('custom enc/dec mismatch: ', flt, s, t);\n\
+          }\n\
         }\n\
       }\n\
       ",
   tests: [
+    {
+      name: 'Custom : v0 ~ REFERENCE CHECKS',
+      fn: '\
+        custom_0(data, data_length, serialized_data);'
+    },
     {
       name: 'Classic', 
       fn: '\
@@ -140,9 +476,73 @@
       fn: '\
         custom_4(data, data_length, serialized_data);'
     },
+    {
+      name: 'Custom : v5', 
+      fn: '\
+        custom_5(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v6', 
+      fn: '\
+        custom_6(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v7', 
+      fn: '\
+        custom_7(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v8', 
+      fn: '\
+        custom_8(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v9', 
+      fn: '\
+        custom_9(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v10', 
+      fn: '\
+        custom_10(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v11', 
+      fn: '\
+        custom_11(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v12', 
+      fn: '\
+        custom_12(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v13', 
+      fn: '\
+        custom_13(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v14', 
+      fn: '\
+        custom_14(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v15', 
+      fn: '\
+        custom_15(data, data_length, serialized_data);'
+    },
+    {
+      name: 'Custom : v16', 
+      fn: '\
+        custom_16(data, data_length, serialized_data);'
+    },
   ],
   setup: "\
         Benchmark.prototype.setup = function () {\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data_length;\n\
         };\n\
         ",
   teardown: "\
