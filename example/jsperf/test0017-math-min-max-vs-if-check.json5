@@ -1,0 +1,193 @@
+{
+  title: 'test #17 : Math.min / Math.max vs < and > comparison',
+  description: 'which is faster: Math.min / Math.max or doing this by hand, i.e. by using a direct < or > comparison in an if/then statement?\n\nWhen every `if` in your code matters, this type of question may be relevant for you -- as it is for the FPCVT code',
+  related: [
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var data_length = 0;\n\
+      var mapping = [];\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
+          var x = Math.random() * 0x10000;\n\
+          x = x | 0;\n\
+          if (x >= 0xD800 && x <= 0xDFFF) continue;\n\
+          if (x > 0xFFFF) continue;\n\
+          data[i] = x;\n\
+          i++;\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        for (var i = 0, l = 0x10000; i < l; i++) {\n\
+          mapping[i] = String.fromCharCode(i);\n\
+        }\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      function i2c(v) {\n\
+        return String.fromCharCode(v);\n\
+      }\n\
+\n\
+      // access function under test:\n\
+      function join_em1(data, len) {\n\
+        var a = data.map(i2c);\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function join_em2(data, len) {\n\
+        var a = [];\n\
+        for (var i = 0; i < len; i++) {\n\
+          a[i] = String.fromCharCode(data[i]);\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function join_em2a(data, len) {\n\
+        var a = [];\n\
+        for (var i = 0; i < len; i++) {\n\
+          a.push(String.fromCharCode(data[i]));\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function join_em2b(data, len) {\n\
+        var a = new Array(len);\n\
+        for (var i = 0; i < len; i++) {\n\
+          a[i] = String.fromCharCode(data[i]);\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function join_em3(data, len, mapping) {\n\
+        var a = [];\n\
+        for (var i = 0; i < len; i++) {\n\
+          a[i] = mapping[data[i]];\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function join_em3b(data, len, mapping) {\n\
+        var a = new Array(len);\n\
+        for (var i = 0; i < len; i++) {\n\
+          a[i] = mapping[data[i]];\n\
+        }\n\
+        return a.join('');\n\
+      }\n\
+\n\
+      function concat_em1(data, len) {\n\
+        var s = '';\n\
+        for (var i = 0; i < len; i++) {\n\
+          s += String.fromCharCode(data[i]);\n\
+        }\n\
+        return s;\n\
+      }\n\
+\n\
+      function concat_em2(data, len, mapping) {\n\
+        var s = '';\n\
+        for (var i = 0; i < len; i++) {\n\
+          s += mapping[data[i]];\n\
+        }\n\
+        return s;\n\
+      }\n\
+\n\
+      function concat_em3(data, len) {\n\
+        var s = '';\n\
+        for (var i = 0; i < len; i++) {\n\
+          s += mapping[data[i]];   // mapping is in global scope!\n\
+        }\n\
+        return s;\n\
+      }\n\
+\n\
+      function concat_em4(data, len) {\n\
+        var t = mapping;   // mapping is in global scope!\n\
+        var s = '';\n\
+        for (var i = 0; i < len; i++) {\n\
+          s += t[data[i]];\n\
+        }\n\
+        return s;\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'map/conversion + join',
+      fn: '\
+        // ~ data.map(String.fromCharCode).join()\n\
+        join_em1(data, data_length);'
+    },
+    {
+      name: 'loop/conversion + join',
+      fn: '\
+        // ~ for-loop: { a[] = String.fromCharCode }, a.join()\n\
+        join_em2(data, data_length);'
+    },
+    {
+      name: 'loop.push/conversion + join',
+      fn: '\
+        // ~ for-loop: { a.push(String.fromCharCode) }, a.join()\n\
+        join_em2a(data, data_length);'
+    },
+    {
+      name: 'prealloc + loop/conversion + join',
+      fn: '\
+        // ~ a = new [length], for-loop: { a[] = String.fromCharCode }, a.join()\n\
+        join_em2b(data, data_length);'
+    },
+    {
+      name: 'loop/lookup + join',
+      fn: '\
+        // ~ for-loop { a[] = mapping[data] }, join()\n\
+        join_em3(data, data_length, mapping);'
+    },
+    {
+      name: 'prealloc + loop/lookup + join',
+      fn: '\
+        // ~ a = new [length], for-loop { a[] = mapping[data] }, join()\n\
+        join_em3b(data, data_length, mapping);'
+    },
+    {
+      name: 'concat/conversion',
+      fn: '\
+        // ~ for-loop { s+= String.fromCharCode }\n\
+        concat_em1(data, data_length);'
+    },
+    {
+      name: 'concat/lookup',
+      fn: '\
+        // ~ arg:mapping :: for-loop { s+= mapping[data] }\n\
+        concat_em2(data, data_length, mapping);'
+    },
+    {
+      name: 'concat/global-lookup',
+      fn: '\
+        // ~ global:mapping :: for-loop { s+= mapping[data] }\n\
+        concat_em3(data, data_length);'
+    },
+    {
+      name: 'concat/cached-global-lookup',
+      fn: '\
+        // ~ local:mapping :: for-loop { s+= mapping[data] }\n\
+        concat_em4(data, data_length);'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}
