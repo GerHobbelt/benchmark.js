@@ -1,0 +1,158 @@
+{
+  title: 'test #19 : looping through members of an object: `for ... in ...` vs. looping through the `Object.keys(...)`',
+  description: 'Answering the question: "is it faster to loop through the `Object.keys` or using a `for...in` loop (where we do the latter with or *without* the `Object.hasOwnProperty` \'best practices\' check)?"',
+  related: [
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var mapping = [];\n\
+      var glob_sum = 0;\n\
+      const step_size = 5;\n\
+\n\
+      function init() {\n\
+        if (data.length) return;\n\
+\n\
+        for (var i = 0, l = 1000 / step_size; i < l; i++) {\n\
+          var o = {};\n\
+          for (var j = 0, lj = i * step_size + 1; j < lj; j++) {\n\
+            var x = Math.random() * 1e7;\n\
+            x = x | 0;\n\
+            var membername = 'x' + x.toString(16);\n\
+            // make sure we create unique member names on each iteration here:\n\
+            while (o[membername]) {\n\
+              var y = Math.random() * 2048;\n\
+              y = y | 0;\n\
+              membername += 'd' + y.toString(16);\n\
+            }\n\
+            o[membername] = x;\n\
+          }\n\
+          data[i] = o;\n\
+        }\n\
+\n\
+        glob_sum = plain_calculus();\n\
+\n\
+        // pre-test that these buggers all deliver the same result:\n\
+        T(plain_calculus());\n\
+        T(for_in_raw_calculus());\n\
+        T(for_in_best_practices_calculus());\n\
+        T(for_in_hasOwnPropProto_calculus());\n\
+        T(loop_object_keys_calculus());\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      // Test result to prevent code removal\n\
+      function T(a) {\n\
+        if (a !== glob_sum) {\n\
+          throw new Error('test failed! ' + a + ' vs. ' + glob_sum);\n\
+        }\n\
+      }\n\
+\n\
+      function for_in_raw_speed_cb(sum, d) {\n\
+        for (var k in d) {\n\
+          sum += d[k];\n\
+        }\n\
+      }\n\
+\n\
+      function for_in_best_practices_cb(sum, d) {\n\
+        for (var k in d) {\n\
+          if (d.hasOwnProperty(k)) {\n\
+            sum += d[k];\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function for_in_hasOwnPropProto_cb(sum, d) {\n\
+        const isMember = Object.prototype.hasOwnProperty;\n\
+        for (var k in d) {\n\
+          if (isMember.call(d, k)) {\n\
+            sum += d[k];\n\
+          }\n\
+        }\n\
+      }\n\
+\n\
+      function loop_object_keys_cb(sum, d) {\n\
+        var kl = Object.keys(d);\n\
+        for (var i = 0, l = kl.length; i < l; i++) {\n\
+          var k = kl[i];\n\
+          sum += d[k];\n\
+        }\n\
+      }\n\
+\n\
+      function calc(data, cb) {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          sum = cb(sum, data[i]);\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      function plain_calculus() {\n\
+        return calc(data, for_in_raw_speed_cb);\n\
+      }\n\
+\n\
+      function for_in_raw_calculus() {\n\
+        return calc(data, for_in_raw_speed_cb);\n\
+      }\n\
+\n\
+      function for_in_best_practices_calculus() {\n\
+        return calc(data, for_in_best_practices_cb);\n\
+      }\n\
+\n\
+      function for_in_hasOwnPropProto_calculus() {\n\
+        return calc(data, for_in_hasOwnPropProto_cb);\n\
+      }\n\
+\n\
+      function loop_object_keys_calculus() {\n\
+        return calc(data, loop_object_keys_cb);\n\
+      }\n\
+\n\
+      ",
+  tests: [
+    {
+      name: 'REFERENCE: plain object member traversal',
+      fn: '\
+        T(plain_calculus());'
+    },
+    {
+      name: 'raw `for...in` loop',
+      fn: '\
+        T(for_in_raw_calculus());'
+    },
+    {
+      name: '`for...in` loop with "best practices" hasOwnProperty member check',
+      fn: '\
+        T(for_in_best_practices_calculus());'
+    },
+    {
+      name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+      fn: '\
+        T(for_in_hasOwnPropProto_calculus());'
+    },
+    {
+      name: 'object member access via looping through the `Object.keys()` array',
+      fn: '\
+        T(loop_object_keys_calculus());'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+          // specify the number of inner operations\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length;\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}

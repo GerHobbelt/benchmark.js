@@ -18,3 +18,4 @@ test0015-is-constant-propagation-useful.json5
 test0016-secure-hashes-for-code-identification--who-is-the-fastest-kid-on-the-block.json5
 test0017-math-min-max-vs-if-check.json5
 test0018-the-proper-new-way-to-slice-arguments.json5
+test0019-for-in-vs-object-keys-loop.json5
