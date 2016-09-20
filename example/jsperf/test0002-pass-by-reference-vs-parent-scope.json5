@@ -1,29 +1,6 @@
-/*
-    Preparation code chunk:
-
-    <div>Lorem ipsum</div>                                              --> user-output
-    <script>                                                            --> prep-spec
-      var arr = [1, 5, 4, 2, 3];
-
-      function init() {
-        window.console && console.log('init called');
-      }
-    <\/script>
-    <script>                                                            --> setup-spec
-    Benchmark.prototype.setup = function() {
-      window.foo = 42;
-      var x = arr;
-    };
-
-    Benchmark.prototype.teardown = function() {
-      window.foo = 24;
-    };
-    <\/script>
-*/
-
 {
   title: 'test #2',
-  description: 'bla bla bla',
+  description: 'which way is faster when accessing variables residing in a parent/global scope?',
 
   HTML: "<div>Lorem ipsum</div>",
   init: "\
@@ -104,10 +81,18 @@
     },
   ],
   setup: "\
-        Benchmark.prototype.setup = function () { rv = 0; };\n\
+        Benchmark.prototype.setup = function () {\n\
+	  rv = 0;\n\
+	};\n\
         ",
   teardown: "\
         var pulse_counter = 0;\n\
-        Benchmark.prototype.teardown = function () { pulse_counter++; if (pulse_counter >= 1000) { pulse_counter = 0; console.log('rv = ', rv); } };\n\
+        Benchmark.prototype.teardown = function () {\n\
+	  pulse_counter++;\n\
+	  if (pulse_counter >= 1000) {\n\
+	    pulse_counter = 0;\n\
+	    console.log('rv = ', rv);\n\
+	  }\n\
+        };\n\
         "
 }

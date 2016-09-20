@@ -9,6 +9,9 @@
   /** Cache of error messages */
   var errors = [];
 
+  /** Current activity description (used by a potential crash report) */
+  var current_task_description = null;
+
   /** Google Analytics account id */
   var gaId = '';
 
@@ -375,6 +378,9 @@
     var end_of_leading = 0;
     var is_leading = true;
     var may_be_trailing = 0;
+    if (s == null) {
+      return '';
+    }
     var a = s.split('\n').map(function (l, i) {
       l = l.replace(/^\s+/, function (ws) {
         // TAB = 4 spaces
@@ -739,7 +745,9 @@
     setHTML('prep-code-display', '<code>' + escape(unindent(json.HTML) + '\n<script>\n' + prep_source_code + '\n</script>') + '</code>');
     // run this code in global scope:
     console.log('init code loading into global scope:\n', prep_source_code);
+    current_task_description = 'run init + setup + teardown code sections';
     globalEval(prep_source_code);
+    current_task_description = null;
 
     for (var i = 0, l = json.tests; l[i]; i++) {
       ui.add(l[i]);
@@ -830,12 +838,40 @@
     }());
 
     // catch and display errors from the "preparation code"
-    window.onerror = function(message, fileName, lineNumber) {
+    window.onerror = function(message, fileName, lineNumber, charPos, exception) {
+      var st = [];
+      if (exception && exception.stack) {
+        st = exception.stack.split('\n');
+        st.shift();
+        var depth_track = 0;
+        st = st.map(function translate(f) {
+          f = f
+          .trim()
+          // anonymous - unnamed functions:
+          .replace(/^at [a-z]+:\/\/.+?\/([a-z0-9_]+)\.js:([0-9]+)(?:\:.*)?$/i, 'SRC::$1.L$2')
+          .replace(/^at ([a-z_\$][a-z0-9_\$\.]*)\s[^\s]+$/i, '$1');
+
+          if (f.indexOf('Suite.ui.') === 0) {
+            depth_track++;
+          } else if (depth_track) {
+            depth_track++;
+          }
+          if (depth_track > 2) {
+            // nuke all remaining stack lines from this point forward:
+            f = null;
+          }
+          return f;
+        })
+        .filter(function (l) {
+          return l != null;
+        });
+      }
+      console.error('ERROR: ', exception);
       logError('<p>' + message + '.</p><ul><li>' + join({
         'message': message,
         'fileName': fileName,
         'lineNumber': lineNumber
-      }, '</li><li>') + '</li></ul>');
+      }, '</li><li>') + (current_task_description ? '</li><li>activity: ' + current_task_description : '') + (st.length ? '</li><li>stackTrace: ' + join(st, ' &#187; ') : '') + '</li></ul>');
       scrollEl.scrollTop = $('error-info').offsetTop;
     };
   }

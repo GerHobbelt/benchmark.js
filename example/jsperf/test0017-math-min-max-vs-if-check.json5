@@ -17,6 +17,7 @@
       var data = [];\n\
       var data_length = 0;\n\
       var mapping = [];\n\
+      var glob_sum = 0;\n\
 \n\
       function init() {\n\
         if (data_length) return;\n\
@@ -35,156 +36,102 @@
           mapping[i] = String.fromCharCode(i);\n\
         }\n\
 \n\
+        glob_sum = plain_calculus();\n\
+\n\
         window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
       }\n\
 \n\
-      function i2c(v) {\n\
-        return String.fromCharCode(v);\n\
-      }\n\
+      var c1 = Math.sin(1);\n\
+      var c2 = 1 / c1;\n\
+      var c3 = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9;\n\
+      var c4 = c3 * 42 / 100;\n\
 \n\
-      // access function under test:\n\
-      function join_em1(data, len) {\n\
-        var a = data.map(i2c);\n\
-        return a.join('');\n\
-      }\n\
+      //var c1 = 0.8414709848078965;\n\
+      //var c2 = 1.1883951057781212;\n\
+      //var c3 = 45;\n\
+      //var c4 = 18.9;\n\
 \n\
-      function join_em2(data, len) {\n\
-        var a = [];\n\
-        for (var i = 0; i < len; i++) {\n\
-          a[i] = String.fromCharCode(data[i]);\n\
+      // Test result to prevent code removal\n\
+      function T(a) {\n\
+        if (a !== glob_sum) {\n\
+          throw new Error('test failed! ' + a + ' vs. ' + glob_sum);\n\
         }\n\
-        return a.join('');\n\
       }\n\
 \n\
-      function join_em2a(data, len) {\n\
-        var a = [];\n\
-        for (var i = 0; i < len; i++) {\n\
-          a.push(String.fromCharCode(data[i]));\n\
+      function plain_calculus() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var c5 = c4 / c2;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
         }\n\
-        return a.join('');\n\
+        return sum;\n\
       }\n\
 \n\
-      function join_em2b(data, len) {\n\
-        var a = new Array(len);\n\
-        for (var i = 0; i < len; i++) {\n\
-          a[i] = String.fromCharCode(data[i]);\n\
+      function constant_propagation() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          var c5 = 18.9 / 1.1883951057781212;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * c5 + v2;\n\
         }\n\
-        return a.join('');\n\
+        return sum;\n\
       }\n\
 \n\
-      function join_em3(data, len, mapping) {\n\
-        var a = [];\n\
-        for (var i = 0; i < len; i++) {\n\
-          a[i] = mapping[data[i]];\n\
+      function plus_unused_variable_removal() {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l; i++) {\n\
+          var d = data[i];\n\
+          //var c5 = 15.903801612869243;\n\
+          var v1 = d & 0x0001;\n\
+          var v2;\n\
+          if (v1) {\n\
+            v2 = -(sum / 1.1);\n\
+          } else {\n\
+            v2 = sum;\n\
+          } \n\
+          sum = d * 15.903801612869243 + v2;\n\
         }\n\
-        return a.join('');\n\
-      }\n\
-\n\
-      function join_em3b(data, len, mapping) {\n\
-        var a = new Array(len);\n\
-        for (var i = 0; i < len; i++) {\n\
-          a[i] = mapping[data[i]];\n\
-        }\n\
-        return a.join('');\n\
-      }\n\
-\n\
-      function concat_em1(data, len) {\n\
-        var s = '';\n\
-        for (var i = 0; i < len; i++) {\n\
-          s += String.fromCharCode(data[i]);\n\
-        }\n\
-        return s;\n\
-      }\n\
-\n\
-      function concat_em2(data, len, mapping) {\n\
-        var s = '';\n\
-        for (var i = 0; i < len; i++) {\n\
-          s += mapping[data[i]];\n\
-        }\n\
-        return s;\n\
-      }\n\
-\n\
-      function concat_em3(data, len) {\n\
-        var s = '';\n\
-        for (var i = 0; i < len; i++) {\n\
-          s += mapping[data[i]];   // mapping is in global scope!\n\
-        }\n\
-        return s;\n\
-      }\n\
-\n\
-      function concat_em4(data, len) {\n\
-        var t = mapping;   // mapping is in global scope!\n\
-        var s = '';\n\
-        for (var i = 0; i < len; i++) {\n\
-          s += t[data[i]];\n\
-        }\n\
-        return s;\n\
+        return sum;\n\
       }\n\
       ",
   tests: [
     {
-      name: 'map/conversion + join',
+      name: 'REFERENCE: plain calculus',
       fn: '\
-        // ~ data.map(String.fromCharCode).join()\n\
-        join_em1(data, data_length);'
+        T(plain_calculus());'
     },
     {
-      name: 'loop/conversion + join',
+      name: 'basic constant propagation from global to local',
       fn: '\
-        // ~ for-loop: { a[] = String.fromCharCode }, a.join()\n\
-        join_em2(data, data_length);'
+        T(constant_propagation());'
     },
     {
-      name: 'loop.push/conversion + join',
+      name: 'PLUS unused local variable removal',
       fn: '\
-        // ~ for-loop: { a.push(String.fromCharCode) }, a.join()\n\
-        join_em2a(data, data_length);'
-    },
-    {
-      name: 'prealloc + loop/conversion + join',
-      fn: '\
-        // ~ a = new [length], for-loop: { a[] = String.fromCharCode }, a.join()\n\
-        join_em2b(data, data_length);'
-    },
-    {
-      name: 'loop/lookup + join',
-      fn: '\
-        // ~ for-loop { a[] = mapping[data] }, join()\n\
-        join_em3(data, data_length, mapping);'
-    },
-    {
-      name: 'prealloc + loop/lookup + join',
-      fn: '\
-        // ~ a = new [length], for-loop { a[] = mapping[data] }, join()\n\
-        join_em3b(data, data_length, mapping);'
-    },
-    {
-      name: 'concat/conversion',
-      fn: '\
-        // ~ for-loop { s+= String.fromCharCode }\n\
-        concat_em1(data, data_length);'
-    },
-    {
-      name: 'concat/lookup',
-      fn: '\
-        // ~ arg:mapping :: for-loop { s+= mapping[data] }\n\
-        concat_em2(data, data_length, mapping);'
-    },
-    {
-      name: 'concat/global-lookup',
-      fn: '\
-        // ~ global:mapping :: for-loop { s+= mapping[data] }\n\
-        concat_em3(data, data_length);'
-    },
-    {
-      name: 'concat/cached-global-lookup',
-      fn: '\
-        // ~ local:mapping :: for-loop { s+= mapping[data] }\n\
-        concat_em4(data, data_length);'
+        T(plus_unused_variable_removal());'
     },
   ],
   setup: "\
         Benchmark.prototype.setup = function () {\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length;\n\
         };\n\
         ",
   teardown: "\

@@ -1,26 +1,18 @@
 {
-  title: 'test #6 : custom FP value serialization',
+  title: 'test #6b : custom FP value serialization',
   description: 'determining the speed loss factor when we serialize FP (and integer) values to a custom string format vs. standard print+parse.\n\nThis particular test compares the <em>back and forth conversion of floating point values to strings</em> using a series of random numbers.</p>\n<blockquote>Note: I ignore the probable speedups available in the "custom" encoders when they hit <em>usual numbers</em>, e.g. 1 or 12 or 0.3 and ditto for <em>special values</em> such as <code>NaN</code> and <code>+/-Infinity</code> as the random set has very low probability of generating any of these.</blockquote>\n<p>The point of the test is to see who is the fastest <strong>combo</strong> on the block for the <def>float → string → float</def> conversion process.',
   related: [
     'test0003-floating-point-serialization-deserialization.json5',
     'test0004-fp-encode-only.json5',
     'test0005-fp-decode-only.json5',
-    'test0006b-fp-encode-plus-decode.json5',
+    'test0006-fp-encode-plus-decode.json5',
   ],
 
   HTML: "",
   init: "\
       // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
       [\n\
-        'fpcvt.js',\n\
-        'fpcvt-alt1.js',\n\
-        'fpcvt-alt2.js',\n\
-        'fpcvt-alt3.js',\n\
-        'fpcvt-alt4.js',\n\
-        'fpcvt-alt5.js',\n\
-        'fpcvt-alt6.js',\n\
-        'fpcvt-alt7.js',\n\
-        'fpcvt-alt8.js',\n\
+        'fpcvt-full-compressed.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\

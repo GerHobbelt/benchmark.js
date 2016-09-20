@@ -2,7 +2,7 @@
 
 var globalEval = (function () {
 
-  var isIndirectEvalGlobal = (function (original, Object) {
+  var isIndirectEvalGlobal = (function gonzoGlobalEvalIndirectPlanA(original, Object) {
     try {
       // Does `Object` resolve to a local variable, or to a global, built-in `Object`,
       // reference to which we passed as a first argument?
@@ -16,13 +16,13 @@ var globalEval = (function () {
 
   if (isIndirectEvalGlobal) {
     // if indirect eval executes code globally, use it
-    return function (expression) {
+    return function gonzoGlobalEvalIndirectPlanB(expression) {
       return (1, eval)(expression);
     };
   }
   else if (typeof window !== 'undefined' && typeof window.execScript !== 'undefined') {
     // if `window.execScript exists`, use it
-    return function (expression) {
+    return function gonzoGlobalEvalExecScriptPlan(expression) {
       return window.execScript(expression);
     };
   }

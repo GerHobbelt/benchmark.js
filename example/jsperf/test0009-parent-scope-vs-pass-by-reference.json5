@@ -24,7 +24,7 @@
       function init() {\n\
         if (data_length) return;\n\
 \n\
-        for (var i = 0, l = 2 /* you may also try 1000 */; i < l; ) {\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
           var x = Math.random() * 0x10000;\n\
           x = x | 0;\n\
           if (x >= 0xD800 && x <= 0xDFFF) continue;\n\
@@ -309,6 +309,11 @@
           closure_4 = parent_4_closure(data);\n\
           closure_4B = parent_4B_closure(data);\n\
           generated_4E = parent_4E_codegen(data.length);\n\
+\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length;\n\
         };\n\
         ",
   teardown: "\

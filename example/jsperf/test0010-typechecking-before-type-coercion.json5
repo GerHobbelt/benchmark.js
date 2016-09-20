@@ -151,6 +151,11 @@
   ],
   setup: "\
         Benchmark.prototype.setup = function () {\n\
+\n\
+          // specify the number of inner operations\n\
+          //   ( = floating point conversions )\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length;\n\
         };\n\
         ",
   teardown: "\

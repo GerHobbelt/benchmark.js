@@ -2,10 +2,11 @@
   title: 'test #7 : custom FP value serialization vs. indexing FP column store',
   description: 'which is faster: inlining FP values in the string \'stream\' or using an index, implicit or explicit, to access a FP values column store?',
   related: [
-    'test0003.json5',
+    'test0003-floating-point-serialization-deserialization.json5',
     'test0004-fp-encode-only.json5',
     'test0005-fp-decode-only.json5',
     'test0006-fp-encode-plus-decode.json5',
+    'test0006b-fp-encode-plus-decode.json5',
   ],
 
   HTML: "",
@@ -18,6 +19,8 @@
         'fpcvt-alt3.js',\n\
         'fpcvt-alt4.js',\n\
         'fpcvt-alt5.js',\n\
+        'fpcvt-alt6.js',\n\
+        'fpcvt-alt7.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\

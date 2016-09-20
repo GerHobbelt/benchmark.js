@@ -1,0 +1,204 @@
+{
+  title: 'test #18 : The proper new way to slice <code>argument</code>',
+  description: "following https://bugs.chromium.org/p/v8/issues/detail?id=3037 , https://github.com/bevry/taskgroup/issues/12#issue-23512231 and in particular https://github.com/GoogleChrome/devtools-docs/issues/53#issuecomment-51941358 plus https://github.com/zaach/jison/pull/332 , let's find out which way is faster to slice an `arguments` list into an array these days...",
+  related: [
+  ],
+
+  HTML: "",
+  init: "\
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:\n\
+      [\n\
+      ].forEach(function (src) {\n\
+        var script = document.createElement('script');\n\
+        script.src = src;\n\
+        document.head.appendChild(script);\n\
+      });\n\
+\n\
+      var data = [];\n\
+      var data_length = 0;\n\
+      var mapping = [];\n\
+      var glob_sum = 0;\n\
+\n\
+      function init() {\n\
+        if (data_length) return;\n\
+\n\
+        for (var i = 0, l = 1000; i < l; ) {\n\
+          var x = Math.random() * 0x10000;\n\
+          x = x | 0;\n\
+          if (x >= 0xD800 && x <= 0xDFFF) continue;\n\
+          if (x > 0xFFFF) continue;\n\
+          data[i] = x;\n\
+          i++;\n\
+        }\n\
+        data_length = l;\n\
+\n\
+        for (var i = 0, l = 0x10000; i < l; i++) {\n\
+          mapping[i] = String.fromCharCode(i);\n\
+        }\n\
+\n\
+        glob_sum = plain_calculus();\n\
+\n\
+        // pre-test that these buggers all deliver the same result:\n\
+        T(plain_calculus());\n\
+        T(calc(data, plus_gen(Array.prototype.slice)));\n\
+        T(calc(data, plus_gen([].slice)));\n\
+        T(calc(data, plus_gen(slice_arguments)));\n\
+        T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
+          sum += b0 + b1;\n\
+          var a = [];\n\
+          a.push.apply(a, arguments);\n\
+          a.shift();\n\
+          a.shift();\n\
+          a.shift();\n\
+          for (var i = 0, l = a.length; i < l; i++) {\n\
+            sum += a[i];\n\
+          }\n\
+          return sum;\n\
+        }));\n\
+        T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
+          sum += b0 + b1;\n\
+          var a = arguments;\n\
+          for (var i = 3, l = a.length; i < l; i++) {\n\
+            sum += a[i];\n\
+          }\n\
+          return sum;\n\
+        }));\n\
+        T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
+          sum += b0 + b1;\n\
+          for (var i = 3, l = arguments.length; i < l; i++) {\n\
+            sum += arguments[i];\n\
+          }\n\
+          return sum;\n\
+        }));\n\
+\n\
+        window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
+      }\n\
+\n\
+      // Test result to prevent code removal\n\
+      function T(a) {\n\
+        if (a !== glob_sum) {\n\
+          throw new Error('test failed! ' + a + ' vs. ' + glob_sum);\n\
+        }\n\
+      }\n\
+\n\
+      function plain_calculus() {\n\
+        return calc(data, function (sum, b0, b1, in0, in1, in2, in3, in4, in5, in6, in7, in8) {\n\
+          return sum + b0 + b1 + in0 + in1 + in2 + in3 + in4 + in5 + in6 + in7 + in8;\n\
+        });\n\
+      }\n\
+\n\
+      function calc(data, cb) {\n\
+        var sum = 0;\n\
+        for (var i = 0, l = data.length; i < l - 10; i++) {\n\
+          // this way we get to test the generic approach with offset\n\
+          sum = cb(sum, data[0], data[1], data[i], data[i+1], data[i+2], data[i+3], data[i+4], data[i+5], data[i+6], data[i+7], data[i+8]);\n\
+        }\n\
+        return sum;\n\
+      }\n\
+\n\
+      // `this` must reference the list/array to slice!\n\
+      function slice_arguments(offset) {\n\
+        return Array.prototype.slice.call(this, offset);\n\
+      }\n\
+\n\
+      // generate adder which assumes at least 3 input args; this way we get to use the slice offset!\n\
+      function plus_gen(slice_f) {\n\
+        return function (sum, in0, in1 /* ,... */ ) {\n\
+          var a = slice_f.call(arguments, 3);\n\
+          sum += in0 + in1;\n\
+          for (var i = 0, l = a.length; i < l; i++) {\n\
+            sum += a[i];\n\
+          }\n\
+          return sum;\n\
+        };\n\
+      }\n\
+      ",
+  tests: [
+    {
+      name: 'REFERENCE: plain calculus',
+      fn: '\
+        T(calc(data, function (sum, b0, b1, in0, in1, in2, in3, in4, in5, in6, in7, in8) {\n\
+          return sum + b0 + b1 + in0 + in1 + in2 + in3 + in4 + in5 + in6 + in7 + in8;\n\
+        }));'
+    },
+    {
+      name: 'using Array.prototype.slice directly',
+      fn: '\
+        T(calc(data, plus_gen(Array.prototype.slice)));'
+    },
+    {
+      name: 'using Array.slice directly',
+      fn: '\
+        T(calc(data, plus_gen([].slice)));'
+    },
+    {
+      name: 'using Array.prototype.slice wrapped in helper function',
+      fn: '\
+        T(calc(data, plus_gen(slice_arguments)));'
+    },
+    {
+      name: 'using Array.push.apply instead',
+      fn: '\
+        T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
+          sum += b0 + b1;\n\
+          var a = [];\n\
+          a.push.apply(a, arguments);\n\
+          // and shift for offset:\n\
+          a.shift();\n\
+          a.shift();\n\
+          a.shift();\n\
+          for (var i = 0, l = a.length; i < l; i++) {\n\
+            sum += a[i];\n\
+          }\n\
+          return sum;\n\
+        }));'
+    },
+    {
+      name: 'using Array.push.apply + slice instead',
+      fn: '\
+        T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
+          sum += b0 + b1;\n\
+          var a = [];\n\
+          a.push.apply(a, arguments);\n\
+          a = a.slice(3);\n\
+          for (var i = 0, l = a.length; i < l; i++) {\n\
+            sum += a[i];\n\
+          }\n\
+          return sum;\n\
+        }));'
+    },
+    {
+      name: 'looping through arguments directly',
+      fn: '\
+        T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
+          sum += b0 + b1;\n\
+          var a = arguments;\n\
+          for (var i = 3, l = a.length; i < l; i++) {\n\
+            sum += a[i];\n\
+          }\n\
+          return sum;\n\
+        }));'
+    },
+    {
+      name: 'looping through arguments directly, no helper ref var',
+      fn: '\
+        T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
+          sum += b0 + b1;\n\
+          for (var i = 3, l = arguments.length; i < l; i++) {\n\
+            sum += arguments[i];\n\
+          }\n\
+          return sum;\n\
+        }));'
+    },
+  ],
+  setup: "\
+        Benchmark.prototype.setup = function () {\n\
+          // specify the number of inner operations\n\
+          // that each of our test functions execute\n\
+          this.operationsPerRound = data.length - 10;\n\
+        };\n\
+        ",
+  teardown: "\
+        Benchmark.prototype.teardown = function () { };\n\
+        "
+}

@@ -3,6 +3,7 @@ test0002-pass-by-reference-vs-parent-scope.json5
 test0003-floating-point-serialization-deserialization.json5
 test0004-fp-encode-only.json5
 test0005-fp-decode-only.json5
+test0006b-fp-encode-plus-decode.json5
 test0006-fp-encode-plus-decode.json5
 test0007-inlining-fp-vs-indexed-column-storage.json5
 test0008-array-join-vs-string-add.json5
@@ -15,3 +16,5 @@ test0013-encoding-numeric-data-to-blob-and-back.json5
 test0014-is-constant-folding-useful.json5
 test0015-is-constant-propagation-useful.json5
 test0016-secure-hashes-for-code-identification--who-is-the-fastest-kid-on-the-block.json5
+test0017-math-min-max-vs-if-check.json5
+test0018-the-proper-new-way-to-slice-arguments.json5
