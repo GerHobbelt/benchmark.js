@@ -6,11 +6,11 @@ var path = require('path');
 var autoprefix = new LessAutoprefix({ browsers: ['last 2 versions'] });
  
 gulp.task('less', function () {
-  return gulp.src('./**/*.less')
+  return gulp.src('./example/jsperf/*.less')
     .pipe(less({
 	    plugins: [autoprefix]
     }))
-    .pipe(gulp.dest('./'));
+    .pipe(gulp.dest('./example/jsperf/'));
 });
  
 gulp.task('default', ['less']);
