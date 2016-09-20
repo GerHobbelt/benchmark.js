@@ -140,7 +140,6 @@ td.error,
 .invalid {
   background: pink;
 }
-/* needs its own rule because of buggy IE */
 :focus:invalid {
   background: pink;
 }
@@ -234,7 +233,6 @@ textarea {
   height: 15em;
   width: 42.6em;
   *width: 42.4em;
-  /* IE < 8 */
 }
 input,
 textarea {
@@ -242,7 +240,6 @@ textarea {
   padding: .4em;
 }
 #visible {
-  /* checkboxes, for IE */
   border: 0;
   padding: 0;
 }
@@ -272,9 +269,7 @@ table #results-1 {
 }
 table pre {
   *padding: 1.5em 0;
-  /* IE < 8 */
   *overflow-y: hidden;
-  /* IE < 8 */
 }
 table pre,
 table td.code {
@@ -416,7 +411,6 @@ applet {
   position: relative;
   margin-bottom: 1em;
 }
-/* needs its own rule (cannot be grouped with `tbody th`) because of buggy IE */
 #comments article:target {
   background: #dde4ea;
 }
@@ -479,8 +473,6 @@ textarea,
   padding: .3em 0;
 }
 #prep-code pre {
-  /* max-height: 500px; */
-  /* overflow: auto; */
   padding: 6px 0 6px 6px;
   overflow-y: hidden;
 }
@@ -532,14 +524,12 @@ textarea,
 .me1 {
   color: #606;
 }
-/* < 1051px */
 @media (max-width: 1050px) {
   table pre,
   table td.code {
     width: 550px;
   }
 }
-/* < 1041px */
 @media (max-width: 1040px) {
   body {
     margin: 0;
@@ -552,21 +542,18 @@ textarea,
     box-sizing: border-box;
   }
 }
-/* < 801px */
 @media (max-width: 800px) {
   table pre,
   table td.code {
     width: 450px;
   }
 }
-/* < 681px */
 @media (max-width: 680px) {
   table pre,
   table td.code {
     width: 350px;
   }
 }
-/* < 651px */
 @media (max-width: 650px) {
   table pre,
   table td.code {
