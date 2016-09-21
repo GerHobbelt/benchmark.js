@@ -1271,6 +1271,45 @@
       .run();
     });
 
+    QUnit.test('teardown/setup/fn all should have the (deferred) benchmark as "this", plus access to the global/window namespace and timer instance', function(assert) {
+      var done = assert.async();
+
+      var check_tracker = [0, 0, 0];
+
+      Benchmark({
+        'defer': true,
+        'setup': function() {
+          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
+          assert.ok(Benchmark.isDeferredInstance(this));
+
+          check_tracker[0]++;
+        },
+        'fn': function(deferred) {
+          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
+          assert.ok(Benchmark.isDeferredInstance(this));
+
+          setTimeout(function() { deferred.resolve(); }, 10);
+          check_tracker[1]++;
+        },
+        'teardown': function() {
+          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
+          assert.ok(Benchmark.isDeferredInstance(this));
+
+          check_tracker[2]++;
+        },
+        'onComplete': function(ev) {
+          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
+          assert.ok(Benchmark.isDeferredInstance(this));
+          assert.ok(check_tracker[0] > 0);
+          assert.ok(check_tracker[1] > 0);
+          assert.ok(check_tracker[2] > 0);
+
+          done();
+        }
+      })
+      .run();
+    });
+
     QUnit.test('should modify and process the "operationsPerRound" setting correctly for each benchmark', function(assert) {
       var done = assert.async();
 

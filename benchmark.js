@@ -420,6 +420,16 @@
     }
 
     /**
+     * Test if the given object reference is a Deferred instance.
+     *
+     * @memberOf Benchmark
+     * @param {Object} obj The instance to test.
+     */
+    function isDeferredInstance(obj) {
+      return (obj instanceof Deferred);
+    }
+
+    /**
      * The Event constructor.
      *
      * @constructor
@@ -1620,7 +1630,7 @@
             // set `deferred.teardown`,
             'd#.teardown=function(){d#.cycles=0;if(typeof td#==="function"){try{${teardown}\n}catch(e#){td#()}}else{${teardown}\n}};' +
             // execute the benchmark's `setup`,
-            'if(typeof su#==="function"){try{${setup}\n}catch(e#){su#.call(d#,window,t#)}}else{${setup}\n};' +
+            'if(typeof su#==="function"){try{${setup}\n}catch(e#){su#.call(d#)}}else{${setup}\n};' +
             // start timer,
             't#.start(d#);' +
             // and then execute `deferred.fn` and return a dummy object.
@@ -2367,7 +2377,8 @@
       'invoke': invoke,
       'join': join,
       'runInContext': runInContext,
-      'support': support
+      'support': support,
+      'isDeferredInstance': isDeferredInstance,
     });
 
     // Add lodash methods to Benchmark.
@@ -2643,7 +2654,7 @@
       'on': on,
       'reset': reset,
       'run': run,
-      'toString': toStringBench
+      'toString': toStringBench,
     });
 
     /*------------------------------------------------------------------------*/
@@ -2684,7 +2695,7 @@
     });
 
     _.assign(Deferred.prototype, {
-      'resolve': resolve
+      'resolve': resolve,
     });
 
     /*------------------------------------------------------------------------*/
