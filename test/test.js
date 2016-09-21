@@ -1271,35 +1271,58 @@
       .run();
     });
 
-    QUnit.test('teardown/setup/fn all should have the (deferred) benchmark as "this", plus access to the global/window namespace and timer instance', function(assert) {
+    QUnit.test('teardown/setup/fn all should have the (deferred) benchmark as "this", plus access to the global/window namespace and deferred + timer instances', function(assert) {
       var done = assert.async();
 
       var check_tracker = [0, 0, 0];
 
       Benchmark({
         'defer': true,
-        'setup': function() {
-          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
-          assert.ok(Benchmark.isDeferredInstance(this));
+        'setup': function(deferred, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark.Deferred);
+          assert.ok(typeof deferred !== 'undefined');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this);
+          assert.ok(typeof global !== 'undefined');
+          assert.ok(typeof global.getRootReference === 'function');
+          assert.ok(global.getRootReference() === window);
 
           check_tracker[0]++;
         },
-        'fn': function(deferred) {
-          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
-          assert.ok(Benchmark.isDeferredInstance(this));
+        'fn': function(deferred, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark.Deferred);
+          assert.ok(typeof deferred !== 'undefined');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this);
+          assert.ok(typeof global !== 'undefined');
+          assert.ok(typeof global.getRootReference === 'function');
+          assert.ok(global.getRootReference() === window);
 
           setTimeout(function() { deferred.resolve(); }, 10);
           check_tracker[1]++;
         },
-        'teardown': function() {
-          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
-          assert.ok(Benchmark.isDeferredInstance(this));
+        'teardown': function(deferred, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark.Deferred);
+          assert.ok(typeof deferred !== 'undefined');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this);
+          assert.ok(typeof global !== 'undefined');
+          assert.ok(typeof global.getRootReference === 'function');
+          assert.ok(global.getRootReference() === window);
 
           check_tracker[2]++;
         },
         'onComplete': function(ev) {
-          assert.ok(typeof Benchmark.isDeferredInstance === 'function');
-          assert.ok(Benchmark.isDeferredInstance(this));
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark);
+          assert.ok(typeof deferred === 'undefined');
+          assert.ok(typeof global === 'undefined');
+          assert.ok(typeof window !== 'undefined');
+
           assert.ok(check_tracker[0] > 0);
           assert.ok(check_tracker[1] > 0);
           assert.ok(check_tracker[2] > 0);

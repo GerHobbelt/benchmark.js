@@ -134,6 +134,12 @@
     // ES5 clears this up by stating that literals must use built-in constructors.
     // See http://es5.github.io/#x11.1.5.
     context = context ? _.defaults(root.Object(), context, _.pick(root, contextProps)) : root;
+    // keep access to all things 'root' available anyway:
+    if (context !== root) {
+      context.getRootReference = function () { 
+        return root; 
+      };
+    }
 
     /** Native constructor references. */
     var Array = context.Array,
@@ -420,16 +426,6 @@
     }
 
     /**
-     * Test if the given object reference is a Deferred instance.
-     *
-     * @memberOf Benchmark
-     * @param {Object} obj The instance to test.
-     */
-    function isDeferredInstance(obj) {
-      return (obj instanceof Deferred);
-    }
-
-    /**
      * The Event constructor.
      *
      * @constructor
@@ -538,14 +534,14 @@
             anchor = freeDefine ? freeDefine.amd : Benchmark,
             prop = uid + 'createFunction';
 
-        runScript((freeDefine ? 'define.amd.' : 'Benchmark.') + prop + '=function(' + args + '){' + body + '}');
+        runScript((freeDefine ? 'define.amd.' : 'Benchmark.') + prop + ' = function(' + args + ') {\n' + body + '\n}');
         result = anchor[prop];
         delete anchor[prop];
         return result;
       };
       // Fix JaegerMonkey bug.
       // For more information see http://bugzil.la/639720.
-      createFunction = support.browser && (createFunction('', 'return"' + uid + '"') || _.noop)() == uid ? createFunction : Function;
+      createFunction = support.browser && (createFunction('', 'return "' + uid + '";') || _.noop)() == uid ? createFunction : Function;
       return createFunction.apply(null, arguments);
     }
 
@@ -753,7 +749,7 @@
         cycle(deferred);
       }
       else if (++deferred.cycles < clone.count) {
-        clone.compiled.call(deferred, context, timer);
+        clone.compiled.call(deferred, context, timer, Benchmark);
       }
       else {
         timer.stop(deferred);
@@ -1622,22 +1618,22 @@
         // Create a new compiled test, instead of using the cached `bench.compiled`,
         // to avoid potential engine optimizations enabled over the life of the test.
         var funcBody = deferred
-          ? 'var d#=this,${fnArg}=d#,m#=d#.benchmark._original,f#=m#.fn,su#=m#.setup,td#=m#.teardown;' +
+          ? 'var d# = this,⚫${fnArg} = d#,⚫m# = d#.benchmark._original,⚫f# = m#.fn,⚫su# = m#.setup,⚫td# = m#.teardown;⚫' +
             // When `deferred.cycles` is `0` then...
-            'if(!d#.cycles){' +
+            'if (!d#.cycles) {⚫' +
             // set `deferred.fn`,
-            'd#.fn=function(){var ${fnArg}=d#;if(typeof f#==="function"){try{${fn}\n}catch(e#){f#(d#)}}else{${fn}\n}};' +
+            'd#.fn = function ()⚫{⚫var ${fnArg} = this;⚫if (typeof f# === "function") {⚫try {⚫${fn}⚫} catch(e#) {⚫f#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${fn}⚫}⚫};⚫' +
             // set `deferred.teardown`,
-            'd#.teardown=function(){d#.cycles=0;if(typeof td#==="function"){try{${teardown}\n}catch(e#){td#()}}else{${teardown}\n}};' +
+            'd#.teardown = function () {⚫this.cycles = 0;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch(e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
             // execute the benchmark's `setup`,
-            'if(typeof su#==="function"){try{${setup}\n}catch(e#){su#.call(d#)}}else{${setup}\n};' +
+            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch(e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫};⚫' +
             // start timer,
-            't#.start(d#);' +
+            't#.start(d#);⚫' +
             // and then execute `deferred.fn` and return a dummy object.
-            '}d#.fn();return{uid:"${uid}"}'
+            '}⚫d#.fn();⚫return {⚫uid: "${uid}"⚫};'
 
-          : 'var r#,s#,m#=this,f#=m#.fn,i#=m#.count,n#=t#.ns;${setup}\n${begin};' +
-            'while(i#--){${fn}\n}${end};${teardown}\nreturn{elapsed:r#,uid:"${uid}"}';
+          : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count,⚫n# = t#.ns;⚫${setup}⚫${begin};⚫' +
+            'while (i#--) {⚫${fn}⚫}⚫${end};⚫${teardown}⚫return {⚫elapsed: r#,⚫uid: "${uid}"⚫};';
 
         var compiled = bench.compiled = clone.compiled = createCompiled(bench, decompilable, deferred, funcBody),
             isEmpty = !(templateData.fn || stringable);
@@ -1652,7 +1648,7 @@
             // Pretest to determine if compiled code exits early, usually by a
             // rogue `return` statement, by checking for a return object with the uid.
             bench.count = 1;
-            compiled = decompilable && (compiled.call(bench, context, timer) || {}).uid == templateData.uid && compiled;
+            compiled = decompilable && (compiled.call(bench, context, timer, Benchmark) || {}).uid == templateData.uid && compiled;
             bench.count = count;
           }
         } catch(e) {
@@ -1664,18 +1660,18 @@
         if (!compiled && !deferred && !isEmpty) {
           funcBody = (
             stringable || (decompilable && !clone.error)
-              ? 'function f#(){${fn}\n}var r#,s#,m#=this,i#=m#.count'
-              : 'var r#,s#,m#=this,f#=m#.fn,i#=m#.count'
+              ? 'function f#(bench, global, Benchmark, timer) {⚫${fn}⚫}⚫var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫i# = m#.count'
+              : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count'
             ) +
-            ',n#=t#.ns;${setup}\n${begin};m#.f#=f#;while(i#--){m#.f#()}${end};' +
-            'delete m#.f#;${teardown}\nreturn{elapsed:r#}';
+            ',⚫n# = t#.ns;⚫${setup}⚫${begin};⚫m#.f# = f#;⚫while (i#--) {⚫m#.f#(m#, global, Benchmark, t#);⚫}⚫${end};⚫' +
+            'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
 
           compiled = createCompiled(bench, decompilable, deferred, funcBody);
 
           try {
             // Pretest one more time to check for errors.
             bench.count = 1;
-            compiled.call(bench, context, timer);
+            compiled.call(bench, context, timer, Benchmark);
             bench.count = count;
             delete clone.error;
           }
@@ -1689,7 +1685,7 @@
         // If no errors run the full test loop.
         if (!clone.error) {
           compiled = bench.compiled = clone.compiled = createCompiled(bench, decompilable, deferred, funcBody);
-          result = compiled.call(deferred || bench, context, timer).elapsed;
+          result = compiled.call(deferred || bench, context, timer, Benchmark).elapsed;
         }
         return result;
       };
@@ -1697,74 +1693,74 @@
       /*----------------------------------------------------------------------*/
 
       /**
-       * Creates a compiled function from the given function `body`.
+       * Creates a compiled function from the given function `body` and
+       * function arguments `window, timer, Benchmark`.
        */
       function createCompiled(bench, decompilable, deferred, body) {
         var fn = bench.fn,
-            fnArg = deferred ? getFirstArgument(fn) || 'deferred' : '';
+            fnArg = deferred ? getFirstArgument(fn) || 'deferred' : 'bench';
 
         templateData.uid = uid + uidCounter++;
 
         _.assign(templateData, {
-          'setup': decompilable ? getSource(bench.setup) : interpolate('m#.setup()'),
-          'fn': decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ')'),
+          'setup': decompilable ? getSource(bench.setup) : interpolate('m#.setup();'),
+          'fn': decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ');'),
           'fnArg': fnArg,
-          'teardown': decompilable ? getSource(bench.teardown) : interpolate('m#.teardown()')
+          'teardown': decompilable ? getSource(bench.teardown) : interpolate('m#.teardown();')
         });
 
         // Use API of chosen timer.
         if (timer.unit == 'ns') {
           _.assign(templateData, {
-            'begin': interpolate('s#=n#()'),
-            'end': interpolate('r#=n#(s#);r#=r#[0]+(r#[1]/1e9)')
+            'begin': interpolate('s# = n#()'),
+            'end': interpolate('r# = n#(s#);⚫r# = r#[0] + (r#[1] / 1e9)')
           });
         }
         else if (timer.unit == 'us') {
           if (timer.ns.stop) {
             _.assign(templateData, {
-              'begin': interpolate('s#=n#.start()'),
-              'end': interpolate('r#=n#.microseconds()/1e6')
+              'begin': interpolate('s# = n#.start()'),
+              'end': interpolate('r# = n#.microseconds() / 1e6')
             });
           } else if (perfName) {
             _.assign(templateData, {
-              'begin': interpolate('s#=n#.' + perfName + '()'),
-              'end': interpolate('r#=(n#.' + perfName + '()-s#)/1e3')
+              'begin': interpolate('s# = n#.' + perfName + '()'),
+              'end': interpolate('r# = (n#.' + perfName + '() - s#) / 1e3')
             });
           } else {
             _.assign(templateData, {
-              'begin': interpolate('s#=n#()'),
-              'end': interpolate('r#=(n#()-s#)/1e6')
+              'begin': interpolate('s# = n#()'),
+              'end': interpolate('r# = (n#() - s#) / 1e6')
             });
           }
         }
         else if (timer.ns.now) {
           _.assign(templateData, {
-            'begin': interpolate('s#=n#.now()'),
-            'end': interpolate('r#=(n#.now()-s#)/1e3')
+            'begin': interpolate('s# = n#.now()'),
+            'end': interpolate('r# = (n#.now() - s#) / 1e3')
           });
         }
         else {
           _.assign(templateData, {
-            'begin': interpolate('s#=new n#().getTime()'),
-            'end': interpolate('r#=(new n#().getTime()-s#)/1e3')
+            'begin': interpolate('s# = new n#().getTime()'),
+            'end': interpolate('r# = (new n#().getTime() - s#) / 1e3')
           });
         }
         // Define `timer` methods.
         timer.start = createFunction(
           interpolate('o#'),
-          interpolate('var n#=this.ns,${begin};o#.elapsed=0;o#.timeStamp=s#')
+          interpolate('var n# = this.ns,⚫${begin};⚫o#.elapsed = 0;⚫o#.timeStamp = s#;')
         );
 
         timer.stop = createFunction(
           interpolate('o#'),
-          interpolate('var n#=this.ns,s#=o#.timeStamp,${end};o#.elapsed=r#')
+          interpolate('var n# = this.ns,⚫s# = o#.timeStamp,⚫${end};⚫o#.elapsed = r#;')
         );
 
         // Create compiled test.
         return createFunction(
-          interpolate('window,t#'),
-          'var global = window, clearTimeout = global.clearTimeout, setTimeout = global.setTimeout;\n' +
-          interpolate(body)
+          interpolate('window, t#, Benchmark'),
+          interpolate('var global = window,⚫clearTimeout = global.clearTimeout,⚫setTimeout = global.setTimeout,⚫timer = t#;⚫' + body)
         );
       }
 
@@ -1825,7 +1821,8 @@
        */
       function interpolate(string) {
         // Replaces all occurrences of `#` with a unique number and template tokens with content.
-        return _.template(string.replace(/\#/g, /\d+/.exec(templateData.uid)))(templateData);
+        // Replace all occurrences of `⚫` with a NEWLINE (for code formatting).
+        return _.template(string.replace(/\#/g, /\d+/.exec(templateData.uid)).replace(/⚫/g, '\n'))(templateData);
       }
 
       /*----------------------------------------------------------------------*/
@@ -2118,7 +2115,7 @@
         // Start a new cycle.
         clone.count = count;
         if (deferred) {
-          clone.compiled.call(deferred, context, timer);
+          clone.compiled.call(deferred, context, timer, Benchmark);
         } else if (async) {
           delay(clone, function () { 
             cycle(clone, options); 
@@ -2378,7 +2375,6 @@
       'join': join,
       'runInContext': runInContext,
       'support': support,
-      'isDeferredInstance': isDeferredInstance,
     });
 
     // Add lodash methods to Benchmark.
