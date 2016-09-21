@@ -5,7 +5,7 @@
  * Modified by John-David Dalton <http://allyoucanleet.com/>
  * Available under MIT license <https://mths.be/mit>
  */
-;(function() {
+;(function () {
   'use strict';
 
   /** Used as a safe reference for `undefined` in pre ES5 environments. */
@@ -203,7 +203,7 @@
      */
     var support = {};
 
-    (function() {
+    (function () {
 
       /**
        * Detect if running in a browser environment.
@@ -234,7 +234,12 @@
         // Firefox 3.6 and Opera 9.25 strip grouping parentheses from `Function#toString` results.
         // See http://bugzil.la/559438 for more details.
         support.decompilation = Function(
-          ('return (' + (function(x) { return { 'x': '' + (1 + x) + '', 'y': 0 }; }) + ')')
+          ('return (' + (function (x) { 
+            return { 
+              'x': '' + (1 + x) + '', 
+              'y': 0 
+            }; 
+          }) + ')')
           // Avoid issues with code added by Istanbul.
           .replace(/__cov__[^;]+;/g, '')
         )()(0).x === '1';
@@ -341,7 +346,7 @@
      *   'defer': true,
      *
      *   // benchmark test function
-     *   'fn': function(deferred) {
+     *   'fn': function (deferred) {
      *     // call `Deferred#resolve` when the deferred test is finished
      *     deferred.resolve();
      *   }
@@ -358,7 +363,7 @@
      * });
      *
      * // a test's `this` binding is set to the benchmark instance
-     * var bench = new Benchmark('foo', function() {
+     * var bench = new Benchmark('foo', function () {
      *   'My name is '.concat(this.name); // "My name is foo"
      * });
      */
@@ -501,7 +506,7 @@
      * @param {*} value The value to clone.
      * @returns {*} The cloned value.
      */
-    var cloneDeep = _.partial(_.cloneDeepWith, _, function(value) {
+    var cloneDeep = _.partial(_.cloneDeepWith, _, function (value) {
       // Only clone primitives, arrays, and plain objects.
       return (_.isObject(value) && !_.isArray(value) && !_.isPlainObject(value))
         ? value
@@ -518,7 +523,7 @@
      */
     function createFunction() {
       // Lazy define.
-      createFunction = function(args, body) {
+      createFunction = function (args, body) {
         var result,
             anchor = freeDefine ? freeDefine.amd : Benchmark,
             prop = uid + 'createFunction';
@@ -576,7 +581,7 @@
      * @returns {number} The mean.
      */
     function getMean(sample) {
-      return (_.reduce(sample, function(sum, x) {
+      return (_.reduce(sample, function (sum, x) {
         return sum + x;
       }) / sample.length) || 0;
     }
@@ -632,7 +637,7 @@
         return false;
       }
       var type = typeof object[property];
-      return !rePrimitive.test(type) && (type != 'object' || !!object[property]);
+      return !rePrimitive.test(type) && (type !== 'object' || !!object[property]);
     }
 
     /**
@@ -683,7 +688,9 @@
         // Remove the inserted script *before* running the code to avoid differences
         // in the expected script element count/order of the document.
         script.appendChild(doc.createTextNode(prefix + code));
-        anchor[prop] = function() { destroyElement(script); };
+        anchor[prop] = function () { 
+          destroyElement(script); 
+        };
       } catch(e) {
         parent = parent.cloneNode(false);
         sibling = null;
@@ -703,11 +710,11 @@
     function setOptions(object, options) {
       options = object.options = _.assign({}, cloneDeep(object.constructor.options), cloneDeep(options));
 
-      _.forOwn(options, function(value, key) {
+      _.forOwn(options, function (value, key) {
         if (value != null) {
           // Add event listeners.
           if (/^on[A-Z]/.test(key)) {
-            _.each(key.split(' '), function(key) {
+            _.each(key.split(' '), function (key) {
               object.on(key.slice(2).toLowerCase(), value);
             });
           } else if (!_.has(object, key)) {
@@ -741,7 +748,9 @@
       else {
         timer.stop(deferred);
         deferred.teardown();
-        delay(clone, function() { cycle(deferred); });
+        delay(clone, function () { 
+          cycle(deferred); 
+        });
       }
     }
 
@@ -758,7 +767,7 @@
      * @example
      *
      * // get odd numbers
-     * Benchmark.filter([1, 2, 3, 4, 5], function(n) {
+     * Benchmark.filter([1, 2, 3, 4, 5], function (n) {
      *   return n % 2;
      * }); // -> [1, 3, 5];
      *
@@ -774,26 +783,26 @@
     function filter(array, callback) {
       if (callback === 'successful') {
         // Callback to exclude those that are errored, unrun, or have hz of Infinity.
-        callback = function(bench) {
+        callback = function (bench) {
           return bench.cycles && _.isFinite(bench.hz) && !bench.error;
         };
       }
       else if (callback === 'ranking') {
         // Callback to exclude those that do not participate in ranking.
-        callback = function(bench) {
+        callback = function (bench) {
           var r = bench.options.ranking;
           return (typeof r === 'undefined' || r);
         };
       }
       else if (callback === 'fastest' || callback === 'slowest') {
         // Get successful, sort by period + margin of error, and filter fastest/slowest.
-        var result = filter(filter(array, 'successful'), 'ranking').sort(function(a, b) {
+        var result = filter(filter(array, 'successful'), 'ranking').sort(function (a, b) {
           a = a.stats; b = b.stats;
           return (a.mean + a.moe > b.mean + b.moe ? 1 : -1) * (callback === 'fastest' ? 1 : -1);
         });
 
-        return _.filter(result, function(bench) {
-          return result[0].compare(bench) == 0;
+        return _.filter(result, function (bench) {
+          return result[0].compare(bench) === 0;
         });
       }
       return _.filter(array, callback);
@@ -933,7 +942,7 @@
       function isAsync(object) {
         // Avoid using `instanceof` here because of IE memory leak issues with host objects.
         var async = args[0] && args[0].async;
-        return name == 'run' && (object instanceof Benchmark) &&
+        return name === 'run' && (object instanceof Benchmark) &&
           ((async == null ? object.options.async : async) && support.timeout || object.defer);
       }
 
@@ -972,7 +981,7 @@
         options.onStart.call(benches, Event(eventProps));
 
         // End early if the suite was aborted in an "onStart" listener.
-        if (name == 'run' && (benches instanceof Suite) && benches.aborted) {
+        if (name === 'run' && (benches instanceof Suite) && benches.aborted) {
           // Emit "cycle" event.
           eventProps.type = 'cycle';
           options.onCycle.call(benches, Event(eventProps));
@@ -1008,7 +1017,7 @@
           arrayLike = length === length >>> 0;
 
       separator2 || (separator2 = ': ');
-      _.each(object, function(value, key) {
+      _.each(object, function (value, key) {
         result.push(arrayLike ? value : key + separator2 + value);
       });
       return result.join(separator1 || ',');
@@ -1107,7 +1116,7 @@
           result = new suite.constructor(_.assign({}, suite.options, options));
 
       // Copy own properties.
-      _.forOwn(suite, function(value, key) {
+      _.forOwn(suite, function (value, key) {
         if (!_.has(result, key)) {
           result[key] = value && _.isFunction(value.clone)
             ? value.clone()
@@ -1188,10 +1197,10 @@
         'name': 'run',
         'args': options,
         'queued': options.queued,
-        'onStart': function(event) {
+        'onStart': function (event) {
           suite.emit(event);
         },
-        'onCycle': function(event) {
+        'onCycle': function (event) {
           var bench = event.target;
           if (bench.error) {
             suite.emit({ 'type': 'error', 'target': bench });
@@ -1199,7 +1208,7 @@
           suite.emit(event);
           event.aborted = suite.aborted;
         },
-        'onComplete': function(event) {
+        'onComplete': function (event) {
           suite.running = false;
           suite.emit(event);
         }
@@ -1229,7 +1238,7 @@
       delete event.result;
 
       if (events && (listeners = _.has(events, event.type) && events[event.type])) {
-        _.each(listeners.slice(), function(listener) {
+        _.each(listeners.slice(), function (listener) {
           if ((event.result = listener.apply(object, args)) === false) {
             event.cancelled = true;
           }
@@ -1287,9 +1296,9 @@
       if (!events) {
         return object;
       }
-      _.each(type ? type.split(' ') : events, function(listeners, type) {
+      _.each(type ? type.split(' ') : events, function (listeners, type) {
         var index;
-        if (typeof listeners == 'string') {
+        if (typeof listeners === 'string') {
           type = listeners;
           listeners = _.has(events, type) && events[type];
         }
@@ -1326,7 +1335,7 @@
       var object = this,
           events = object.events || (object.events = {});
 
-      _.each(type.split(' '), function(type) {
+      _.each(type.split(' '), function (type) {
         (_.has(events, type)
           ? events[type]
           : (events[type] = [])
@@ -1390,7 +1399,7 @@
       result.options = _.assign({}, cloneDeep(bench.options), cloneDeep(options));
 
       // Copy own custom properties.
-      _.forOwn(bench, function(value, key) {
+      _.forOwn(bench, function (value, key) {
         if (!_.has(result, key)) {
           result[key] = cloneDeep(value);
         }
@@ -1410,7 +1419,7 @@
       var bench = this;
 
       // Exit early if comparing the same benchmark.
-      if (bench == other) {
+      if (bench === other) {
         return 0;
       }
       var critical,
@@ -1426,13 +1435,13 @@
           u = min(u1, u2);
 
       function getScore(xA, sampleB) {
-        return _.reduce(sampleB, function(total, xB) {
+        return _.reduce(sampleB, function (total, xB) {
           return total + (xB > xA ? 0 : xB < xA ? 1 : 0.5);
         }, 0);
       }
 
       function getU(sampleA, sampleB) {
-        return _.reduce(sampleA, function(total, xA) {
+        return _.reduce(sampleA, function (total, xA) {
           return total + getScore(xA, sampleB);
         }, 0);
       }
@@ -1481,7 +1490,7 @@
       };
 
       do {
-        _.forOwn(data.source, function(value, key) {
+        _.forOwn(data.source, function (value, key) {
           var changed,
               destination = data.destination,
               currValue = destination[key];
@@ -1498,13 +1507,13 @@
                 changed = currValue = [];
               }
               // Check if an array has changed its length.
-              if (currValue.length != value.length) {
+              if (currValue.length !== value.length) {
                 changed = currValue = currValue.slice(0, value.length);
                 currValue.length = value.length;
               }
             }
             // Check if an object has changed to a non-object value.
-            else if (!currValue || typeof currValue != 'object') {
+            else if (!currValue || typeof currValue !== 'object') {
               changed = currValue = {};
             }
             // Register a changed object.
@@ -1523,7 +1532,7 @@
 
       // If changed emit the `reset` event and if it isn't cancelled reset the benchmark.
       if (changes.length && (bench.emit(event = Event('reset')), !event.cancelled)) {
-        _.each(changes, function(data) {
+        _.each(changes, function (data) {
           data.destination[data.key] = data.value;
         });
       }
@@ -1563,7 +1572,7 @@
       }
       else {
         result += ' x ' + formatNumber(f.toFixed(f < 100 ? 2 : 0)) + ' ops/sec ' + pm +
-          stats.rme.toFixed(2) + '% (' + size + ' run' + (size == 1 ? '' : 's') + ' sampled)';
+          stats.rme.toFixed(2) + '% (' + size + ' run' + (size === 1 ? '' : 's') + ' sampled)';
       }
       return result;
     }
@@ -1583,7 +1592,7 @@
           timers = [{ 'ns': timer.ns, 'res': max(0.0015, getRes('ms')), 'unit': 'ms' }];
 
       // Lazy define for hi-res timers.
-      clock = function(clone) {
+      clock = function (clone) {
         var deferred;
 
         if (clone instanceof Deferred) {
@@ -1889,15 +1898,15 @@
             type = event.type;
 
         if (bench.running) {
-          if (type == 'start') {
-            // Note: `clone.minTime` prop is inited in `clock()`.
+          if (type === 'start') {
+            // Note: `clone.minTime` prop is initialized in `clock()`.
             clone.count = bench.initCount;
           }
           else {
-            if (type == 'error') {
+            if (type === 'error') {
               bench.error = clone.error;
             }
-            if (type == 'abort') {
+            if (type === 'abort') {
               bench.abort();
               bench.emit('cycle');
             } else {
@@ -1930,10 +1939,12 @@
             size = sample.push(clone.times.period),
             maxedOut = size >= minSamples && (elapsed += now - clone.times.timeStamp) / 1e3 > bench.maxTime,
             times = bench.times,
-            varOf = function(sum, x) { return sum + pow(x - mean, 2); };
+            varOf = function (sum, x) { 
+              return sum + pow(x - mean, 2); 
+            };
 
         // Exit early for aborted or unclockable tests.
-        if (done || clone.hz == Infinity) {
+        if (done || clone.hz === Infinity) {
           maxedOut = !(size = sample.length = queue.length = 0);
         }
 
@@ -1976,7 +1987,7 @@
             done = true;
             times.elapsed = (now - times.timeStamp) / 1e3;
           }
-          if (bench.hz != Infinity) {
+          if (bench.hz !== Infinity) {
             bench.hz = 1 / mean;
             times.cycle = mean * bench.count;
             times.period = mean;
@@ -1997,7 +2008,9 @@
         'args': { 'async': async },
         'queued': true,
         'onCycle': evaluate,
-        'onComplete': function() { bench.emit('complete'); }
+        'onComplete': function () { 
+          bench.emit('complete'); 
+        }
       });
     }
 
@@ -2071,7 +2084,7 @@
           if (count <= clone.count) {
             count += Math.ceil((minTime - clocked) / period);
           }
-          clone.running = count != Infinity;
+          clone.running = count !== Infinity;
         }
       }
       // Should we exit early?
@@ -2087,7 +2100,9 @@
         if (deferred) {
           clone.compiled.call(deferred, context, timer);
         } else if (async) {
-          delay(clone, function() { cycle(clone, options); });
+          delay(clone, function () { 
+            cycle(clone, options); 
+          });
         } else {
           cycle(clone);
         }
@@ -2321,7 +2336,7 @@
         'os': null,
         'prerelease': null,
         'version': null,
-        'toString': function() {
+        'toString': function () {
           return this.description || '';
         }
       }),
@@ -2346,7 +2361,7 @@
     });
 
     // Add lodash methods to Benchmark.
-    _.each(['each', 'forEach', 'forOwn', 'has', 'indexOf', 'map', 'reduce'], function(methodName) {
+    _.each(['each', 'forEach', 'forOwn', 'has', 'indexOf', 'map', 'reduce'], function (methodName) {
       Benchmark[methodName] = _[methodName];
     });
 
@@ -2427,14 +2442,14 @@
        *
        * // basic usage
        * var bench = Benchmark({
-       *   'setup': function() {
+       *   'setup': function () {
        *     var c = this.count,
        *         element = document.getElementById('container');
        *     while (c--) {
        *       element.appendChild(document.createElement('div'));
        *     }
        *   },
-       *   'fn': function() {
+       *   'fn': function () {
        *     element.removeChild(element.lastChild);
        *   }
        * });
@@ -2455,9 +2470,9 @@
        * var bench = Benchmark({
        *   'setup': '\
        *     var a = 0;\n\
-       *     (function() {\n\
-       *       (function() {\n\
-       *         (function() {',
+       *     (function () {\n\
+       *       (function () {\n\
+       *         (function () {',
        *   'fn': 'a += 1;',
        *   'teardown': '\
        *          }())\n\
@@ -2467,9 +2482,9 @@
        *
        * // compiles to something like:
        * var a = 0;
-       * (function() {
-       *   (function() {
-       *     (function() {
+       * (function () {
+       *   (function () {
+       *     (function () {
        *       var start = new Date;
        *       while (count--) {
        *         a += 1;
@@ -2794,9 +2809,9 @@
     /*------------------------------------------------------------------------*/
 
     // Add lodash methods as Suite methods.
-    _.each(['each', 'forEach', 'indexOf', 'map', 'reduce'], function(methodName) {
+    _.each(['each', 'forEach', 'indexOf', 'map', 'reduce'], function (methodName) {
       var func = _[methodName];
-      Suite.prototype[methodName] = function() {
+      Suite.prototype[methodName] = function () {
         var args = [this];
         push.apply(args, arguments);
         return func.apply(_, args);
@@ -2805,10 +2820,10 @@
 
     // Avoid array-like object bugs with `Array#shift` and `Array#splice`
     // in Firefox < 10 and IE < 9.
-    _.each(['pop', 'shift', 'splice'], function(methodName) {
+    _.each(['pop', 'shift', 'splice'], function (methodName) {
       var func = arrayRef[methodName];
 
-      Suite.prototype[methodName] = function() {
+      Suite.prototype[methodName] = function () {
         var value = this,
             result = func.apply(value, arguments);
 
@@ -2821,7 +2836,7 @@
 
     // Avoid buggy `Array#unshift` in IE < 8 which doesn't return the new
     // length of the array.
-    Suite.prototype.unshift = function() {
+    Suite.prototype.unshift = function () {
       var value = this;
       unshift.apply(value, arguments);
       return value.length;
@@ -2836,7 +2851,7 @@
   // Some AMD build optimizers, like r.js, check for condition patterns like the following:
   if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
     // Define as an anonymous module so, through path mapping, it can be aliased.
-    define(['lodash', 'platform'], function(_, platform) {
+    define(['lodash', 'platform'], function (_, platform) {
       return runInContext({
         '_': _,
         'platform': platform
