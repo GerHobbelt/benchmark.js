@@ -1270,6 +1270,35 @@
       })
       .run();
     });
+
+    QUnit.test('should modify and process the "operationsPerRound" setting correctly for each benchmark', function(assert) {
+      var done = assert.async();
+
+      var ops_tracker = [];
+
+      Benchmark({
+        'defer': true,
+        'setup': function() {
+          this.benchmark.operationsPerRound = 100;
+          ops_tracker.push(this.benchmark.operationsPerRound);
+        },
+        'fn': function(deferred) {
+          this.benchmark.operationsPerRound = 200;
+          ops_tracker.push(this.benchmark.operationsPerRound);
+          setTimeout(function() { deferred.resolve(); }, 10);
+        },
+        'teardown': function() {
+          this.benchmark.operationsPerRound = 500;
+          ops_tracker.push(this.benchmark.operationsPerRound);
+        },
+        'onComplete': function() {
+          var actual = ops_tracker.join(',').replace(/(200,)+/g, '$1').replace(/(100,200,500(?:,|$))+/, '$1');
+          assert.strictEqual(actual, '100,200,500');
+          done();
+        }
+      })
+      .run();
+    });
   }());
 
   /*--------------------------------------------------------------------------*/

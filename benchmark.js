@@ -1550,8 +1550,6 @@
       var bench = this,
           error = bench.error,
           hz = bench.hz,
-          ops_cnt = bench.operationsPerRound,
-          f = hz * ops_cnt,
           id = bench.id,
           stats = bench.stats,
           size = stats.sample.length,
@@ -1571,7 +1569,7 @@
         result += ': ' + errorStr;
       }
       else {
-        result += ' x ' + formatNumber(f.toFixed(f < 100 ? 2 : 0)) + ' ops/sec ' + pm +
+        result += ' x ' + formatNumber(hz.toFixed(hz < 100 ? 2 : 0)) + ' ops/sec ' + pm +
           stats.rme.toFixed(2) + '% (' + size + ' run' + (size === 1 ? '' : 's') + ' sampled)';
       }
       return result;
@@ -1618,11 +1616,11 @@
             // When `deferred.cycles` is `0` then...
             'if(!d#.cycles){' +
             // set `deferred.fn`,
-            'd#.fn=function(){var ${fnArg}=d#;if(typeof f#=="function"){try{${fn}\n}catch(e#){f#(d#)}}else{${fn}\n}};' +
+            'd#.fn=function(){var ${fnArg}=d#;if(typeof f#==="function"){try{${fn}\n}catch(e#){f#(d#)}}else{${fn}\n}};' +
             // set `deferred.teardown`,
-            'd#.teardown=function(){d#.cycles=0;if(typeof td#=="function"){try{${teardown}\n}catch(e#){td#()}}else{${teardown}\n}};' +
+            'd#.teardown=function(){d#.cycles=0;if(typeof td#==="function"){try{${teardown}\n}catch(e#){td#()}}else{${teardown}\n}};' +
             // execute the benchmark's `setup`,
-            'if(typeof su#=="function"){try{${setup}\n}catch(e#){su#()}}else{${setup}\n};' +
+            'if(typeof su#==="function"){try{${setup}\n}catch(e#){su#.call(d#,window,t#)}}else{${setup}\n};' +
             // start timer,
             't#.start(d#);' +
             // and then execute `deferred.fn` and return a dummy object.
@@ -2064,9 +2062,21 @@
       // Continue, if not errored.
       if (clone.running) {
         // Compute the time taken to complete last test cycle.
-        bench.times.cycle = times.cycle = clocked;
+        // 
+        // The number of operations per sample is reset to default `1` on every round
+        // and MAY be overwritten by the `benchmark.setup` userland code, which will modify
+        // `bench` (not `clone`, surprisingly [GHo])
+        var ops_per_sample = (clone.operationsPerRound === 1 ? bench.operationsPerRound : clone.operationsPerRound);
+        if (ops_per_sample !== 1) console.log('ops/round: ', clone.operationsPerRound, bench.operationsPerRound);
+        if (ops_per_sample !== bench.operationsPerRound) {
+          bench.operationsPerRound = ops_per_sample;
+        }
+
+        bench.times.cycle = times.cycle = clocked / ops_per_sample;
         // Compute the seconds per operation.
-        period = bench.times.period = times.period = clocked / count;
+        bench.times.period = times.period = clocked / (count * ops_per_sample);
+        // ... while we need the seconds per *sample* to calculate how many cycles we need to run:
+        period = clocked / count;
         // Compute the ops per second.
         bench.hz = clone.hz = 1 / period;
         // Avoid working our way up to this next time.
@@ -2229,7 +2239,7 @@
         /**
          * The default number of tests run per benchmark function call: set this if you 
          * want the ops/sec to represent the number of single operations when your benchmark 
-         * code is a  loop or a repeating sequence of the same operations.
+         * code is itself a loop or a repeating sequence of the same operations.
          *
          * @memberOf Benchmark.options
          * @type number
@@ -2392,6 +2402,18 @@
        * @type number
        */
       'hz': 0,
+
+      /**
+       * The number of tests per single benchmark execution: 
+       * this represents the number of single operations when your benchmark 
+       * code is itself a loop or a repeating sequence of the same operations.
+       *
+       * This value MAY be set up by the `setup` code to override the default of `1`.
+       *
+       * @memberOf Benchmark
+       * @type number
+       */
+      'operationsPerRound': 1,
 
       /**
        * The compiled test function.
