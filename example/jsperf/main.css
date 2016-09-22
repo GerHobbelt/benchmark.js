@@ -119,6 +119,11 @@ tbody th div {
   word-wrap: break-word;
   overflow: auto;
 }
+tbody th div blockquote {
+  font-weight: normal;
+  background-color: gainsboro;
+  font-size: 76%;
+}
 tbody th.group-header {
   background: #6faae4;
   color: white;

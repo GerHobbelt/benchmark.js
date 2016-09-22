@@ -151,13 +151,13 @@
             T(this, for_in_raw_calculus);'
         },
         {
-          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          name: '`for...in` loop with "best practices" `object.hasOwnProperty` member check',
           limits_index: 0,
           fn: '\
             T(this, for_in_best_practices_calculus);'
         },
         {
-          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          name: '`for...in` loop with `prototype`+`call` based `hasOwnProperty` member check',
           limits_index: 0,
           fn: '\
             T(this, for_in_hasOwnPropProto_calculus);'
@@ -181,13 +181,13 @@
             T(this, for_in_raw_calculus);'
         },
         {
-          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          name: '`for...in` loop with "best practices" `object.hasOwnProperty` member check',
           limits_index: 1,
           fn: '\
             T(this, for_in_best_practices_calculus);'
         },
         {
-          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          name: '`for...in` loop with `prototype`+`call` based `hasOwnProperty` member check',
           limits_index: 1,
           fn: '\
             T(this, for_in_hasOwnPropProto_calculus);'
@@ -211,13 +211,13 @@
             T(this, for_in_raw_calculus);'
         },
         {
-          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          name: '`for...in` loop with "best practices" `object.hasOwnProperty` member check',
           limits_index: 2,
           fn: '\
             T(this, for_in_best_practices_calculus);'
         },
         {
-          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          name: '`for...in` loop with `prototype`+`call` based `hasOwnProperty` member check',
           limits_index: 2,
           fn: '\
             T(this, for_in_hasOwnPropProto_calculus);'
@@ -244,13 +244,13 @@
             T(this, for_in_raw_calculus);'
         },
         {
-          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          name: '`for...in` loop with "best practices" `object.hasOwnProperty` member check',
           limits_index: 3,
           fn: '\
             T(this, for_in_best_practices_calculus);'
         },
         {
-          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          name: '`for...in` loop with `prototype`+`call` based `hasOwnProperty` member check',
           limits_index: 3,
           fn: '\
             T(this, for_in_hasOwnPropProto_calculus);'
@@ -274,13 +274,13 @@
             T(this, for_in_raw_calculus);'
         },
         {
-          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          name: '`for...in` loop with "best practices" `object.hasOwnProperty` member check',
           limits_index: 4,
           fn: '\
             T(this, for_in_best_practices_calculus);'
         },
         {
-          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          name: '`for...in` loop with `prototype`+`call` based `hasOwnProperty` member check',
           limits_index: 4,
           fn: '\
             T(this, for_in_hasOwnPropProto_calculus);'

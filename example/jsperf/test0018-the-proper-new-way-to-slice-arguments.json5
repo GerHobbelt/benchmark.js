@@ -1,6 +1,13 @@
 {
   title: 'test #18 : The proper new way to slice <code>argument</code>',
-  description: "following https://bugs.chromium.org/p/v8/issues/detail?id=3037 , https://github.com/bevry/taskgroup/issues/12#issue-23512231 and in particular https://github.com/GoogleChrome/devtools-docs/issues/53#issuecomment-51941358 plus https://github.com/zaach/jison/pull/332 , let's find out which way is faster to slice an `arguments` list into an array these days...",
+  description: "following https://bugs.chromium.org/p/v8/issues/detail?id=3037, https://github.com/bevry/taskgroup/issues/12#issue-23512231 and in particular https://github.com/GoogleChrome/devtools-docs/issues/53#issuecomment-51941358 plus https://github.com/zaach/jison/pull/332, let's find out which way is faster to slice an `arguments` list into an array these days...\n\
+\n\
+\n\
+## Notes about the the TESTS\n\
+\n\
+We do NOT include the 'REFERENCE' benchmark in the ranking as it will surely be faster than anything we can accomplish with a loop through an argument list of *any* kind as this REFERENCE really is a HARDCODED UNROLLED OPTIMIZED version of such an approach.\n\
+\n\
+REFERENCE is here merely to show what the difference is between hardcoding/optimizing this sort of thing for each situation, compared to a generic 'varargs'-like approach as is tested in the other benchmarks.",
   related: [
   ],
 
@@ -116,28 +123,35 @@
   tests: [
     {
       name: 'REFERENCE: plain calculus',
+      // do NOT include REFERENCE benchmark in the ranking as it will surely be faster than anything we can
+      // accomplish with a loop through an argument list of *any* kind as this REFERENCE really is a
+      // HARDCODED UNROLLED OPTIMIZED version of such an approach.
+      // REFERENCE is here merely to show what the difference is between hardcoding/optimizing this sort
+      // of thing for each situation, compared to a generic 'varargs'-like approach as is tested in
+      // the other benchmarks.
+      ranking: false,
       fn: '\
         T(calc(data, function (sum, b0, b1, in0, in1, in2, in3, in4, in5, in6, in7, in8) {\n\
           return sum + b0 + b1 + in0 + in1 + in2 + in3 + in4 + in5 + in6 + in7 + in8;\n\
         }));'
     },
     {
-      name: 'using Array.prototype.slice directly',
+      name: 'using `Array.prototype.slice` directly',
       fn: '\
         T(calc(data, plus_gen(Array.prototype.slice)));'
     },
     {
-      name: 'using Array.slice directly',
+      name: 'using `Array.slice` directly',
       fn: '\
         T(calc(data, plus_gen([].slice)));'
     },
     {
-      name: 'using Array.prototype.slice wrapped in helper function',
+      name: 'using `Array.prototype.slice` wrapped in helper function',
       fn: '\
         T(calc(data, plus_gen(slice_arguments)));'
     },
     {
-      name: 'using Array.push.apply instead',
+      name: 'using `Array.push.apply` instead',
       fn: '\
         T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
           sum += b0 + b1;\n\
@@ -154,7 +168,7 @@
         }));'
     },
     {
-      name: 'using Array.push.apply + slice instead',
+      name: 'using `Array.push.apply` + `slice` instead',
       fn: '\
         T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
           sum += b0 + b1;\n\
@@ -168,7 +182,7 @@
         }));'
     },
     {
-      name: 'looping through arguments directly',
+      name: 'looping through `arguments` directly',
       fn: '\
         T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
           sum += b0 + b1;\n\
@@ -180,7 +194,7 @@
         }));'
     },
     {
-      name: 'looping through arguments directly, no helper ref var',
+      name: 'looping through `arguments` directly, no helper ref var',
       fn: '\
         T(calc(data, function (sum, b0, b1 /* ... */ ) {\n\
           sum += b0 + b1;\n\

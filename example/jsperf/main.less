@@ -103,6 +103,13 @@ tbody th {
     max-width: 200px;
     word-wrap: break-word;
     overflow: auto;
+
+    // This is rendered by benchmark `name` field containing `>`-prefixed 'comment-like' content. Show in small print...
+    blockquote {
+      font-weight: normal;
+      background-color: gainsboro;
+      font-size: 76%;
+    }
   }
 
   // group header TH:
@@ -110,7 +117,7 @@ tbody th {
     background: #6faae4;
     color: white;
     font-weight: normal;
-    
+
     // darken the area around the text a bit for better legibility of the white text on light blue background:
     text-shadow: 1px 1px 10px #1a6ab9, -1px 1px 10px #1a6ab9, 1px -1px 10px #1a6ab9, -1px -1px 10px #1a6ab9;
 

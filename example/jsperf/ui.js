@@ -81,6 +81,45 @@
       formatNumber = Benchmark.formatNumber,
       join = Benchmark.join;
 
+  /** Reference to external MarkDown library with `.render()` API: */
+  var markDown = window.markdownit({
+    html:         true,         // Enable HTML tags in source
+    xhtmlOut:     false,        // Use '/' to close single tags (<br />).
+                                // This is only for full CommonMark compatibility.
+    breaks:       true,         // Convert '\n' in paragraphs into <br>
+    langPrefix:   'language-',  // CSS language prefix for fenced blocks. Can be
+                                // useful for external highlighters.
+    linkify:      true,         // Autoconvert URL-like text to links
+
+    // Enable some language-neutral replacement + quotes beautification
+    typographer:  true,
+
+    // Double + single quotes replacement pairs, when typographer enabled,
+    // and smartquotes on. Could be either a String or an Array.
+    //
+    // For example, you can use '«»„“' for Russian, '„“‚‘' for German,
+    // and ['«\xA0', '\xA0»', '‹\xA0', '\xA0›'] for French (including nbsp).
+    quotes: '“”‘’',
+
+    // Highlighter function. Should return escaped HTML,
+    // or '' if the source string is not changed and should be escaped externally.
+    // If result starts with <pre... internal wrapper is skipped.
+    highlight: function (/*str, lang*/) { 
+      return ''; 
+    }
+  });
+
+  function mdRender(md) {
+    return markDown.render(md);
+  }
+
+  // only keep the first line of content of the rendered output, for use as 'inline' element elsewhere.
+  function mdRenderPartialInline(md) {
+    md = markDown.render(md);
+    md = md.trim().split('\n')[0].replace(/^.*?<[ph][^>]*>(.*?)<\/[ph][^>]*>.*/, '$1').trim();
+    return md;
+  }
+
   /*--------------------------------------------------------------------------*/
 
   handlers.benchmark = {
@@ -95,7 +134,7 @@
           size = bench.stats.sample.length;
 
       if (!bench.aborted) {
-        setStatus(bench.name + ' &times; ' + formatNumber(bench.count) + ' (' +
+        setStatus(mdRenderPartialInline(bench.name) + ' &times; ' + formatNumber(bench.count) + ' (' +
           size + ' sample' + (size == 1 ? '' : 's') + ')');
       }
     },
@@ -427,7 +466,7 @@
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   }
 
-  // sanitize the input HTML
+  // sanitize the input Markdown/HTML
   function sanitize(s) {
     // TODO: use punkave/sanitize-html or almost/safe-html
     return s || '⋯⋯⋯⋯⋯';
@@ -618,7 +657,7 @@
 
       var title = $('group-description-' + level + '-' + id);
 
-      setHTML(title, '<div>' + sanitize(group_info.name) + '</div>');
+      setHTML(title, '<div>' + mdRender(group_info.name) + '</div>');
     }
 
     if (bench._group_parent && bench._group_item_index === 0) {
@@ -631,7 +670,7 @@
         sourceDisplay = $('code-' + id),
         row = $('test-row-' + id);
 
-    setHTML(title, '<div>' + sanitize(bench.name) + '</div>');
+    setHTML(title, '<div>' + mdRender(bench.name) + '</div>');
     setHTML(sourceDisplay, '<pre><code>' + escape(unindent(bench.fn)) + '</code></pre>');
 
     if (typeof bench.ranking !== 'undefined' && !bench.ranking) {
@@ -744,9 +783,9 @@
   };
 
   ui.initFromJSON = function (json) {
-    setHTML('test-title-1', sanitize(json.title));
-    setHTML('test-title-2', sanitize(json.title));
-    setHTML('test-description', json.description.replace(/\n\n/g, '</p><p>'));
+    setHTML('test-title-1', mdRender(json.title));
+    setHTML('test-title-2', mdRender(json.title));
+    setHTML('test-description', mdRender(json.description));
 
     // ui.browserscope.key = json.browserscope_API_key;
 
