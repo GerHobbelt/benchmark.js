@@ -82,6 +82,12 @@ thead th, caption {
 .js tbody th:hover, .js tbody th:focus {
   text-decoration: underline;
   cursor: pointer;
+
+  // do NOT do this for group-headers:
+  &.group-header {
+    text-decoration: none;
+    cursor: auto;
+  }
 }
 
 tbody th, td {
@@ -92,12 +98,27 @@ tbody th, td {
 tbody th {
   background: #dde4ea;
   min-width: 100px;
-}
 
-tbody th div {
-  max-width: 200px;
-  word-wrap: break-word;
-  overflow: auto;
+  div {
+    max-width: 200px;
+    word-wrap: break-word;
+    overflow: auto;
+  }
+
+  // group header TH:
+  &.group-header {
+    background: #6faae4;
+    color: white;
+    font-weight: normal;
+    
+    // darken the area around the text a bit for better legibility of the white text on light blue background:
+    text-shadow: 1px 1px 10px #1a6ab9, -1px 1px 10px #1a6ab9, 1px -1px 10px #1a6ab9, -1px -1px 10px #1a6ab9;
+
+    div {
+      // undo the max-width: 200px for this particular TH:
+      max-width: 100%;
+    }
+  }
 }
 
 td.results {

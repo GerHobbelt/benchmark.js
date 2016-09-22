@@ -100,6 +100,11 @@ caption {
   text-decoration: underline;
   cursor: pointer;
 }
+.js tbody th:hover.group-header,
+.js tbody th:focus.group-header {
+  text-decoration: none;
+  cursor: auto;
+}
 tbody th,
 td {
   border: solid #b4b4b4;
@@ -113,6 +118,15 @@ tbody th div {
   max-width: 200px;
   word-wrap: break-word;
   overflow: auto;
+}
+tbody th.group-header {
+  background: #6faae4;
+  color: white;
+  font-weight: normal;
+  text-shadow: 1px 1px 10px #1a6ab9, -1px 1px 10px #1a6ab9, 1px -1px 10px #1a6ab9, -1px -1px 10px #1a6ab9;
+}
+tbody th.group-header div {
+  max-width: 100%;
 }
 td.results {
   text-align: center;

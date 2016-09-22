@@ -24,7 +24,7 @@
       function init() {\n\
         if (data.length) return;\n\
 \n\
-        for (var i = 0, l = 101; i < l; i++) {\n\
+        for (var i = 0, l = 201; i < l; i++) {\n\
           var o = {};\n\
           for (var j = 0, lj = i * step_size + 1; j < lj; j++) {\n\
             var x = Math.random() * 1e7;\n\
@@ -142,135 +142,163 @@
       ",
   tests: [
     {
-      name: 'raw `for...in` loop',
-      limits_index: 0,
-      fn: '\
-        T(this, for_in_raw_calculus);'
-    },
-    {
-      name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
-      limits_index: 0,
-      fn: '\
-        T(this, for_in_best_practices_calculus);'
-    },
-    {
-      name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
-      limits_index: 0,
-      fn: '\
-        T(this, for_in_hasOwnPropProto_calculus);'
-    },
-    {
-      name: 'object member access via looping through the `Object.keys()` array',
-      limits_index: 0,
-      fn: '\
-        T(this, loop_object_keys_calculus);'
-    },
-
-    {
-      name: 'raw `for...in` loop',
-      limits_index: 1,
-      fn: '\
-        T(this, for_in_raw_calculus);'
-    },
-    {
-      name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
-      limits_index: 1,
-      fn: '\
-        T(this, for_in_best_practices_calculus);'
-    },
-    {
-      name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
-      limits_index: 1,
-      fn: '\
-        T(this, for_in_hasOwnPropProto_calculus);'
-    },
-    {
-      name: 'object member access via looping through the `Object.keys()` array',
-      limits_index: 1,
-      fn: '\
-        T(this, loop_object_keys_calculus);'
+      name: 'tiny hash table objects: 1 – 25 properties',
+      tests: [
+        {
+          name: 'raw `for...in` loop',
+          limits_index: 0,
+          fn: '\
+            T(this, for_in_raw_calculus);'
+        },
+        {
+          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          limits_index: 0,
+          fn: '\
+            T(this, for_in_best_practices_calculus);'
+        },
+        {
+          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          limits_index: 0,
+          fn: '\
+            T(this, for_in_hasOwnPropProto_calculus);'
+        },
+        {
+          name: 'object member access via looping through the `Object.keys()` array',
+          limits_index: 0,
+          fn: '\
+            T(this, loop_object_keys_calculus);'
+        },
+      ],
     },
 
     {
-      name: 'raw `for...in` loop',
-      limits_index: 2,
-      fn: '\
-        T(this, for_in_raw_calculus);'
-    },
-    {
-      name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
-      limits_index: 2,
-      fn: '\
-        T(this, for_in_best_practices_calculus);'
-    },
-    {
-      name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
-      limits_index: 2,
-      fn: '\
-        T(this, for_in_hasOwnPropProto_calculus);'
-    },
-    {
-      name: 'object member access via looping through the `Object.keys()` array',
-      limits_index: 2,
-      fn: '\
-        T(this, loop_object_keys_calculus);'
-    },
-
-    {
-      name: 'raw `for...in` loop',
-      limits_index: 3,
-      fn: '\
-        T(this, for_in_raw_calculus);'
-    },
-    {
-      name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
-      limits_index: 3,
-      fn: '\
-        T(this, for_in_best_practices_calculus);'
-    },
-    {
-      name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
-      limits_index: 3,
-      fn: '\
-        T(this, for_in_hasOwnPropProto_calculus);'
-    },
-    {
-      name: 'object member access via looping through the `Object.keys()` array',
-      limits_index: 3,
-      fn: '\
-        T(this, loop_object_keys_calculus);'
+      name: 'small hash table objects: 25 – 50 properties',
+      tests: [
+        {
+          name: 'raw `for...in` loop',
+          limits_index: 1,
+          fn: '\
+            T(this, for_in_raw_calculus);'
+        },
+        {
+          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          limits_index: 1,
+          fn: '\
+            T(this, for_in_best_practices_calculus);'
+        },
+        {
+          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          limits_index: 1,
+          fn: '\
+            T(this, for_in_hasOwnPropProto_calculus);'
+        },
+        {
+          name: 'object member access via looping through the `Object.keys()` array',
+          limits_index: 1,
+          fn: '\
+            T(this, loop_object_keys_calculus);'
+        },
+      ],
     },
 
     {
-      name: 'raw `for...in` loop',
-      limits_index: 4,
-      fn: '\
-        T(this, for_in_raw_calculus);'
+      name: 'medium hash table objects: 50 – 100 properties',
+      tests: [
+        {
+          name: 'raw `for...in` loop',
+          limits_index: 2,
+          fn: '\
+            T(this, for_in_raw_calculus);'
+        },
+        {
+          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          limits_index: 2,
+          fn: '\
+            T(this, for_in_best_practices_calculus);'
+        },
+        {
+          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          limits_index: 2,
+          fn: '\
+            T(this, for_in_hasOwnPropProto_calculus);'
+        },
+        {
+          name: 'object member access via looping through the `Object.keys()` array',
+          limits_index: 2,
+          fn: '\
+            T(this, loop_object_keys_calculus);'
+        },
+      ],
     },
+
     {
-      name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
-      limits_index: 4,
-      fn: '\
-        T(this, for_in_best_practices_calculus);'
+      // NOTE: dash between number in `name` is EN-dash, surrounded by two 
+      // non-break half spaces (&#x202f;)
+      //
+      name: 'large hash table objects: 50 – 500 properties',
+      tests: [
+        {
+          name: 'raw `for...in` loop',
+          limits_index: 3,
+          fn: '\
+            T(this, for_in_raw_calculus);'
+        },
+        {
+          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          limits_index: 3,
+          fn: '\
+            T(this, for_in_best_practices_calculus);'
+        },
+        {
+          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          limits_index: 3,
+          fn: '\
+            T(this, for_in_hasOwnPropProto_calculus);'
+        },
+        {
+          name: 'object member access via looping through the `Object.keys()` array',
+          limits_index: 3,
+          fn: '\
+            T(this, loop_object_keys_calculus);'
+        },
+      ],
     },
+
     {
-      name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
-      limits_index: 4,
-      fn: '\
-        T(this, for_in_hasOwnPropProto_calculus);'
-    },
-    {
-      name: 'object member access via looping through the `Object.keys()` array',
-      limits_index: 4,
-      fn: '\
-        T(this, loop_object_keys_calculus);'
+      name: 'huge hash table objects: 500 – ∞ properties',
+      tests: [
+        {
+          name: 'raw `for...in` loop',
+          limits_index: 4,
+          fn: '\
+            T(this, for_in_raw_calculus);'
+        },
+        {
+          name: '`for...in` loop with "best practices" object.hasOwnProperty member check',
+          limits_index: 4,
+          fn: '\
+            T(this, for_in_best_practices_calculus);'
+        },
+        {
+          name: '`for...in` loop with `prototype`+`call` based hasOwnProperty member check',
+          limits_index: 4,
+          fn: '\
+            T(this, for_in_hasOwnPropProto_calculus);'
+        },
+        {
+          name: 'object member access via looping through the `Object.keys()` array',
+          limits_index: 4,
+          fn: '\
+            T(this, loop_object_keys_calculus);'
+        },
+      ],
     },
   ],
   setup: "\
         Benchmark.prototype.setup = function () {\n\
           // specify the number of inner operations\n\
           // that each of our test functions execute\n\
-          this.operationsPerRound = total_member_count[this.limits_index];\n\
+          if (this.limits_index !== 5) this.operationsPerRound = total_member_count[this.limits_index]; else console.log('FOUR!');\n\
         };\n\
         ",
   teardown: "\

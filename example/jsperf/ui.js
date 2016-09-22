@@ -430,7 +430,7 @@
   // sanitize the input HTML
   function sanitize(s) {
     // TODO: use punkave/sanitize-html or almost/safe-html
-    return s;
+    return s || '⋯⋯⋯⋯⋯';
   }
 
 
@@ -600,6 +600,31 @@
 
     var table = $('test-rows-container');
     var table_row_template = $('test-row-template').innerHTML;
+
+    // When this benchmark is the first item in a new group, we must must also
+    // construct its group header in HTML (possibly recursively when the group
+    // itself is the first member of another group...)
+    function printGroupHeader(group_info, level) {
+      level = level || 1;
+
+      // check if there's a grand(+).parent specified and when so, are we 
+      // occupying the first slot in there?
+      if (group_info._group_parent && group_info._group_item_index === 0) {
+        printGroupHeader(group_info._group_parent, level + 1);
+      }
+
+      var table_group_row_template = $('test-group-row-template').innerHTML;
+      appendHTML(table, table_group_row_template.replace(/ID/g, id).replace(/LEVEL/g, level));
+
+      var title = $('group-description-' + level + '-' + id);
+
+      setHTML(title, '<div>' + sanitize(group_info.name) + '</div>');
+    }
+
+    if (bench._group_parent && bench._group_item_index === 0) {
+      printGroupHeader(bench._group_parent);
+    }
+
     appendHTML(table, table_row_template.replace(/ID/g, id));
 
     var title = $('title-' + id),
@@ -747,9 +772,31 @@
     globalEval(prep_source_code);
     current_task_description = null;
 
-    for (var i = 0, l = json.tests; l[i]; i++) {
-      ui.add(l[i]);
+    function addBenchmarks(tests, group_parent) {
+      var bench;
+      for (var i = 0, l = tests; (bench = l[i]); i++) {
+        // augment bench/group-spec with a reference to its parent, if there's any:
+        if (group_parent) {
+          // WARNING: name `_group_parent` member of benchmark with 'private underscore'
+          //          so that benchmark.js doesn't barf inside `Benchmark.reset()`
+          //          due to the deepCopy+change detect code in there, which would 
+          //          then add infinite numbers of change inspection queue entries! 
+          bench._group_parent = group_parent;
+
+          // and give every benchmark/sub-group an index within its own parent/group.
+          bench._group_item_index = i;
+        }
+
+        // check if the entry is a group-spec rather than a bench-spec:
+        if (!bench.fn && Array.isArray(bench.tests)) {
+          addBenchmarks(bench.tests, bench);
+        } else {
+          ui.add(bench);
+        }
+      }
     }
+
+    addBenchmarks(json.tests);
   };
 
   /*--------------------------------------------------------------------------*/
