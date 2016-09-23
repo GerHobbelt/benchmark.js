@@ -134,12 +134,11 @@
     // ES5 clears this up by stating that literals must use built-in constructors.
     // See http://es5.github.io/#x11.1.5.
     context = context ? _.defaults(root.Object(), context, _.pick(root, contextProps)) : root;
-    // keep access to all things 'root' available anyway:
-    if (context !== root) {
-      context.getRootReference = function () { 
-        return root; 
-      };
-    }
+    // keep access to all things 'root' available anyway, also on those platforms
+    // where `global === root` (NodeJS, but *not* so on browsers):
+    context.getRootReference = function () { 
+      return root; 
+    };
 
     /** Native constructor references. */
     var Array = context.Array,

@@ -39,6 +39,28 @@
   // Set a shorter max time.
   Benchmark.options.maxTime = Benchmark.options.minTime * 5;
 
+  // Obtain a reference to the platform's global namespace in any environment:
+  // 
+  // See also:
+  // - http://stackoverflow.com/questions/9642491/getting-a-reference-to-the-global-object-in-an-unknown-environment-in-strict-mod
+  // - http://perfectionkills.com/unnecessarily-comprehensive-look-into-a-rather-insignificant-issue-of-global-objects-creation/#ecmascript_5_strict_mode
+  // 
+  function getGlobalNamespaceRef() {
+    var global1 = (function () {
+      return this;
+    })(); // ES3, ES5 non strict
+    
+    // ES5 strict
+    var global2 = (function () { 
+      'use strict';
+      
+      var rv = (1, eval)('this');
+      return rv; 
+    })();
+
+    return global1 || global2;
+  }
+
   /*--------------------------------------------------------------------------*/
 
   /**
@@ -1285,8 +1307,19 @@
           assert.ok(typeof deferred !== 'undefined');
           assert.ok(typeof deferred !== 'undefined' && deferred === this);
           assert.ok(typeof global !== 'undefined');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window);
+          }
+
           assert.ok(typeof global.getRootReference === 'function');
-          assert.ok(global.getRootReference() === window);
+          assert.ok(global.getRootReference() === global_namespace);
+          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          // END of platform-specific tests
 
           check_tracker[0]++;
         },
@@ -1297,8 +1330,19 @@
           assert.ok(typeof deferred !== 'undefined');
           assert.ok(typeof deferred !== 'undefined' && deferred === this);
           assert.ok(typeof global !== 'undefined');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window);
+          }
+
           assert.ok(typeof global.getRootReference === 'function');
-          assert.ok(global.getRootReference() === window);
+          assert.ok(global.getRootReference() === global_namespace);
+          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          // END of platform-specific tests
 
           setTimeout(function() { deferred.resolve(); }, 10);
           check_tracker[1]++;
@@ -1310,8 +1354,19 @@
           assert.ok(typeof deferred !== 'undefined');
           assert.ok(typeof deferred !== 'undefined' && deferred === this);
           assert.ok(typeof global !== 'undefined');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window);
+          }
+
           assert.ok(typeof global.getRootReference === 'function');
-          assert.ok(global.getRootReference() === window);
+          assert.ok(global.getRootReference() === global_namespace);
+          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          // END of platform-specific tests
 
           check_tracker[2]++;
         },
@@ -1320,8 +1375,10 @@
           assert.ok(Benchmark.Deferred);
           assert.ok(this instanceof Benchmark);
           assert.ok(typeof deferred === 'undefined');
+
+          // platform-specific tests:
           assert.ok(typeof global === 'undefined');
-          assert.ok(typeof window !== 'undefined');
+          // END of platform-specific tests
 
           assert.ok(check_tracker[0] > 0);
           assert.ok(check_tracker[1] > 0);
