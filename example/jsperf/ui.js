@@ -31,7 +31,7 @@
   var toString = {}.toString;
 
   /** Namespace */
-  var ui = new Benchmark.Suite;
+  var ui = new Benchmark.Suite();
 
   /** Object containing various CSS class names */
   var classNames = {
@@ -46,11 +46,11 @@
   /** Used to flag environments/features */
   var has = {
     // used for pre-populating form fields
-    'localStorage': !!function() {
+    'localStorage': !!(function () {
       try {
-        return !localStorage.getItem(+new Date);
+        return !localStorage.getItem(+new Date());
       } catch(e) {}
-    }(),
+    })(),
     // used to distinguish between a regular test page and an embedded chart
     'runner': !!$('runner')
   };
@@ -214,7 +214,7 @@
      * @param {Object} event The event object.
      */
     'keyup': function(event) {
-      if (13 == (event || window.event).keyCode) {
+      if (13 === (event || window.event).keyCode) {
         handlers.title.click(event);
       }
     }
@@ -236,13 +236,17 @@
           filterBy = params.filterby;
 
       if (pageLoaded) {
-        // // configure browserscope
-        // ui.browserscope.postable = has.runner && !('nopost' in params);
+        // configure browserscope
+        if (ui.browserscope) {
+          ui.browserscope.postable = has.runner && !('nopost' in params);
+        }
 
         // configure chart renderer
         if (chart || filterBy) {
           scrollTop = $('results').offsetTop;
-          // ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
+          if (ui.browserscope) {
+            ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
+          }
         }
         if (has.runner) {
           // // call user provided init() function
@@ -319,7 +323,7 @@
    * @returns {Element} The element, if found, or null.
    */
   function $(id) {
-    return typeof id == 'string' ? document.getElementById(id) : id;
+    return typeof id === 'string' ? document.getElementById(id) : id;
   }
 
   /**
@@ -348,9 +352,9 @@
    */
   function addListener(element, eventName, handler) {
     if ((element = $(element))) {
-      if (typeof element.addEventListener != 'undefined') {
+      if (typeof element.addEventListener !== 'undefined') {
         element.addEventListener(eventName, handler, false);
-      } else if (typeof element.attachEvent != 'undefined') {
+      } else if (typeof element.attachEvent !== 'undefined') {
         element.attachEvent('on' + eventName, handler);
       }
     }
@@ -495,7 +499,7 @@
    * @returns {boolean} Returns `true` if the value is a function, else `false`.
    */
   function isFunction(value) {
-    return toString.call(value) == '[object Function]';
+    return toString.call(value) === '[object Function]';
   }
 
   /**
@@ -510,7 +514,7 @@
         options = {};
 
     // juggle arguments
-    if (typeof text == 'object' && text) {
+    if (typeof text === 'object' && text) {
       options = text;
       text = options.text;
     }
@@ -555,7 +559,7 @@
    */
   function parseHash() {
     var me = this,
-        hashes = location.hash.slice(1).split('&'),
+        hashes = window.location.hash.slice(1).split('&'),
         params = me.params || (me.params = {});
 
     // remove old params
@@ -746,7 +750,9 @@
       }
     });
 
-    // ui.browserscope.post();
+    if (ui.browserscope) {
+      ui.browserscope.post();
+    }
   });
 
   /*--------------------------------------------------------------------------*/
@@ -787,9 +793,11 @@
     setHTML('test-title-2', mdRender(json.title));
     setHTML('test-description', mdRender(json.description));
 
-    // ui.browserscope.key = json.browserscope_API_key;
+    if (ui.browserscope) {
+      ui.browserscope.key = json.browserscope_API_key;
 
-    // ui.browserscope.init();
+      ui.browserscope.init();
+    }
 
     setHTML('user-output', json.HTML);
 
@@ -880,11 +888,13 @@
       event || (event = window.event);
       var target = event.target || event.srcElement;
       if (target.href || (target = target.parentNode).href) {
-        // ui.browserscope.render(
-        //   target.parentNode.id == 'charts'
-        //     ? { 'chart': target.innerHTML }
-        //     : { 'filterBy': target.innerHTML }
-        // );
+        if (ui.browserscope) {
+          ui.browserscope.render(
+            target.parentNode.id === 'charts'
+              ? { 'chart': target.innerHTML }
+              : { 'filterBy': target.innerHTML }
+          );
+        }
       }
       // cancel the default action
       return false;
@@ -906,13 +916,13 @@
           htmlStyle = html.style,
           htmlHeight = htmlStyle.height;
 
-      bodyStyle.height  = htmlStyle.height = 'auto';
+      bodyStyle.height = htmlStyle.height = 'auto';
       div.style.cssText = 'display:block;height:9001px;';
       body.insertBefore(div, body.firstChild);
       scrollTop = html.scrollTop;
 
       // set `scrollEl` that's used in `handlers.window.hashchange()`
-      if (html.clientWidth !== 0 && ++html.scrollTop && html.scrollTop == scrollTop + 1) {
+      if (html.clientWidth !== 0 && ++html.scrollTop && html.scrollTop === scrollTop + 1) {
         scrollEl = html;
       }
       body.removeChild(div);
@@ -965,7 +975,9 @@
     ui.off('start cycle complete');
     setTimeout(function() {
       ui.off();
-      // ui.browserscope.post = function() {};
+      if (ui.browserscope) {
+        ui.browserscope.post = function() {};
+      }
       _.invokeMap(ui.benchmarks, 'off');
     }, 1);
   }

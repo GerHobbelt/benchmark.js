@@ -1,5 +1,5 @@
 /*!
- * Benchmark.js v2.1.2 <https://benchmarkjs.com/>
+ * Benchmark.js <https://benchmarkjs.com/>
  * Copyright 2010-2016 Mathias Bynens <https://mths.be/>
  * Based on JSLitmus.js, copyright Robert Kieffer <http://broofa.com/>
  * Modified by John-David Dalton <http://allyoucanleet.com/>
@@ -2073,7 +2073,7 @@
         // and MAY be overwritten by the `benchmark.setup` userland code, which will modify
         // `bench` (not `clone`, surprisingly [GHo])
         var ops_per_sample = (clone.operationsPerRound === 1 ? bench.operationsPerRound : clone.operationsPerRound);
-        if (ops_per_sample !== 1) console.log('ops/round: ', clone.operationsPerRound, bench.operationsPerRound);
+        //if (ops_per_sample !== 1) console.log('ops/round: ', clone.operationsPerRound, bench.operationsPerRound);
         if (ops_per_sample !== bench.operationsPerRound) {
           bench.operationsPerRound = ops_per_sample;
         }
