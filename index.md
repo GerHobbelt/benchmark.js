@@ -10,12 +10,12 @@ A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof J
 
 ## Download
 
- * [Development source](https://raw.githubusercontent.com/bestiejs/benchmark.js/2.1.1/benchmark.js)
+ * [Development source](https://raw.githubusercontent.com/bestiejs/benchmark.js/2.1.2/benchmark.js)
 
 
-## JSPERF.COM / BenchmarkJS functionality example
+## [JSPERF.COM / BenchmarkJS functionality example](https://gerhobbelt.github.io/benchmark.js/example/jsperf/)
 
-A pretty minimal `jsperf.com`-alike benchmark websize using Benchmark is available at [example/jsperf].
+A pretty minimal jsperf.com-alike benchmark websize using Benchmark is available at [example/jsperf].
 
 >
 > Note that the web pages shown there do *not store* your performance data for comparison! The benchmark
@@ -113,6 +113,6 @@ Also note that rough support for a test *catalog* is available for the `/example
 Tested in Chrome 46-47, Firefox 42-43, IE 9-11, Edge 13, Safari 8-9, Node.js 0.10-6, & PhantomJS 1.9.8.
 
 
-## @BestieJS
+## BestieJS
 
-Benchmark.js is part of the @BestieJS *“Best in Class”* module collection. This means we promote solid browser/environment support, ES5+ precedents, unit testing, & plenty of documentation.
+Benchmark.js is part of the BestieJS *“Best in Class”* module collection. This means we promote solid browser/environment support, ES5+ precedents, unit testing, & plenty of documentation.

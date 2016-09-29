@@ -29,6 +29,7 @@
     "coveralls": "2.11.14",
     "docdown": "0.7.1",
     "gulp": "3.9.1",
+    "gulp-fncallback": "github:gerhobbelt/gulp-fncallback",
     "gulp-less": "3.1.0",
     "istanbul": "0.4.5",
     "less": "2.7.1",
