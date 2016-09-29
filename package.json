@@ -15,7 +15,7 @@
   "repository": "GerHobbelt/benchmark.js",
   "scripts": {
     "doc-orig": "docdown benchmark.js doc/README.md style=github title=\"<a href=\\\"https://benchmarkjs.com/\\\">Benchmark.js</a> <span>v${npm_package_version}</span>\" toc=categories url=https://github.com/bestiejs/benchmark.js/blob/${npm_package_version}/benchmark.js",
-    "doc": "docdown benchmark.js doc/README.md style=github title=\"<a href=\\\"https://benchmarkjs.com/\\\">Benchmark.js</a> <span>v2.1.x</span>\" toc=categories url=\"https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js\"",
+    "doc": "docdown benchmark.js doc/README.md style=github title=\"<a href=\\\"https://benchmarkjs.com/\\\">Benchmark.js</a> <span>v2.1.1</span>\" toc=categories url=\"https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js\"",
     "test": "node test/test",
     "server": "live-server --cors"
   },
