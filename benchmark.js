@@ -2384,7 +2384,7 @@
     // Include all methods used by Benchmark internally as those are used anyhow.
     _.each(['each', 'forEach', 'forOwn', 'has', 'indexOf', 'map', 'reduce',
             'assign', 'cloneDeep', 'cloneDeepWith', 'defaults', 'delay', 
-            'filter', 'isArray', 'isError', 'isFinite', 'isFunction', 'isNaN', 
+            /* 'filter', */ 'isArray', 'isError', 'isFinite', 'isFunction', 'isNaN', 
             'isObject', 'isPlainObject', 'isString', 'minBy', 'noop', 'now', 
             'partial', 'pick', 'result', 'template', 'toArray',
       ], function (methodName) {
