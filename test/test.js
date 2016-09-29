@@ -39,6 +39,28 @@
   // Set a shorter max time.
   Benchmark.options.maxTime = Benchmark.options.minTime * 5;
 
+  // Obtain a reference to the platform's global namespace in any environment:
+  // 
+  // See also:
+  // - http://stackoverflow.com/questions/9642491/getting-a-reference-to-the-global-object-in-an-unknown-environment-in-strict-mod
+  // - http://perfectionkills.com/unnecessarily-comprehensive-look-into-a-rather-insignificant-issue-of-global-objects-creation/#ecmascript_5_strict_mode
+  // 
+  function getGlobalNamespaceRef() {
+    var global1 = (function () {
+      return this;
+    })(); // ES3, ES5 non strict
+    
+    // ES5 strict
+    var global2 = (function () { 
+      'use strict';
+      
+      var rv = (1, eval)('this');
+      return rv; 
+    })();
+
+    return global1 || global2;
+  }
+
   /*--------------------------------------------------------------------------*/
 
   /**
@@ -1265,6 +1287,132 @@
         'onComplete': function() {
           var actual = fired.join().replace(/(fn,)+/g, '$1').replace(/(setup,fn,teardown(?:,|$))+/, '$1');
           assert.strictEqual(actual, 'setup,fn,teardown');
+          done();
+        }
+      })
+      .run();
+    });
+
+    QUnit.test('teardown/setup/fn all should have the (deferred) benchmark as "this", plus access to the global/window namespace and deferred + timer instances', function(assert) {
+      var done = assert.async();
+
+      var check_tracker = [0, 0, 0];
+
+      Benchmark({
+        'defer': true,
+        'setup': function(deferred, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark.Deferred);
+          assert.ok(typeof deferred !== 'undefined');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this);
+          assert.ok(typeof global !== 'undefined');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window);
+          }
+
+          assert.ok(typeof global.getRootReference === 'function');
+          assert.ok(global.getRootReference() === global_namespace);
+          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          // END of platform-specific tests
+
+          check_tracker[0]++;
+        },
+        'fn': function(deferred, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark.Deferred);
+          assert.ok(typeof deferred !== 'undefined');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this);
+          assert.ok(typeof global !== 'undefined');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window);
+          }
+
+          assert.ok(typeof global.getRootReference === 'function');
+          assert.ok(global.getRootReference() === global_namespace);
+          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          // END of platform-specific tests
+
+          setTimeout(function() { deferred.resolve(); }, 10);
+          check_tracker[1]++;
+        },
+        'teardown': function(deferred, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark.Deferred);
+          assert.ok(typeof deferred !== 'undefined');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this);
+          assert.ok(typeof global !== 'undefined');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window);
+          }
+
+          assert.ok(typeof global.getRootReference === 'function');
+          assert.ok(global.getRootReference() === global_namespace);
+          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          // END of platform-specific tests
+
+          check_tracker[2]++;
+        },
+        'onComplete': function(ev) {
+          assert.ok(typeof Benchmark !== 'undefined');
+          assert.ok(Benchmark.Deferred);
+          assert.ok(this instanceof Benchmark);
+          assert.ok(typeof deferred === 'undefined');
+
+          // platform-specific tests:
+          assert.ok(typeof global === 'undefined');
+          // END of platform-specific tests
+
+          assert.ok(check_tracker[0] > 0);
+          assert.ok(check_tracker[1] > 0);
+          assert.ok(check_tracker[2] > 0);
+
+          done();
+        }
+      })
+      .run();
+    });
+
+    QUnit.test('should modify and process the "operationsPerRound" setting correctly for each benchmark', function(assert) {
+      var done = assert.async();
+
+      var ops_tracker = [];
+
+      Benchmark({
+        'defer': true,
+        'setup': function() {
+          this.benchmark.operationsPerRound = 100;
+          ops_tracker.push(this.benchmark.operationsPerRound);
+        },
+        'fn': function(deferred) {
+          this.benchmark.operationsPerRound = 200;
+          ops_tracker.push(this.benchmark.operationsPerRound);
+          setTimeout(function() { deferred.resolve(); }, 10);
+        },
+        'teardown': function() {
+          this.benchmark.operationsPerRound = 500;
+          ops_tracker.push(this.benchmark.operationsPerRound);
+        },
+        'onComplete': function() {
+          var actual = ops_tracker.join(',').replace(/(200,)+/g, '$1').replace(/(100,200,500(?:,|$))+/, '$1');
+          assert.strictEqual(actual, '100,200,500');
           done();
         }
       })

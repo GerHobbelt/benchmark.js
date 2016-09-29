@@ -2,13 +2,25 @@
 
 A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof JavaScript benchmarks") benchmarking library that supports high-resolution timers & returns statistically significant results. As seen on [jsPerf](https://jsperf.com/).
 
+
 ## Documentation
 
 * [API Documentation](https://benchmarkjs.com/docs)
 
+
 ## Download
 
  * [Development source](https://raw.githubusercontent.com/bestiejs/benchmark.js/2.1.1/benchmark.js)
+
+
+## JSPERF.COM / BenchmarkJS functionality example
+
+A pretty minimal jsperf.com-alike benchmark websize using Benchmark is available at [example/jsperf].
+
+>
+> Note that the web pages shown there do *not store* your performance data for comparison! The benchmark
+> is run and the results are shown, but the results are not persisted for comparison with other browsers.
+>
 
 ## Installation
 
@@ -38,7 +50,7 @@ require({
 
 Using npm:
 
-```bash
+```shell
 $ npm i --save benchmark
 ```
 
@@ -50,7 +62,7 @@ var Benchmark = require('benchmark');
 
 Optionally, use the [microtime module](https://github.com/wadey/node-microtime) by Wade Simmons:
 
-```bash
+```shell
 npm i --save microtime
 ```
 
@@ -82,11 +94,12 @@ suite.add('RegExp#test', function() {
 // => Fastest is String#indexOf
 ```
 
+
 ## Developing
 
 The following `npm` tasks are available to assist during development and release:
 
-- `npm run server` will start `live-server` and open the base directory in your browser; then you can, for example, browse to /example/jsperf/ to run the available tests in your browser using the local benchmark.js file. 
+- `npm run server` will start `live-server` and open the base directory in your browser; then you can, for example, browse to /example/jsperf/ to run the available tests in your browser using the local benchmark.js file.
 
 - `npm run test` -- nuff said.
 
@@ -98,6 +111,7 @@ Also note that rough support for a test *catalog* is available for the `/example
 ## Support
 
 Tested in Chrome 46-47, Firefox 42-43, IE 9-11, Edge 13, Safari 8-9, Node.js 0.10-6, & PhantomJS 1.9.8.
+
 
 ## BestieJS
 

@@ -31,7 +31,7 @@
   var toString = {}.toString;
 
   /** Namespace */
-  var ui = new Benchmark.Suite;
+  var ui = new Benchmark.Suite();
 
   /** Object containing various CSS class names */
   var classNames = {
@@ -46,11 +46,11 @@
   /** Used to flag environments/features */
   var has = {
     // used for pre-populating form fields
-    'localStorage': !!function() {
+    'localStorage': !!(function () {
       try {
-        return !localStorage.getItem(+new Date);
+        return !localStorage.getItem(+new Date());
       } catch(e) {}
-    }(),
+    })(),
     // used to distinguish between a regular test page and an embedded chart
     'runner': !!$('runner')
   };
@@ -81,6 +81,45 @@
       formatNumber = Benchmark.formatNumber,
       join = Benchmark.join;
 
+  /** Reference to external MarkDown library with `.render()` API: */
+  var markDown = window.markdownit({
+    html:         true,         // Enable HTML tags in source
+    xhtmlOut:     false,        // Use '/' to close single tags (<br />).
+                                // This is only for full CommonMark compatibility.
+    breaks:       true,         // Convert '\n' in paragraphs into <br>
+    langPrefix:   'language-',  // CSS language prefix for fenced blocks. Can be
+                                // useful for external highlighters.
+    linkify:      true,         // Autoconvert URL-like text to links
+
+    // Enable some language-neutral replacement + quotes beautification
+    typographer:  true,
+
+    // Double + single quotes replacement pairs, when typographer enabled,
+    // and smartquotes on. Could be either a String or an Array.
+    //
+    // For example, you can use '«»„“' for Russian, '„“‚‘' for German,
+    // and ['«\xA0', '\xA0»', '‹\xA0', '\xA0›'] for French (including nbsp).
+    quotes: '“”‘’',
+
+    // Highlighter function. Should return escaped HTML,
+    // or '' if the source string is not changed and should be escaped externally.
+    // If result starts with <pre... internal wrapper is skipped.
+    highlight: function (/*str, lang*/) { 
+      return ''; 
+    }
+  });
+
+  function mdRender(md) {
+    return markDown.render(md);
+  }
+
+  // only keep the first line of content of the rendered output, for use as 'inline' element elsewhere.
+  function mdRenderPartialInline(md) {
+    md = markDown.render(md);
+    md = md.trim().split('\n')[0].replace(/^.*?<[ph][^>]*>(.*?)<\/[ph][^>]*>.*/, '$1').trim();
+    return md;
+  }
+
   /*--------------------------------------------------------------------------*/
 
   handlers.benchmark = {
@@ -95,7 +134,7 @@
           size = bench.stats.sample.length;
 
       if (!bench.aborted) {
-        setStatus(bench.name + ' &times; ' + formatNumber(bench.count) + ' (' +
+        setStatus(mdRenderPartialInline(bench.name) + ' &times; ' + formatNumber(bench.count) + ' (' +
           size + ' sample' + (size == 1 ? '' : 's') + ')');
       }
     },
@@ -175,7 +214,7 @@
      * @param {Object} event The event object.
      */
     'keyup': function(event) {
-      if (13 == (event || window.event).keyCode) {
+      if (13 === (event || window.event).keyCode) {
         handlers.title.click(event);
       }
     }
@@ -197,13 +236,17 @@
           filterBy = params.filterby;
 
       if (pageLoaded) {
-        // // configure browserscope
-        // ui.browserscope.postable = has.runner && !('nopost' in params);
+        // configure browserscope
+        if (ui.browserscope) {
+          ui.browserscope.postable = has.runner && !('nopost' in params);
+        }
 
         // configure chart renderer
         if (chart || filterBy) {
           scrollTop = $('results').offsetTop;
-          // ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
+          if (ui.browserscope) {
+            ui.browserscope.render({ 'chart': chart, 'filterBy': filterBy });
+          }
         }
         if (has.runner) {
           // // call user provided init() function
@@ -280,7 +323,7 @@
    * @returns {Element} The element, if found, or null.
    */
   function $(id) {
-    return typeof id == 'string' ? document.getElementById(id) : id;
+    return typeof id === 'string' ? document.getElementById(id) : id;
   }
 
   /**
@@ -309,9 +352,9 @@
    */
   function addListener(element, eventName, handler) {
     if ((element = $(element))) {
-      if (typeof element.addEventListener != 'undefined') {
+      if (typeof element.addEventListener !== 'undefined') {
         element.addEventListener(eventName, handler, false);
-      } else if (typeof element.attachEvent != 'undefined') {
+      } else if (typeof element.attachEvent !== 'undefined') {
         element.attachEvent('on' + eventName, handler);
       }
     }
@@ -427,10 +470,10 @@
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   }
 
-  // sanitize the input HTML
+  // sanitize the input Markdown/HTML
   function sanitize(s) {
     // TODO: use punkave/sanitize-html or almost/safe-html
-    return s;
+    return s || '⋯⋯⋯⋯⋯';
   }
 
 
@@ -456,7 +499,7 @@
    * @returns {boolean} Returns `true` if the value is a function, else `false`.
    */
   function isFunction(value) {
-    return toString.call(value) == '[object Function]';
+    return toString.call(value) === '[object Function]';
   }
 
   /**
@@ -471,7 +514,7 @@
         options = {};
 
     // juggle arguments
-    if (typeof text == 'object' && text) {
+    if (typeof text === 'object' && text) {
       options = text;
       text = options.text;
     }
@@ -516,7 +559,7 @@
    */
   function parseHash() {
     var me = this,
-        hashes = location.hash.slice(1).split('&'),
+        hashes = window.location.hash.slice(1).split('&'),
         params = me.params || (me.params = {});
 
     // remove old params
@@ -545,8 +588,7 @@
       var parsed,
           cell = $(prefix + (++index)),
           error = bench.error,
-          hz = bench.hz,
-          ops_cnt = bench.operationsPerRound;
+          hz = bench.hz;
 
       // reset title and class
       cell.title = '';
@@ -571,7 +613,6 @@
             setHTML(cell, 'completed');
           }
           else {
-            hz *= ops_cnt;
             cell.title = 'Ran ' + formatNumber(bench.count) + ' times in ' +
               bench.times.cycle.toFixed(3) + ' seconds.';
             setHTML(cell, formatNumber(hz.toFixed(hz < 100 ? 2 : 0)) +
@@ -602,13 +643,38 @@
 
     var table = $('test-rows-container');
     var table_row_template = $('test-row-template').innerHTML;
+
+    // When this benchmark is the first item in a new group, we must must also
+    // construct its group header in HTML (possibly recursively when the group
+    // itself is the first member of another group...)
+    function printGroupHeader(group_info, level) {
+      level = level || 1;
+
+      // check if there's a grand(+).parent specified and when so, are we 
+      // occupying the first slot in there?
+      if (group_info._group_parent && group_info._group_item_index === 0) {
+        printGroupHeader(group_info._group_parent, level + 1);
+      }
+
+      var table_group_row_template = $('test-group-row-template').innerHTML;
+      appendHTML(table, table_group_row_template.replace(/ID/g, id).replace(/LEVEL/g, level));
+
+      var title = $('group-description-' + level + '-' + id);
+
+      setHTML(title, '<div>' + mdRender(group_info.name) + '</div>');
+    }
+
+    if (bench._group_parent && bench._group_item_index === 0) {
+      printGroupHeader(bench._group_parent);
+    }
+
     appendHTML(table, table_row_template.replace(/ID/g, id));
 
     var title = $('title-' + id),
         sourceDisplay = $('code-' + id),
         row = $('test-row-' + id);
 
-    setHTML(title, '<div>' + sanitize(bench.name) + '</div>');
+    setHTML(title, '<div>' + mdRender(bench.name) + '</div>');
     setHTML(sourceDisplay, '<pre><code>' + escape(unindent(bench.fn)) + '</code></pre>');
 
     if (typeof bench.ranking !== 'undefined' && !bench.ranking) {
@@ -684,7 +750,9 @@
       }
     });
 
-    // ui.browserscope.post();
+    if (ui.browserscope) {
+      ui.browserscope.post();
+    }
   });
 
   /*--------------------------------------------------------------------------*/
@@ -721,13 +789,15 @@
   };
 
   ui.initFromJSON = function (json) {
-    setHTML('test-title-1', sanitize(json.title));
-    setHTML('test-title-2', sanitize(json.title));
-    setHTML('test-description', json.description.replace(/\n\n/g, '</p><p>'));
+    setHTML('test-title-1', mdRender(json.title));
+    setHTML('test-title-2', mdRender(json.title));
+    setHTML('test-description', mdRender(json.description));
 
-    // ui.browserscope.key = json.browserscope_API_key;
+    if (ui.browserscope) {
+      ui.browserscope.key = json.browserscope_API_key;
 
-    // ui.browserscope.init();
+      ui.browserscope.init();
+    }
 
     setHTML('user-output', json.HTML);
 
@@ -749,9 +819,31 @@
     globalEval(prep_source_code);
     current_task_description = null;
 
-    for (var i = 0, l = json.tests; l[i]; i++) {
-      ui.add(l[i]);
+    function addBenchmarks(tests, group_parent) {
+      var bench;
+      for (var i = 0, l = tests; (bench = l[i]); i++) {
+        // augment bench/group-spec with a reference to its parent, if there's any:
+        if (group_parent) {
+          // WARNING: name `_group_parent` member of benchmark with 'private underscore'
+          //          so that benchmark.js doesn't barf inside `Benchmark.reset()`
+          //          due to the deepCopy+change detect code in there, which would 
+          //          then add infinite numbers of change inspection queue entries! 
+          bench._group_parent = group_parent;
+
+          // and give every benchmark/sub-group an index within its own parent/group.
+          bench._group_item_index = i;
+        }
+
+        // check if the entry is a group-spec rather than a bench-spec:
+        if (!bench.fn && Array.isArray(bench.tests)) {
+          addBenchmarks(bench.tests, bench);
+        } else {
+          ui.add(bench);
+        }
+      }
     }
+
+    addBenchmarks(json.tests);
   };
 
   /*--------------------------------------------------------------------------*/
@@ -796,11 +888,13 @@
       event || (event = window.event);
       var target = event.target || event.srcElement;
       if (target.href || (target = target.parentNode).href) {
-        // ui.browserscope.render(
-        //   target.parentNode.id == 'charts'
-        //     ? { 'chart': target.innerHTML }
-        //     : { 'filterBy': target.innerHTML }
-        // );
+        if (ui.browserscope) {
+          ui.browserscope.render(
+            target.parentNode.id === 'charts'
+              ? { 'chart': target.innerHTML }
+              : { 'filterBy': target.innerHTML }
+          );
+        }
       }
       // cancel the default action
       return false;
@@ -822,13 +916,13 @@
           htmlStyle = html.style,
           htmlHeight = htmlStyle.height;
 
-      bodyStyle.height  = htmlStyle.height = 'auto';
+      bodyStyle.height = htmlStyle.height = 'auto';
       div.style.cssText = 'display:block;height:9001px;';
       body.insertBefore(div, body.firstChild);
       scrollTop = html.scrollTop;
 
       // set `scrollEl` that's used in `handlers.window.hashchange()`
-      if (html.clientWidth !== 0 && ++html.scrollTop && html.scrollTop == scrollTop + 1) {
+      if (html.clientWidth !== 0 && ++html.scrollTop && html.scrollTop === scrollTop + 1) {
         scrollEl = html;
       }
       body.removeChild(div);
@@ -881,7 +975,9 @@
     ui.off('start cycle complete');
     setTimeout(function() {
       ui.off();
-      // ui.browserscope.post = function() {};
+      if (ui.browserscope) {
+        ui.browserscope.post = function() {};
+      }
       _.invokeMap(ui.benchmarks, 'off');
     }, 1);
   }

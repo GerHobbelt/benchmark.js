@@ -109,7 +109,7 @@
       ",
   tests: [
     {
-      name: 'modulo 1',
+      name: '"modulo 1" = check for non-integer remainder',
       fn: '\
         //   chk = value % 1\n\
         //   if (chk === 0) ...\n\
@@ -123,14 +123,14 @@
         assert(check_against_int(data));'
     },
     {
-      name: 'check against int, using floor()',
+      name: 'check against int, using `floor()`',
       fn: '\
         //   chk = Math.floor(value)\n\
         //   if (chk === value) ...\n\
         assert(check_against_int_floor(data));'
     },
     {
-      name: 'check against int, using round()',
+      name: 'check against int, using `round()`',
       fn: '\
         //   chk = Math.round(value)\n\
         //   if (chk === value) ...\n\

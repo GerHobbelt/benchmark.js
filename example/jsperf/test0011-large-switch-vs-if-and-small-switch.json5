@@ -1,6 +1,6 @@
 {
-  title: 'test #11 : large switch-case vs. other ways to dispatch',
-  description: 'Does a very large switch-case statement negatively impact performance vs. if/elseif or subdividing the switch/case into a double layer of switch/case?',
+  title: 'test #11 : large `switch`/`case` vs. other ways to dispatch',
+  description: 'Does a very large `switch`/`case` statement negatively impact performance vs. `if`/`elseif` or subdividing the `switch`/`case` into a double layer of `switch`/`case`?',
   related: [
   ],
 
@@ -172,17 +172,18 @@
       ",
   tests: [
     {
-      name: 'large switch/case',
+      name: 'large `switch`/`case`',
       fn: '\
         assert(switch_case());'
     },
     {
-      name: 'if/elif chain',
+      name: '`if`/`elif` chain',
       fn: '\
         assert(if_elif());'
     },
     {
-      name: 'dual layer switch/case',
+      name: 'dual layer `switch`/`case`\n\n\
+> The large `switch`/`case` has been split into multiple small `switch`/`case` blocks, which are contained within an *outer* `switch`/`case`',
       fn: '\
         assert(dual_layer_switch_case());'
     },
