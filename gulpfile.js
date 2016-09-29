@@ -2,11 +2,13 @@ var gulp = require('gulp');
 var less = require('gulp-less');
 var LessAutoprefix = require('less-plugin-autoprefix');
 var stripCssComments = require('gulp-strip-css-comments');
+var MarkdownIt = require('markdown-it');
 var fncallback = require('gulp-fncallback');
 var path = require('path');
 
 var autoprefix = new LessAutoprefix({ browsers: ['last 2 versions'] });
- 
+
+// LESS --> CSS for the example/jsperf code 
 gulp.task('less', function () {
   return gulp.src('./example/jsperf/*.less')
     .pipe(less({
@@ -15,6 +17,7 @@ gulp.task('less', function () {
     .pipe(gulp.dest('./example/jsperf/'));
 });
 
+// LESS --> CSS for the documentation & example website available via 'gh-pages' 
 gulp.task('site-css', function () {
   return gulp.src('./website-assets/stylesheets/website.less')
     .pipe(less({
@@ -22,13 +25,16 @@ gulp.task('site-css', function () {
     }))
     .pipe(stripCssComments({
       preserve: function mustRemoveComment(body) {
-        console.log('test CSS comment: ', body);
-        return !!body.match(/license/gi);
+        // console.log('test CSS comment: ', body);
+        // return !!body.match(/license/gi);
+        return false;
       }
     }))
     .pipe(gulp.dest('./website-assets/stylesheets/'));
 });
 
+// Replace all version mentions of Benchmark.JS in the source code
+// comments and MarkDown documentation: 
 gulp.task('patch-version', function () {
   var pkg = require("./package.json");
   console.log('BenchmarkJS version: ', pkg.version);
@@ -62,5 +68,35 @@ gulp.task('patch-version', function () {
     }))
     .pipe(gulp.dest('./'));
 });
+
+// Build the 'gh-pages' web pages using `markdown-it` and the template 
+// available in `website-assets/` 
+gulp.task('gh-pages', function () {
+  var md = new MarkdownIt();
+
+  return gulp.src(['./*.md', './doc/*.md'], {base: './'})
+    .pipe(fncallback(function (file, enc, cb) {
+      var fn = file.relative;
+
+      var content = file.contents.toString('utf8');
+
+      var result = md.render(content);
+      
+      file.contents = new Buffer(result);
+
+      file.path = gutil.replaceExtension(file.path, '.html');
+
+      if (0) {
+        var opt = {
+          name: 'todd',
+          file: someGulpFile
+        };
+        gutil.template('test <%= name %> <%= file.path %>', opt);
+      }                                                                
+      
+      cb();
+    }))
+    .pipe(gulp.dest('./'));
+});
  
-gulp.task('default', ['patch-version', 'less']);
+gulp.task('default', ['patch-version', 'less', 'site-css', 'gh-pages']);
