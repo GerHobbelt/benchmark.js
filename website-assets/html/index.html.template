@@ -33,6 +33,7 @@
           <li><a href="<%= basedir %>/index.html">Introduction</a></li>
           <li><a href="<%= basedir %>/doc/index.html">API documentation</a></li>
           <li><a href="<%= basedir %>/example/jsperf/index.html"><code>JSPERF</code>-alike performance tests</a></li>
+          <li><a href="<%= basedir %>/test/index.html">Benchmark.js unit tests</a></li>
         </ul>
       </nav>
 

@@ -16,6 +16,13 @@ gulp.task('less', function () {
     .pipe(less({
       plugins: [autoprefix]
     }))
+    .pipe(stripCssComments({
+      preserve: function mustRemoveComment(body) {
+        // console.log('test CSS comment: ', body);
+        // return !!body.match(/license/gi);
+        return false;
+      }
+    }))
     .pipe(gulp.dest('./example/jsperf/'));
 });
 
