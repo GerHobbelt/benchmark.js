@@ -1,19 +1,22 @@
-# Benchmark.js v2.1.2
+# Benchmark.js v2.1.2-17
 
 A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof JavaScript benchmarks") benchmarking library that supports high-resolution timers & returns statistically significant results. As seen on [jsPerf](https://jsperf.com/).
 
 
 ## Documentation
 
-* [API Documentation](https://benchmarkjs.com/docs)
+* [API Documentation](./docs)
 
 
 ## Download
 
- * [Development source](https://raw.githubusercontent.com/bestiejs/benchmark.js/2.1.1/benchmark.js)
+ * [Development source](https://raw.githubusercontent.com/gerhobbelt/benchmark.js/2.1.2-17/benchmark.js)
 
 
-## [JSPERF.COM / BenchmarkJS functionality example](https://gerhobbelt.github.io/benchmark.js/example/jsperf/)
+## [JSPERF.COM / BenchmarkJS functionality example](./example/jsperf/)
+
+(Also available at https://gerhobbelt.github.io/benchmark.js/example/jsperf/)
+
 
 A pretty minimal `jsperf.com`-alike benchmark websize using Benchmark is available at [example/jsperf].
 
@@ -25,7 +28,7 @@ A pretty minimal `jsperf.com`-alike benchmark websize using Benchmark is availab
 ## Installation
 
 Benchmark.js’ only hard dependency is [lodash](https://lodash.com/).
-Include [platform.js](https://mths.be/platform) to populate [Benchmark.platform](https://benchmarkjs.com/docs#platform).
+Include [platform.js](https://mths.be/platform) to populate [Benchmark.platform](./docs#platform).
 
 In a browser:
 

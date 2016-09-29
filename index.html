@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Benchmark.js (clone by GerHobbelt)</title>
+    <link rel="stylesheet" href="./website-assets/stylesheets/website.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  </head>
+  <body>
+
+      <header>
+        <h1>Benchmark.js</h1>
+        <p>A benchmarking library that works on nearly all JavaScript platforms, supports high-resolution timers, and returns statistically significant results. As used on jsPerf.com.</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/GerHobbelt/benchmark.js" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/GerHobbelt/benchmark.js/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/GerHobbelt/benchmark.js/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul>
+          <li><a href="./index.html">Introduction</a></li>
+          <li><a href="./doc/index.html">API documentation</a></li>
+          <li><a href="./example/jsperf/index.html"><code>JSPERF</code>-alike performance tests</a></li>
+        </ul>
+      </nav>
+
+      <section>
+<!--
+        <h3>
+<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+-->
+
+<h1>Benchmark.js v2.1.1</h1>
+<p>A <a href="https://mathiasbynens.be/notes/javascript-benchmarking" title="Bulletproof JavaScript benchmarks">robust</a> benchmarking library that supports high-resolution timers &amp; returns statistically significant results. As seen on <a href="https://jsperf.com/">jsPerf</a>.</p>
+<h2>Documentation</h2>
+<ul>
+<li><a href="./docs">API Documentation</a></li>
+</ul>
+<h2>Download</h2>
+<ul>
+<li><a href="https://raw.githubusercontent.com/gerhobbelt/benchmark.js/2.1.1/benchmark.js">Development source</a></li>
+</ul>
+<h2><a href="./example/jsperf/">JSPERF.COM / BenchmarkJS functionality example</a></h2>
+<p>(Also available at https://gerhobbelt.github.io/benchmark.js/example/jsperf/)</p>
+<p>A pretty minimal <code>jsperf.com</code>-alike benchmark websize using Benchmark is available at [example/jsperf].</p>
+<blockquote>
+<p>Note that the web pages shown there do <em>not store</em> your performance data for comparison! The benchmark
+is run and the results are shown, but the results are not persisted for comparison with other browsers.</p>
+</blockquote>
+<h2>Installation</h2>
+<p>Benchmark.js’ only hard dependency is <a href="https://lodash.com/">lodash</a>.
+Include <a href="https://mths.be/platform">platform.js</a> to populate <a href="./docs#platform">Benchmark.platform</a>.</p>
+<p>In a browser:</p>
+<pre><code class="language-html">&lt;script src=&quot;lodash.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;platform.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;benchmark.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+<p>In an AMD loader:</p>
+<pre><code class="language-js">require({
+  'paths': {
+    'benchmark': 'path/to/benchmark',
+    'lodash': 'path/to/lodash',
+    'platform': 'path/to/platform'
+  }
+},
+['benchmark'], function(Benchmark) {/*…*/});
+</code></pre>
+<p>Using npm:</p>
+<pre><code class="language-shell">$ npm i --save benchmark
+</code></pre>
+<p>In Node.js:</p>
+<pre><code class="language-js">var Benchmark = require('benchmark');
+</code></pre>
+<p>Optionally, use the <a href="https://github.com/wadey/node-microtime">microtime module</a> by Wade Simmons:</p>
+<pre><code class="language-shell">npm i --save microtime
+</code></pre>
+<p>Usage example:</p>
+<pre><code class="language-js">var suite = new Benchmark.Suite;
+
+// add tests
+suite.add('RegExp#test', function() {
+  /o/.test('Hello World!');
+})
+.add('String#indexOf', function() {
+  'Hello World!'.indexOf('o') &gt; -1;
+})
+// add listeners
+.on('cycle', function(event) {
+  console.log(String(event.target));
+})
+.on('complete', function() {
+  console.log('Fastest is ' + this.filter('fastest').map('name'));
+})
+// run async
+.run({ 'async': true });
+
+// logs:
+// =&gt; RegExp#test x 4,161,532 +-0.99% (59 cycles)
+// =&gt; String#indexOf x 6,139,623 +-1.00% (131 cycles)
+// =&gt; Fastest is String#indexOf
+</code></pre>
+<h2>Developing</h2>
+<p>The following <code>npm</code> tasks are available to assist during development and release:</p>
+<ul>
+<li>
+<p><code>npm run server</code> will start <code>live-server</code> and open the base directory in your browser; then you can, for example, browse to /example/jsperf/ to run the available tests in your browser using the local benchmark.js file.</p>
+</li>
+<li>
+<p><code>npm run test</code> -- nuff said.</p>
+</li>
+<li>
+<p><code>npm run doc</code> -- will regenerate the documentation from source.</p>
+</li>
+</ul>
+<p>Also note that rough support for a test <em>catalog</em> is available for the <code>/example/jsperf/</code> demo: run <code>./build-jsperf.sh</code> to update the catalog file and then the next reload of the <code>/example/jsperf/index.html</code> page will show a clickable list of all available tests near the bottom so you can browse and jump from one test file/suite to another.</p>
+<h2>Support</h2>
+<p>Tested in Chrome 46-47, Firefox 42-43, IE 9-11, Edge 13, Safari 8-9, Node.js 0.10-6, &amp; PhantomJS 1.9.8.</p>
+<h2>@BestieJS</h2>
+<p>Benchmark.js is part of the @BestieJS <em>“Best in Class”</em> module collection. This means we promote solid browser/environment support, ES5+ precedents, unit testing, &amp; plenty of documentation.</p>
+
+      </section>
+
+      <footer>
+        <p>Project <em>fork / clone</em> maintained by <a href="https://github.com/GerHobbelt">GerHobbelt</a>; the original can be found <a href="https://benchmarkjs.com/">here at benchmarkjs.com</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    
+  </body>
+</html>
