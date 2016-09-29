@@ -3,6 +3,8 @@
 *.log
 coverage
 node_modules/
+npm-debug.log
 
+# Editor backup files
 *~
 *.bak
