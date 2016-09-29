@@ -18,13 +18,31 @@ gulp.task('patch-version', function () {
   var pkg = require("./package.json");
   console.log('BenchmarkJS version: ', pkg.version);
    
-  return gulp.src(['./*.md', './benchmark.js'], {base: './'})
+  return gulp.src(['./**/*.md', './benchmark.js'], {base: './'})
     .pipe(fncallback(function (file, enc, cb) {
-      if (file.isBuffer()) {
+      var fn = file.relative;
+      if (file.isBuffer() && !(fn || '').match(/\bnode_modules\b/)) {
         var content = file.contents.toString('utf8');
-        file.contents = new Buffer(content + '\nXXX\n');
+
+        // Replace all version mentions of Benchmark.JS in the source code
+        // comments and MarkDown documentation: 
+        var content_n = content.replace(/(\bBenchmark\b[^\n0-9]+)[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?/gi, function (m, p1) {
+          return p1 + pkg.version;
+        });
+
+        // Update benchmark.js version info: that one won't be caught
+        // by the previous regex:
+        content_n = content_n.replace(/(\bversion:\s+['"])[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?/gi, function (m, p1) {
+          return p1 + pkg.version;
+        });
+
+        // Report all patched files, i.e. only list the ones which did actually *change*:
+        if (content_n !== content) {
+          console.log('patching version info in file:\t', file.relative);
+          file.contents = new Buffer(content_n);
+        }
       }
-      console.log(file);
+
       cb();
     }))
     .pipe(gulp.dest('./'));

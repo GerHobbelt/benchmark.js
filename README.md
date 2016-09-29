@@ -13,7 +13,7 @@ A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof J
  * [Development source](https://raw.githubusercontent.com/bestiejs/benchmark.js/2.1.1/benchmark.js)
 
 
-## JSPERF.COM / BenchmarkJS functionality example
+## [JSPERF.COM / BenchmarkJS functionality example](https://gerhobbelt.github.io/benchmark.js/example/jsperf/)
 
 A pretty minimal `jsperf.com`-alike benchmark websize using Benchmark is available at [example/jsperf].
 
