@@ -16,11 +16,14 @@ gulp.task('less', function () {
 
 gulp.task('patch-version', function () {
   var pkg = require("./package.json");
-  console.log(pkg.version);
+  console.log('BenchmarkJS version: ', pkg.version);
    
-  return gulp.src(['./**/*.md', './benchmark.js'], {base: './'})
+  return gulp.src(['./*.md', './benchmark.js'], {base: './'})
     .pipe(fncallback(function (file, enc, cb) {
-      
+      if (file.isBuffer()) {
+        var content = file.contents.toString('utf8');
+        file.contents = new Buffer(content + '\nXXX\n');
+      }
       console.log(file);
       cb();
     }))
