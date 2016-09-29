@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var less = require('gulp-less');
 var LessAutoprefix = require('less-plugin-autoprefix');
+var stripCssComments = require('gulp-strip-css-comments');
 var fncallback = require('gulp-fncallback');
 var path = require('path');
 
@@ -12,6 +13,20 @@ gulp.task('less', function () {
       plugins: [autoprefix]
     }))
     .pipe(gulp.dest('./example/jsperf/'));
+});
+
+gulp.task('site-css', function () {
+  return gulp.src('./website-assets/stylesheets/website.less')
+    .pipe(less({
+      plugins: [autoprefix]
+    }))
+    .pipe(stripCssComments({
+      preserve: function mustRemoveComment(body) {
+        console.log('test CSS comment: ', body);
+        return !!body.match(/license/gi);
+      }
+    }))
+    .pipe(gulp.dest('./website-assets/stylesheets/'));
 });
 
 gulp.task('patch-version', function () {
