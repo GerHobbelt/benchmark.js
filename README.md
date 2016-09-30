@@ -1,4 +1,4 @@
-# Benchmark.js v2.1.2-17
+# Benchmark.js v2.1.2-18
 
 A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof JavaScript benchmarks") benchmarking library that supports high-resolution timers & returns statistically significant results. As seen on [jsPerf](https://jsperf.com/).
 
@@ -10,7 +10,7 @@ A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof J
 
 ## Download
 
- * [Development source](https://raw.githubusercontent.com/gerhobbelt/benchmark.js/2.1.2-17/benchmark.js)
+ * [Development source](https://raw.githubusercontent.com/gerhobbelt/benchmark.js/2.1.2-18/benchmark.js)
 
 
 ## [JSPERF.COM / BenchmarkJS functionality example](./example/jsperf/)
