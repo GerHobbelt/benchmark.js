@@ -37,25 +37,25 @@
   Benchmark(function() { throw 0; }).run();
 
   // Set a shorter max time.
-  Benchmark.options.maxTime = Benchmark.options.minTime * 5;
+  Benchmark.options.maxTime = Math.min(0.2, Benchmark.options.minTime * 5);
 
   // Obtain a reference to the platform's global namespace in any environment:
-  // 
+  //
   // See also:
   // - http://stackoverflow.com/questions/9642491/getting-a-reference-to-the-global-object-in-an-unknown-environment-in-strict-mod
   // - http://perfectionkills.com/unnecessarily-comprehensive-look-into-a-rather-insignificant-issue-of-global-objects-creation/#ecmascript_5_strict_mode
-  // 
+  //
   function getGlobalNamespaceRef() {
     var global1 = (function () {
       return this;
     })(); // ES3, ES5 non strict
-    
+
     // ES5 strict
-    var global2 = (function () { 
+    var global2 = (function () {
       'use strict';
-      
+
       var rv = (1, eval)('this');
-      return rv; 
+      return rv;
     })();
 
     return global1 || global2;
@@ -140,7 +140,7 @@
 
     QUnit.test('detects dead code', function(assert) {
       var bench = Benchmark(function() {}).run();
-      assert.ok(/setup\(\)/.test(bench.compiled) ? !bench.error : bench.error);
+      assert.ok(/setup\([^\)]+\)/.test(bench.compiled) ? !bench.error : bench.error);
     });
   }());
 
@@ -152,55 +152,172 @@
     QUnit.test('compiles using the default `Function#toString`', function(assert) {
       var bench = Benchmark({
         'setup': function() { var a = 1; },
-        'fn': function() { throw a; },
-        'teardown': function() { a = 2; }
+        'fn': function() { var a = 2; },
+        'teardown': function() { var a = 3; },
+
+        // set up the benchmark so that it terminates extremely quickly:
+        // we are only interested in the internal compiler output anyway!
+        'onCycle': function() { this.abort(); },
+        initCount: 1,
+        minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
       }).run();
 
       var compiled = bench.compiled;
-      if (/setup\(\)/.test(compiled)) {
-        skipTest(assert);
-      }
-      else {
-        assert.ok(/var a\s*=\s*1/.test(compiled) && /throw a/.test(compiled) && /a\s*=\s*2/.test(compiled));
-      }
+
+      assert.ok(bench.compiled_mode === 1, 'inlining the test code is mode 1 (best) and is expected here');
+      assert.ok(/var a\s*=\s*1/.test(compiled) && /var a\s*=\s*2/.test(compiled) && /var a\s*=\s*3/.test(compiled), 'compiled benchmark code MUST have inlined the test function et al');
     });
 
     QUnit.test('compiles using a custom "toString" method', function(assert) {
       var bench = Benchmark({
         'setup': function() {},
         'fn': function() {},
-        'teardown': function() {}
+        'teardown': function() {},
+
+        // set up the benchmark so that it terminates extremely quickly:
+        // we are only interested in the internal compiler output anyway!
+        'onCycle': function() { this.abort(); },
+        initCount: 1,
+        minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
       });
 
       bench.setup.toString = function() { return 'var a = 1;' };
-      bench.fn.toString = function() { return 'throw a;' };
-      bench.teardown.toString = function() { return 'a = 2;' };
+      bench.fn.toString = function() { return 'var a = 2;' };
+      bench.teardown.toString = function() { return 'var a = 3;' };
       bench.run();
 
       var compiled = bench.compiled;
-      if (/setup\(\)/.test(compiled)) {
-        skipTest(assert);
-      }
-      else {
-        assert.ok(/var a\s*=\s*1/.test(compiled) && /throw a/.test(compiled) && /a\s*=\s*2/.test(compiled));
-      }
+
+      assert.ok(bench.compiled_mode === 1, 'inlining the test code is mode 1 (best) and is expected here');
+      assert.ok(/var a\s*=\s*1/.test(compiled) && /var a\s*=\s*2/.test(compiled) && /var a\s*=\s*3/.test(compiled), 'compiled benchmark code MUST have inlined the test function et al');
     });
 
     QUnit.test('compiles using a string value', function(assert) {
       var bench = Benchmark({
         'setup': 'var a = 1;',
-        'fn': 'throw a;',
-        'teardown': 'a = 2;'
+        'fn': 'var a = 2;',
+        'teardown': 'var a = 3;',
+
+        // set up the benchmark so that it terminates extremely quickly:
+        // we are only interested in the internal compiler output anyway!
+        'onCycle': function() { this.abort(); },
+        initCount: 1,
+        minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
       }).run();
 
       var compiled = bench.compiled;
-      if (/setup\(\)/.test(compiled)) {
-        skipTest(assert);
-      }
-      else {
-        assert.ok(/var a\s*=\s*1/.test(compiled) && /throw a/.test(compiled) && /a\s*=\s*2/.test(compiled));
+
+      assert.ok(bench.compiled_mode === 1, 'inlining the test code is mode 1 (best) and is expected here');
+      assert.ok(/var a\s*=\s*1/.test(compiled) && /var a\s*=\s*2/.test(compiled) && /var a\s*=\s*3/.test(compiled), 'compiled benchmark code MUST have inlined the test function et al');
+    });
+
+    QUnit.test('compiles functions which use closures (variant #1)', function(assert) {
+      var a = { b: 0 };    // use object var in closure so that access code
+                           // in the test functions will crash if this closure
+                           // variable is inaccessible.
+
+      var bench = Benchmark({
+        'setup': function() { a.b = 1; },
+        'fn': function() { a.b = 2; },
+        'teardown': function() { a.b = 3; },
+
+        // set up the benchmark so that it terminates extremely quickly:
+        // we are only interested in the internal compiler output anyway!
+        'onCycle': function() { this.abort(); },
+        initCount: 1,
+        minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
+      }).run();
+
+      var compiled = bench.compiled;
+
+      assert.ok(bench.compiled_mode === 3, 'closures cause the compiler to keep the code as-is: compiler mode 3 is expected here');
+      assert.ok(/\.setup\([^\)]+\)/.test(compiled) && /, global, Benchmark/.test(compiled) && /\.teardown\([^\)]+\)/.test(compiled), 'compiled benchmark code MUST keep the test function et al as-is and invoke them from wrapper code');
+      assert.ok(a.b === 3, 'closure variable must be accessed last by `teardown`');
+    });
+
+    QUnit.test('compiles functions which use global variables', function(assert) {
+      var a = 0;              // WARNING: the test functions won't see this simple closure variable
+                              //          as `fn` will 'inline' without trouble and thus *loose*
+                              //          the link to this closure!
+
+      var bench = Benchmark({
+        'setup': function() { a = 1; },
+        'fn': function() { a = 2; },
+        'teardown': function() { a = 3; },
+
+        // set up the benchmark so that it terminates extremely quickly:
+        // we are only interested in the internal compiler output anyway!
+        'onCycle': function() { this.abort(); },
+        initCount: 1,
+        minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
+      }).run();
+
+      var compiled = bench.compiled;
+
+      var b = (function () {
+        // access the global var
+        if (typeof window !== 'undefined') {
+          return window.a;
+        } else if (typeof global !== 'undefined') {
+          return global.a;
+        }
+      })();
+
+      assert.ok(bench.compiled_mode === 1, 'globals inline fine: compiler mode 1 is expected here');
+      assert.ok(/\ba\s*=\s*1/.test(compiled) && /\ba\s*=\s*2/.test(compiled) && /\ba\s*=\s*3/.test(compiled), 'compiled benchmark code MUST have inlined the test function et al');
+      assert.ok(a === 0, 'closure variable is not seen by inlined `fn` et al');
+      assert.ok(b === 3, 'global variable is last visited by `teardown`');
+
+      // prevent Qunit 'globals leakage check' from triggering: kill the global we have introduced here:
+      if (typeof window !== 'undefined') {
+        delete window.a;
+      } else if (typeof global !== 'undefined') {
+        delete global.a;
       }
     });
+
+    QUnit.test('compiles functions which use closures (variant #2)', function(assert) {
+      var a = [0, 0, 0];
+      var bench = Benchmark({
+        'setup': function() {
+          // ensure we'll be seeing the closure:
+          if (typeof a[0] !== 'number') {
+            throw new Error('closure not visible!');
+          }
+          a[0]++;
+        },
+        'fn': function() { a[1]++; },
+        'teardown': function() { a[2]++; },
+
+        // set up the benchmark so that it terminates extremely quickly:
+        // we are only interested in the internal compiler output anyway!
+        'onCycle': function() { this.abort(); },
+        initCount: 1,
+        minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
+      }).run();
+
+      var compiled = bench.compiled;
+
+      assert.ok(bench.compiled_mode === 3, 'closures cause the compiler to keep the code as-is: compiler mode 3 is expected here');
+      assert.ok(/\.setup\([^\)]+\)/.test(compiled) && /, global, Benchmark/.test(compiled) && /\.teardown\([^\)]+\)/.test(compiled), 'compiled benchmark code MUST keep the test function et al as-is and invoke them from wrapper code');
+      assert.ok(a[0] > 0, 'closure variable must be accessed by `setup`');
+      assert.ok(a[1] > 0, 'closure variable must be accessed by `fn`');
+      assert.ok(a[2] > 0, 'closure variable must be accessed by `teardown`');
+    });
+
+    // TODO: come up with a scenario which fails mode 1 yet succeeds in mode **2** rather than degrade all the way down to mode 3!
   }());
 
   /*--------------------------------------------------------------------------*/
@@ -234,11 +351,18 @@
           'setup': 'if(/ops/.test(this))this._setup=true;',
           'fn': fn,
           'teardown': 'if(/ops/.test(this))this._teardown=true;',
-          'onCycle': function() { this.abort(); }
+
+          // set up the benchmark so that it terminates extremely quickly:
+          // we are only interested in the internal compiler output anyway!
+          'onCycle': function() { this.abort(); },
+          initCount: 1,
+          minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+          maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+          minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
         }).run();
 
         var compiled = bench.compiled;
-        if (/setup\(\)/.test(compiled)) {
+        if (/setup\([^\)]+\)/.test(compiled)) {
           skipTest(assert, 3);
         }
         else {
@@ -247,6 +371,218 @@
           assert.ok(bench._teardown, 'correct binding for "teardown"');
         }
       });
+    });
+  }());
+
+  /*--------------------------------------------------------------------------*/
+     
+  //   
+  // Tests which mirror the 'deferred benchmarks' tests: can we use (nearly) the same code for both?
+  //
+  
+  QUnit.module('Benchmarks');
+
+  (function() {
+    QUnit.test('should run a standard (synchronous) benchmark correctly', function(assert) {
+      var check_list = [0, 0];
+      var check_state = 0;
+
+      Benchmark(function (bench) {
+        check_list[0]++;
+        check_state = 1;
+        assert.ok(arguments.length === 4, 'test function receives 4 arguments');
+      }, {
+        'onComplete': function() {
+          check_list[1]++;
+          check_state = 2;
+          assert.ok(this.hz > 1);
+        }
+      })
+      .run();
+
+      assert.ok(check_list[0] >= 100, 'test function must have been run many times');
+      assert.ok(check_list[1] === 1, '`onComplete` callback must be invoked once');
+      assert.ok(check_state === 2, '`onComplete` callback must be invoked at the end of the benchmark run');
+    });
+
+    QUnit.test('should run with string values for "fn", "setup", and "teardown"', function(assert) {
+      var check_list = [0, 0, 0, 0];
+      var check_state = 0;
+
+      var b = Benchmark({
+        'setup': 'var x = [3, 2, 1];\nbench.check_list[0]++;\nbench.check_state = 1;',
+        'fn': 'x.sort();\nbench.check_list[1]++;\nbench.check_state = 2;',
+        'teardown': 'x.length = 0;\nbench.check_list[2]++;\nbench.check_state = 3;',
+        'onComplete': function() {
+          this.check_list[3]++;
+          this.check_state = 4;
+          assert.ok(true);
+        },
+
+        // also pass variables from this scope to the string-based code in setup/fn/teardown:
+        check_list: check_list,
+        check_state: check_state
+      });
+      b.run();
+
+      assert.ok(b.check_list[0] >= 1, '`setup` code must have been run at least once');
+      assert.ok(b.check_list[1] >= 1, '`fn` test code must have been run many times');
+      assert.ok(b.check_list[2] >= 1, '`teardown` code must have been run at least once');
+      assert.ok(b.check_list[3] === 1, '`onComplete` callback must be invoked once');
+      assert.ok(b.check_state === 4, '`onComplete` callback must be invoked at the end of the benchmark run');
+    });
+
+    QUnit.test('should execute "setup", "fn", and "teardown" in correct order', function(assert) {
+      var fired = [];
+
+      Benchmark({
+        'setup': function() {
+          fired.push('setup');
+        },
+        'fn': function(deferred) {
+          fired.push('fn');
+        },
+        'teardown': function() {
+          fired.push('teardown');
+        },
+        'onComplete': function() {
+          var actual = fired.join().replace(/(fn,)+/g, '$1').replace(/(setup,fn,teardown(?:,|$))+/, '$1');
+          assert.strictEqual(actual, 'setup,fn,teardown');
+        }
+      })
+      .run();
+      assert.ok(fired.length > 0, 'benchmark must have run at least once');
+
+    });
+
+    QUnit.test('teardown/setup/fn all should have the (synchronous) benchmark as "this", plus access to the global/window namespace and benchmark + timer instances', function(assert) {
+      var check_tracker = [0, 0, 0];
+
+      // NOTE: we use the non-default `not_deferred_bench` argument name to also test
+      //       the inline compiler mode 1 (see `fnArg` arg processing in there)
+      Benchmark({
+        'setup': function(not_deferred_bench, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::setup: Benchmark instance must be available');
+          assert.ok(this instanceof Benchmark, 'Benchmark::setup: `this` must be an instance of the Benchmark class');
+          assert.ok(typeof not_deferred_bench !== 'undefined', 'Benchmark::setup: `not_deferred_bench` benchmark reference argument must be non-NULL');
+          assert.ok(typeof not_deferred_bench !== 'undefined' && not_deferred_bench === this, 'Benchmark::setup: `not_deferred_bench` benchmark reference argument must match `this`');
+          assert.ok(typeof global !== 'undefined', 'Benchmark::setup: `global` must be available');
+          assert.ok(typeof timer !== 'undefined', 'Benchmark::setup: timer instance must be available');
+          assert.ok(typeof timer.start === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+          assert.ok(typeof timer.stop === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window, 'Benchmark::setup: global namespace must be `window` when running in a browser');
+          }
+
+          assert.ok(typeof global.getRootReference === 'function', 'Benchmark::setup: global.getRootReference API must be available');
+          assert.ok(global.getRootReference() === global_namespace, 'Benchmark::setup: global namespace must match the root reference obtained via the global.getRootReference API');
+          assert.ok((typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace), 'Benchmark::setup: The different global namespace assumptions must hold for browser and NodeJS environments');
+          // END of platform-specific tests
+
+          check_tracker[0]++;
+        },
+        'fn': function(not_deferred_bench, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::fn: Benchmark instance must be available');
+          assert.ok(this instanceof Benchmark, 'Benchmark::fn: `this` must be an instance of the Benchmark class');
+          assert.ok(typeof not_deferred_bench !== 'undefined', 'Benchmark::fn: `not_deferred_bench` benchmark reference argument must be non-NULL');
+          assert.ok(typeof not_deferred_bench !== 'undefined' && not_deferred_bench === this, 'Benchmark::fn: `not_deferred_bench` benchmark reference argument must match `this`');
+          assert.ok(typeof global !== 'undefined', 'Benchmark::fn: `global` must be available');
+          assert.ok(typeof timer !== 'undefined', 'Benchmark::setup: timer instance must be available');
+          assert.ok(typeof timer.start === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+          assert.ok(typeof timer.stop === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window, 'Benchmark::fn: global namespace must be `window` when running in a browser');
+          }
+
+          assert.ok(typeof global.getRootReference === 'function', 'Benchmark::fn: global.getRootReference API must be available');
+          assert.ok(global.getRootReference() === global_namespace, 'Benchmark::fn: global namespace must match the root reference obtained via the global.getRootReference API');
+          assert.ok((typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace), 'Benchmark::fn: The different global namespace assumptions must hold for browser and NodeJS environments');
+          // END of platform-specific tests
+
+          check_tracker[1]++;
+        },
+        'teardown': function(not_deferred_bench, global, Benchmark, timer) {
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::teardown: Benchmark instance must be available');
+          assert.ok(this instanceof Benchmark, 'Benchmark::teardown: `this` must be an instance of the Benchmark class');
+          assert.ok(typeof not_deferred_bench !== 'undefined', 'Benchmark::teardown: `not_deferred_bench` benchmark reference argument must be non-NULL');
+          assert.ok(typeof not_deferred_bench !== 'undefined' && not_deferred_bench === this, 'Benchmark::teardown: `not_deferred_bench` benchmark reference argument must match `this`');
+          assert.ok(typeof global !== 'undefined', 'Benchmark::teardown: `global` must be available');
+          assert.ok(typeof timer !== 'undefined', 'Benchmark::setup: timer instance must be available');
+          assert.ok(typeof timer.start === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+          assert.ok(typeof timer.stop === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+
+          // platform-specific tests:
+          var global_namespace = getGlobalNamespaceRef();
+
+          if (typeof window !== 'undefined') {
+            // browser environment
+            assert.ok(global_namespace === window, 'Benchmark::teardown: global namespace must be `window` when running in a browser');
+          }
+
+          assert.ok(typeof global.getRootReference === 'function', 'Benchmark::teardown: global.getRootReference API must be available');
+          assert.ok(global.getRootReference() === global_namespace, 'Benchmark::teardown: global namespace must match the root reference obtained via the global.getRootReference API');
+          assert.ok((typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace), 'Benchmark::teardown: The different global namespace assumptions must hold for browser and NodeJS environments');
+          // END of platform-specific tests
+
+          check_tracker[2]++;
+        },
+        'onComplete': function(ev) {
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::onComplete: Benchmark instance must be available');
+          assert.ok(this instanceof Benchmark, 'Benchmark::onComplete: `this` must be an instance of the Benchmark class');
+          assert.ok(typeof bench === 'undefined', 'Benchmark::onComplete: `bench` benchmark reference argument must be NULL');
+
+          // platform-specific tests:
+          assert.ok((typeof window !== 'undefined' ? typeof global === 'undefined' : typeof global !== 'undefined'), 'Benchmark::onComplete: `global` must be NULL in browser environment, while it will be available in NodeJS');
+          // END of platform-specific tests
+
+          assert.ok(check_tracker[0] > 0, 'Benchmark::onComplete: `setup` must have been invoked');
+          assert.ok(check_tracker[1] > 0, 'Benchmark::onComplete: `fn` must have been invoked');
+          assert.ok(check_tracker[2] > 0, 'Benchmark::onComplete: `teardown` must have been invoked');
+        },
+
+        // set up the benchmark so that it terminates extremely quickly:
+        // we are only interested in the internal compiler output anyway!
+        initCount: 1,
+        minSamples: 1,      // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        maxTime: 0,         // short-circuit the benchmark: make it abort ASAP on `maxOut`
+        minTime: 1e-9,      // override the minTime of 0.05 for this test: we don't care about the benchmark itself
+      })
+      .run();
+    });
+
+    QUnit.test('should modify and process the "operationsPerRound" setting correctly for each benchmark', function(assert) {
+      var ops_tracker = [];
+
+      Benchmark({
+        'setup': function() {
+          this.operationsPerRound = 100;
+          ops_tracker.push(this.operationsPerRound);
+        },
+        'fn': function(deferred) {
+          this.operationsPerRound = 200;
+          ops_tracker.push(this.operationsPerRound);
+        },
+        'teardown': function() {
+          this.operationsPerRound = 500;
+          ops_tracker.push(this.operationsPerRound);
+        },
+        'onComplete': function() {
+          var actual = ops_tracker.join(',').replace(/(200,)+/g, '$1').replace(/(100,200,500(?:,|$))+/, '$1');
+          assert.strictEqual(actual, '100,200,500');
+        }
+      })
+      .run();
+      assert.ok(ops_tracker.length > 0, 'benchmark must have run at least once');
     });
   }());
 
@@ -1301,88 +1637,96 @@
       Benchmark({
         'defer': true,
         'setup': function(deferred, global, Benchmark, timer) {
-          assert.ok(typeof Benchmark !== 'undefined');
-          assert.ok(Benchmark.Deferred);
-          assert.ok(this instanceof Benchmark.Deferred);
-          assert.ok(typeof deferred !== 'undefined');
-          assert.ok(typeof deferred !== 'undefined' && deferred === this);
-          assert.ok(typeof global !== 'undefined');
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::setup: Benchmark instance must be available');
+          assert.ok(Benchmark.Deferred, 'Benchmark::setup: Benchmark.Deferred class must be defined');
+          assert.ok(this instanceof Benchmark.Deferred, 'Benchmark::setup: `this` must be an instance of the Benchmark.Deferred class');
+          assert.ok(typeof deferred !== 'undefined', 'Benchmark::setup: `deferred` benchmark reference argument must be non-NULL');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this, 'Benchmark::setup: `deferred` benchmark reference argument must match `this`');
+          assert.ok(typeof global !== 'undefined', 'Benchmark::setup: `global` must be available');
+          assert.ok(typeof timer !== 'undefined', 'Benchmark::setup: timer instance must be available');
+          assert.ok(typeof timer.start === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+          assert.ok(typeof timer.stop === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
 
           // platform-specific tests:
           var global_namespace = getGlobalNamespaceRef();
 
           if (typeof window !== 'undefined') {
             // browser environment
-            assert.ok(global_namespace === window);
+            assert.ok(global_namespace === window, 'Benchmark::setup: global namespace must be `window` when running in a browser');
           }
 
-          assert.ok(typeof global.getRootReference === 'function');
-          assert.ok(global.getRootReference() === global_namespace);
-          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          assert.ok(typeof global.getRootReference === 'function', 'Benchmark::setup: global.getRootReference API must be available');
+          assert.ok(global.getRootReference() === global_namespace, 'Benchmark::setup: global namespace must match the root reference obtained via the global.getRootReference API');
+          assert.ok((typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace), 'Benchmark::setup: The different global namespace assumptions must hold for browser and NodeJS environments');
           // END of platform-specific tests
 
           check_tracker[0]++;
         },
         'fn': function(deferred, global, Benchmark, timer) {
-          assert.ok(typeof Benchmark !== 'undefined');
-          assert.ok(Benchmark.Deferred);
-          assert.ok(this instanceof Benchmark.Deferred);
-          assert.ok(typeof deferred !== 'undefined');
-          assert.ok(typeof deferred !== 'undefined' && deferred === this);
-          assert.ok(typeof global !== 'undefined');
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::fn: Benchmark instance must be available');
+          assert.ok(Benchmark.Deferred, 'Benchmark::fn: Benchmark.Deferred class must be defined');
+          assert.ok(this instanceof Benchmark.Deferred, 'Benchmark::fn: `this` must be an instance of the Benchmark.Deferred class');
+          assert.ok(typeof deferred !== 'undefined', 'Benchmark::fn: `deferred` benchmark reference argument must be non-NULL');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this, 'Benchmark::fn: `deferred` benchmark reference argument must match `this`');
+          assert.ok(typeof global !== 'undefined', 'Benchmark::fn: `global` must be available');
+          assert.ok(typeof timer !== 'undefined', 'Benchmark::setup: timer instance must be available');
+          assert.ok(typeof timer.start === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+          assert.ok(typeof timer.stop === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
 
           // platform-specific tests:
           var global_namespace = getGlobalNamespaceRef();
 
           if (typeof window !== 'undefined') {
             // browser environment
-            assert.ok(global_namespace === window);
+            assert.ok(global_namespace === window, 'Benchmark::fn: global namespace must be `window` when running in a browser');
           }
 
-          assert.ok(typeof global.getRootReference === 'function');
-          assert.ok(global.getRootReference() === global_namespace);
-          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          assert.ok(typeof global.getRootReference === 'function', 'Benchmark::fn: global.getRootReference API must be available');
+          assert.ok(global.getRootReference() === global_namespace, 'Benchmark::fn: global namespace must match the root reference obtained via the global.getRootReference API');
+          assert.ok((typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace), 'Benchmark::fn: The different global namespace assumptions must hold for browser and NodeJS environments');
           // END of platform-specific tests
 
           setTimeout(function() { deferred.resolve(); }, 10);
           check_tracker[1]++;
         },
         'teardown': function(deferred, global, Benchmark, timer) {
-          assert.ok(typeof Benchmark !== 'undefined');
-          assert.ok(Benchmark.Deferred);
-          assert.ok(this instanceof Benchmark.Deferred);
-          assert.ok(typeof deferred !== 'undefined');
-          assert.ok(typeof deferred !== 'undefined' && deferred === this);
-          assert.ok(typeof global !== 'undefined');
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::teardown: Benchmark instance must be available');
+          assert.ok(Benchmark.Deferred, 'Benchmark::teardown: Benchmark.Deferred class must be defined');
+          assert.ok(this instanceof Benchmark.Deferred, 'Benchmark::teardown: `this` must be an instance of the Benchmark.Deferred class');
+          assert.ok(typeof deferred !== 'undefined', 'Benchmark::teardown: `deferred` benchmark reference argument must be non-NULL');
+          assert.ok(typeof deferred !== 'undefined' && deferred === this, 'Benchmark::teardown: `deferred` benchmark reference argument must match `this`');
+          assert.ok(typeof global !== 'undefined', 'Benchmark::teardown: `global` must be available');
+          assert.ok(typeof timer !== 'undefined', 'Benchmark::setup: timer instance must be available');
+          assert.ok(typeof timer.start === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
+          assert.ok(typeof timer.stop === 'function', 'Benchmark::setup: timer.start() is supposed to be a function');
 
           // platform-specific tests:
           var global_namespace = getGlobalNamespaceRef();
 
           if (typeof window !== 'undefined') {
             // browser environment
-            assert.ok(global_namespace === window);
+            assert.ok(global_namespace === window, 'Benchmark::teardown: global namespace must be `window` when running in a browser');
           }
 
-          assert.ok(typeof global.getRootReference === 'function');
-          assert.ok(global.getRootReference() === global_namespace);
-          assert.ok(typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace);
+          assert.ok(typeof global.getRootReference === 'function', 'Benchmark::teardown: global.getRootReference API must be available');
+          assert.ok(global.getRootReference() === global_namespace, 'Benchmark::teardown: global namespace must match the root reference obtained via the global.getRootReference API');
+          assert.ok((typeof window !== 'undefined' ? global !== global_namespace : global === global_namespace), 'Benchmark::teardown: The different global namespace assumptions must hold for browser and NodeJS environments');
           // END of platform-specific tests
 
           check_tracker[2]++;
         },
         'onComplete': function(ev) {
-          assert.ok(typeof Benchmark !== 'undefined');
-          assert.ok(Benchmark.Deferred);
-          assert.ok(this instanceof Benchmark);
-          assert.ok(typeof deferred === 'undefined');
+          assert.ok(typeof Benchmark !== 'undefined', 'Benchmark::onComplete: Benchmark instance must be available');
+          assert.ok(Benchmark.Deferred, 'Benchmark::onComplete: Benchmark.Deferred class must be defined');
+          assert.ok(this instanceof Benchmark, 'Benchmark::onComplete: `this` must be an instance of the Benchmark class (*not* `Benchmark.Deferred`!)');
 
           // platform-specific tests:
-          assert.ok(typeof global === 'undefined');
+          assert.ok((typeof window !== 'undefined' ? typeof global === 'undefined' : typeof global !== 'undefined'), 'Benchmark::onComplete: `global` must be NULL in browser environment, while it will be available in NodeJS');
           // END of platform-specific tests
 
-          assert.ok(check_tracker[0] > 0);
-          assert.ok(check_tracker[1] > 0);
-          assert.ok(check_tracker[2] > 0);
+          assert.ok(check_tracker[0] > 0, 'Benchmark::onComplete: `setup` must have been invoked');
+          assert.ok(check_tracker[1] > 0, 'Benchmark::onComplete: `fn` must have been invoked');
+          assert.ok(check_tracker[2] > 0, 'Benchmark::onComplete: `teardown` must have been invoked');
 
           done();
         }

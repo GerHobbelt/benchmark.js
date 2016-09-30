@@ -248,7 +248,7 @@
           // Avoid issues with code added by Istanbul.
           .replace(/__cov__[^;]+;/g, '')
         )()(0).x === '1';
-      } catch(e) {
+      } catch (e) {
         support.decompilation = false;
       }
     }());
@@ -427,6 +427,13 @@
     /**
      * The Event constructor.
      *
+     * Every Event instance has these members at least:
+     *
+     * - `timeStamp`: the event creation timestamp (via `_.now()`)
+     * - `global`: a reference to the `global` context which is also available 
+     *   to the `setup`/`fn`/`teardown` benchmark functions/code.
+     * - `type`: the `type` value when that constructor argument is a String.
+     *
      * @constructor
      * @memberOf Benchmark
      * @param {Object|string} type The event type.
@@ -437,7 +444,13 @@
         return type;
       }
       return (event instanceof Event)
-        ? _.assign(event, { timeStamp: _.now() }, typeof type === 'string' ? { type: type } : type)
+        ? _.assign(event, { 
+          timeStamp: _.now(),
+          global: context,
+        }, 
+        typeof type === 'string' ? { 
+          type: type 
+        } : type)
         : new Event(type);
     }
 
@@ -666,7 +679,7 @@
     function require(id) {
       try {
         var result = freeExports && freeRequire(id);
-      } catch(e) {}
+      } catch (e) {}
       return result || null;
     }
 
@@ -696,7 +709,7 @@
         anchor[prop] = function () { 
           destroyElement(script); 
         };
-      } catch(e) {
+      } catch (e) {
         parent = parent.cloneNode(false);
         sibling = null;
         script.text = code;
@@ -1389,6 +1402,31 @@
     }
 
     /**
+     * Emits an event of the given type (warning, error, ...) and 
+     * provides it with the `message` and the extra arguments passed 
+     * to this function via the optional `extra_args` object.
+     */
+    function emitEvent(bench, type, message, extra_args) {
+      type = type || 'error';
+      if (!message) {
+        // provide the event with a message in the form of an error w. stacktrace:
+        try {
+          throw new Error(type);
+        }
+        catch (ex) {
+          message = ex;
+        }
+      }
+      var event = Event(type);
+      if (extra_args) {
+        event = _.assign(event, extra_args);
+      }
+      event.message = message;
+      bench.emit(event);
+      return event;
+    }
+
+    /**
      * Creates a new benchmark using the same test and options.
      *
      * @memberOf Benchmark
@@ -1625,11 +1663,11 @@
             // When `deferred.cycles` is `0` then...
             'if (!d#.cycles) {⚫' +
             // set `deferred.fn`,
-            'd#.fn = function ()⚫{⚫var ${fnArg} = this;⚫if (typeof f# === "function") {⚫try {⚫${fn}⚫} catch(e#) {⚫f#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${fn}⚫}⚫};⚫' +
+            'd#.fn = function ()⚫{⚫var ${fnArg} = this;⚫if (typeof f# === "function") {⚫try {⚫${fn}⚫} catch (e#) {⚫f#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${fn}⚫}⚫};⚫' +
             // set `deferred.teardown`,
-            'd#.teardown = function () {⚫this.cycles = 0;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch(e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
+            'd#.teardown = function () {⚫this.cycles = 0;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
             // execute the benchmark's `setup`,
-            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch(e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫};⚫' +
+            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫};⚫' +
             // start timer,
             't#.start(d#);⚫' +
             // and then execute `deferred.fn` and return a dummy object.
@@ -1638,8 +1676,13 @@
           : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count,⚫n# = t#.ns;⚫${setup}⚫${begin};⚫' +
             'while (i#--) {⚫${fn}⚫}⚫${end};⚫${teardown}⚫return {⚫elapsed: r#,⚫uid: "${uid}"⚫};';
 
-        var compiled = bench.compiled = clone.compiled = createCompiled(bench, decompilable, deferred, funcBody),
-            isEmpty = !(templateData.fn || stringable);
+        var compiled = createCompiled(bench, decompilable, deferred, funcBody),
+            isEmpty = !(templateData.fn || stringable),
+            compiled_mode = 1;
+
+        // blow away the cached compiled test functions, if any, until we find that any compiled test function produced here is viable.
+        bench.compiled = clone.compiled = null;
+        bench.compiled_mode = clone.compiled_mode = 0;
 
         try {
           if (isEmpty) {
@@ -1651,16 +1694,23 @@
             // Pretest to determine if compiled code exits early, usually by a
             // rogue `return` statement, by checking for a return object with the uid.
             bench.count = 1;
-            compiled = decompilable && (compiled.call(bench, context, timer, Benchmark) || {}).uid == templateData.uid && compiled;
+            compiled = decompilable && (compiled.call(bench, context, timer, Benchmark) || {}).uid === templateData.uid && compiled;
             bench.count = count;
           }
-        } catch(e) {
+        } catch (e) {
           compiled = null;
           clone.error = e || new Error(String(e));
           bench.count = count;
+
+          emitEvent(clone, 'warning', 'compiling the benchmark failed', {
+            compiled_mode: bench.compiled_mode,
+            error: e,
+            bench: bench,
+          });
         }
         // Fallback when a test exits early or errors during pretest.
         if (!compiled && !deferred && !isEmpty) {
+          compiled_mode = 2;
           funcBody = (
             stringable || (decompilable && !clone.error)
               ? 'function f#(bench, global, Benchmark, timer) {⚫${fn}⚫}⚫var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫i# = m#.count'
@@ -1678,15 +1728,70 @@
             bench.count = count;
             delete clone.error;
           }
-          catch(e) {
+          catch (e) {
+            // Also clean up the benchmark instance which has now quite possibly been polluted by
+            // the added `m#.f#` `fn` equivalent test function member:
+            // (the code `delete m#.f#;` above probably did not execute when the whole thing crashed!)
+            var m_f = interpolate('f#');
+            delete bench[m_f];
+            
+            compiled = null;
             bench.count = count;
             if (!clone.error) {
               clone.error = e || new Error(String(e));
             }
+
+            emitEvent(clone, 'warning', 'compiling the benchmark failed', {
+              compiled_mode: bench.compiled_mode,
+              error: e,
+              bench: bench,
+            });
           }
         }
+
+        // Second fallback when a test exits early or errors during pretest and first fallback above did not deliver.
+        if (!compiled && !deferred && !isEmpty && decompilable) {
+          compiled_mode = 3;
+          funcBody = 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count' +
+            ',⚫n# = t#.ns;⚫${setup}⚫${begin};⚫m#.f# = f#;⚫while (i#--) {⚫m#.f#(m#, global, Benchmark, t#);⚫}⚫${end};⚫' +
+            'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
+
+          decompilable = false;
+          compiled = createCompiled(bench, decompilable, deferred, funcBody);
+
+          try {
+            // Pretest one more time to check for errors.
+            bench.count = 1;
+            compiled.call(bench, context, timer, Benchmark);
+            bench.count = count;
+            delete clone.error;
+          }
+          catch (e) {
+            // Also clean up the benchmark instance which has now quite possibly been polluted by
+            // the added `m#.f#` `fn` equivalent test function member:
+            // (the code `delete m#.f#;` above probably did not execute when the whole thing crashed!)
+            var m_f = interpolate('f#');
+            delete bench[m_f];
+            
+            bench.count = count;
+            if (!clone.error) {
+              clone.error = e || new Error(String(e));
+            }
+
+            emitEvent(clone, 'warning', 'compiling the benchmark failed', {
+              compiled_mode: bench.compiled_mode,
+              error: e,
+              bench: bench,
+            });
+          }
+        }
+
         // If no errors run the full test loop.
         if (!clone.error) {
+          // also note the 'compilation mode' for this particular benchmark; 
+          // this is done mostly for test/verification purposes where we wish to
+          // check how the benchmark has been constructed *exactly*:
+          bench.compiled_mode = clone.compiled_mode = compiled_mode;
           compiled = bench.compiled = clone.compiled = createCompiled(bench, decompilable, deferred, funcBody);
           result = compiled.call(deferred || bench, context, timer, Benchmark).elapsed;
         }
@@ -1701,15 +1806,15 @@
        */
       function createCompiled(bench, decompilable, deferred, body) {
         var fn = bench.fn,
-            fnArg = deferred ? getFirstArgument(fn) || 'deferred' : 'bench';
+            fnArg = getFirstArgument(fn) || (deferred ? 'deferred' : 'bench');
 
         templateData.uid = uid + uidCounter++;
 
         _.assign(templateData, {
-          setup: decompilable ? getSource(bench.setup) : interpolate('m#.setup();'),
-          fn: decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ');'),
+          setup: decompilable ? getSource(bench.setup) : interpolate('m#.setup(m#, global, Benchmark, t#);'),
+          fn: decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
           fnArg: fnArg,
-          teardown: decompilable ? getSource(bench.teardown) : interpolate('m#.teardown();')
+          teardown: decompilable ? getSource(bench.teardown) : interpolate('m#.teardown(m#, global, Benchmark, t#);')
         });
 
         // Use API of chosen timer.
@@ -1837,7 +1942,7 @@
         if ((timer.ns = new (context.chrome || context.chromium).Interval)) {
           timers.push({ ns: timer.ns, res: getRes('us'), unit: 'us' });
         }
-      } catch(e) {}
+      } catch (e) {}
 
       // Detect `performance.now` microsecond resolution timer
       if ((timer.ns = perfName && perfObject)) {
@@ -2077,7 +2182,6 @@
         // and MAY be overwritten by the `benchmark.setup` userland code, which will modify
         // `bench` (not `clone`, surprisingly [GHo])
         var ops_per_sample = (clone.operationsPerRound === 1 ? bench.operationsPerRound : clone.operationsPerRound);
-        //if (ops_per_sample !== 1) console.log('ops/round: ', clone.operationsPerRound, bench.operationsPerRound);
         if (ops_per_sample !== bench.operationsPerRound) {
           bench.operationsPerRound = ops_per_sample;
         }
