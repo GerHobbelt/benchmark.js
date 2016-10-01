@@ -117,8 +117,17 @@ gulp.task('gh-pages', function () {
 // Copy JS assets for the example/jsperf/ pages for the website, which
 // doesn't have the node_modules/... dir tree.
 gulp.task('copy-js-assets', function () {
-  return gulp.src(['./node_modules/lodash/lodash.js', './node_modules/platform/platform.js', './node_modules/json5/lib/json5.js', './node_modules/markdown-it/dist/markdown-it.js'])
-    .pipe(gulp.dest('./website-assets/js-libraries/'));
+  return gulp.src([
+    './node_modules/lodash/lodash.js', 
+    './node_modules/platform/platform.js', 
+    './node_modules/json5/lib/json5.js', 
+    './node_modules/markdown-it/dist/markdown-it.js', 
+    './node_modules/qunitjs/qunit/qunit.css', 
+    './node_modules/qunitjs/qunit/qunit.js', 
+    './node_modules/qunit-extras/qunit-extras.js',
+    './node_modules/requirejs/require.js'
+  ])
+  .pipe(gulp.dest('./website-assets/js-libraries/'));
 });
 
  

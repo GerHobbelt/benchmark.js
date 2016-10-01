@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8">
     <title>Benchmark.js Test Suite</title>
-    <link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
+    <link rel="stylesheet" href="../website-assets/js-libraries/qunit.css">
   </head>
   <body>
     <div id="qunit"></div>
-    <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
-    <script src="../node_modules/qunit-extras/qunit-extras.js"></script>
-    <script src="../node_modules/lodash/lodash.js"></script>
-    <script src="../node_modules/platform/platform.js"></script>
+    <script src="../website-assets/js-libraries/qunit.js"></script>
+    <script src="../website-assets/js-libraries/qunit-extras.js"></script>
+    <script src="../website-assets/js-libraries/lodash.js"></script>
+    <script src="../website-assets/js-libraries/platform.js"></script>
     <script>
       QUnit.config.hidepassed = true;
       QUnit.urlParams.norequire = /[?&]norequire=true(?:&|$)/.test(location.search);
@@ -18,7 +18,7 @@
       // Load test.js if not using require.js.
       document.write(QUnit.urlParams.norequire
         ? '<script src="../benchmark.js"><\/script><script src="test.js"><\/script>'
-        : '<script src="../node_modules/requirejs/require.js"><\/script>'
+        : '<script src="../website-assets/js-libraries/require.js"><\/script>'
       );
     </script>
     <script>
@@ -42,12 +42,12 @@
             },
             {
               'name': 'lodash',
-              'location': '../node_modules/lodash',
+              'location': '../website-assets/js-libraries',
               'main': 'lodash'
             },
             {
               'name': 'platform',
-              'location': '../node_modules/platform',
+              'location': '../website-assets/js-libraries',
               'main': 'platform'
             },
             {
