@@ -315,7 +315,7 @@ h3,
 form div,
 #faq,
 .bs-rt {
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
 }
 button,
 input,
@@ -352,9 +352,12 @@ a:focus {
   text-decoration: none;
 }
 blockquote {
-  margin: 0 0 1em;
-  border-left: 5px solid #b4b4b4;
-  padding-left: .5em;
+  background-color: grey;
+  color: white;
+  border-left: solid 6px orange;
+  font-size: 85%;
+  margin: 0 1em 0.5em 1em;
+  padding: 3px .5em 3px 1em;
 }
 table {
   width: 100%;
@@ -576,6 +579,8 @@ pre {
   width: 100%;
   overflow: auto;
   background-color: #f7f7f7;
+  margin: 0;
+  box-sizing: border-box;
 }
 table #results-1 {
   width: 100px;
@@ -636,6 +641,7 @@ footer {
   padding: .5em 0 1.5em;
   border-top: 2px solid #c4c4c4;
   text-align: center;
+  background-color: #efefef;
 }
 footer p {
   font-size: 80%;
@@ -850,6 +856,18 @@ textarea,
   table pre,
   table td.code {
     width: 550px;
+  }
+  footer > p,
+  article > p,
+  article > hgroup,
+  section > p,
+  section > ul,
+  section > h1,
+  section > h2,
+  section > h3 {
+    margin-left: 1em;
+    margin-right: 1em;
+    border: 1px solid red;
   }
 }
 @media (max-width: 1040px) {

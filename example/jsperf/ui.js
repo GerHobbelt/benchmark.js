@@ -113,6 +113,10 @@
     return markDown.render(md);
   }
 
+  function mdRenderInline(md) {
+    return markDown.renderInline(md);
+  }
+
   // only keep the first line of content of the rendered output, for use as 'inline' element elsewhere.
   function mdRenderPartialInline(md) {
     md = markDown.render(md);
@@ -277,6 +281,7 @@
       if (has.runner) {
         // init the ui
         addClass('controls', classNames.show);
+        addClass('controls-at-top', classNames.show);
         addListener('run', 'click', handlers.button.run);
 
         setHTML('run', texts.run.ready);
@@ -661,7 +666,7 @@
 
       var title = $('group-description-' + level + '-' + id);
 
-      setHTML(title, '<div>' + mdRender(group_info.name) + '</div>');
+      setHTML(title, mdRender(group_info.name));
     }
 
     if (bench._group_parent && bench._group_item_index === 0) {
@@ -674,7 +679,7 @@
         sourceDisplay = $('code-' + id),
         row = $('test-row-' + id);
 
-    setHTML(title, '<div>' + mdRender(bench.name) + '</div>');
+    setHTML(title, mdRender(bench.name));
     setHTML(sourceDisplay, '<pre><code>' + escape(unindent(bench.fn)) + '</code></pre>');
 
     if (typeof bench.ranking !== 'undefined' && !bench.ranking) {
@@ -789,8 +794,8 @@
   };
 
   ui.initFromJSON = function (json) {
-    setHTML('test-title-1', mdRender(json.title));
-    setHTML('test-title-2', mdRender(json.title));
+    setHTML('test-title-1', mdRenderInline(json.title));
+    setHTML('test-title-2', mdRenderInline(json.title));
     setHTML('test-description', mdRender(json.description));
 
     if (ui.browserscope) {

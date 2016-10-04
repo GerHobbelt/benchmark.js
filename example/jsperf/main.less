@@ -7,7 +7,7 @@ html, body, h1, h2, h3, fieldset, #faq, #faq dt, #faq dd {
 }
 
 table, p, ul, h1, h2, h3, #error-info, form div, #faq, .bs-rt {
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
 }
 
 button, input, textarea, a, .bs-rt {
@@ -45,10 +45,19 @@ a:hover, a:focus {
 }
 
 blockquote {
-  margin: 0 0 1em;
-  border-left: 5px solid #b4b4b4;
-  padding-left: .5em;
+  background-color: grey;
+  color: white;
+  border-left: solid 6px orange;
+  font-size: 85%;
+
+  margin: 0 1em 0.5em 1em;
+  padding: 3px .5em 3px 1em;
+
+  &.general-warning-notice {
+
+  }
 }
+
 
 table {
   width: 100%;
@@ -193,7 +202,20 @@ a:hover span, a:focus span, #comments .owner .meta a {
   color: #fff;
 }
 
-#controls, #run, .buttons {
+#controls {
+  position: fixed;
+  right: 0px;
+  top: 54px;
+
+  // using https://css-tricks.com/snippets/css/clear-fix/
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+#run, .buttons {
   float: right;
 }
 
@@ -287,6 +309,9 @@ pre {
   width: 100%;
   overflow: auto;
   background-color: #f7f7f7;
+
+  margin: 0;
+  box-sizing: border-box;       // include padding and border in the 100% width so we don't get punished with a horizontal scrollbar! 
 }
 
 table #results-1 {
@@ -357,6 +382,7 @@ footer {
   padding: .5em 0 1.5em;
   border-top: 2px solid #c4c4c4;
   text-align: center;
+  background-color: #efefef;
 
   p {
     font-size: 80%;
@@ -605,6 +631,21 @@ footer {
 @media (max-width: 1050px) {
   table pre, table td.code {
     width: 550px;
+  }
+
+  // make sure there's a tiny white margin between the device edge
+  // and the text: this makes it easier to read, at least for me.
+  footer > p, 
+  article > p, 
+  article > hgroup, 
+  section > p, 
+  section > ul, 
+  section > h1, 
+  section > h2, 
+  section > h3 {
+    margin-left: 1em;
+    margin-right: 1em;
+    border: 1px solid red;
   }
 }
 
