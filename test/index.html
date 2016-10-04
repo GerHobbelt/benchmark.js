@@ -4,9 +4,60 @@
     <meta charset="utf-8">
     <title>Benchmark.js Test Suite</title>
     <link rel="stylesheet" href="../website-assets/js-libraries/qunit.css">
+    <style>
+    body {
+      font-family: "Helvetica Neue Light", "HelveticaNeue-Light", "Helvetica Neue", Calibri, Helvetica, Arial, sans-serif;      
+    }
+
+    .please-wait-message {
+      text-align: center;
+      font-size: 24px;
+      padding: 32px 0;
+    }
+
+    #topbar {
+      background-color: #0d3349;
+      border-radius: 5px;
+      color: white;
+      margin-bottom: 3px;
+    }
+
+    #topbar ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      text-align: center;
+    }
+
+    #topbar li { 
+      display: inline; 
+      padding: 0;
+      margin: 0; 
+    }
+
+    #topbar a {
+      text-decoration: none;
+      display: inline-block;
+      background-color: #125175;
+      color: white;
+      padding: 3px 20px;
+      margin: 0;
+    }
+
+    #topbar a:hover {
+      color: #F90;
+      background-color: #FFF;
+    }
+    </style>
   </head>
   <body>
-    <div id="qunit"></div>
+    <div id="topbar">
+      <ul>
+        <li><a href="../">Back to main page</a></li>
+        <li><a href="../example/jsperf/">To JSPERF.COM alike on-line benchmark pages</a></li>
+      </ul>
+    </div>
+    <div id="qunit"><div class="please-wait-message">Please wait. Loading unit test environment...</div></div>
     <script src="../website-assets/js-libraries/qunit.js"></script>
     <script src="../website-assets/js-libraries/qunit-extras.js"></script>
     <script src="../website-assets/js-libraries/lodash.js"></script>
