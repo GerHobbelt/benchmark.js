@@ -16,11 +16,10 @@
       });\n\
 \n\
       var data = [];\n\
-      var data_length = 0;\n\
       var mapping = [];\n\
 \n\
       function init() {\n\
-        if (data_length) return;\n\
+        if (data.length) return;\n\
 \n\
         for (var i = 0, l = 1000; i < l; ) {\n\
           var x = Math.random() * 0x10000;\n\
@@ -30,7 +29,6 @@
           data[i] = x;\n\
           i++;\n\
         }\n\
-        data_length = l;\n\
 \n\
         for (var i = 0, l = 0x10000; i < l; i++) {\n\
           mapping[i] = String.fromCharCode(i);\n\
@@ -127,61 +125,61 @@
       name: 'map/conversion + join',
       fn: '\
         // ~ data.map(String.fromCharCode).join()\n\
-        join_em1(data, data_length);'
+        join_em1(data, data.length);'
     },
     {
       name: 'loop/conversion + join',
       fn: '\
         // ~ for-loop: { a[] = String.fromCharCode }, a.join()\n\
-        join_em2(data, data_length);'
+        join_em2(data, data.length);'
     },
     {
       name: 'loop.push/conversion + join',
       fn: '\
         // ~ for-loop: { a.push(String.fromCharCode) }, a.join()\n\
-        join_em2a(data, data_length);'
+        join_em2a(data, data.length);'
     },
     {
       name: 'prealloc + loop/conversion + join',
       fn: '\
         // ~ a = new [length], for-loop: { a[] = String.fromCharCode }, a.join()\n\
-        join_em2b(data, data_length);'
+        join_em2b(data, data.length);'
     },
     {
       name: 'loop/lookup + join',
       fn: '\
         // ~ for-loop { a[] = mapping[data] }, join()\n\
-        join_em3(data, data_length, mapping);'
+        join_em3(data, data.length, mapping);'
     },
     {
       name: 'prealloc + loop/lookup + join',
       fn: '\
         // ~ a = new [length], for-loop { a[] = mapping[data] }, join()\n\
-        join_em3b(data, data_length, mapping);'
+        join_em3b(data, data.length, mapping);'
     },
     {
       name: 'concat/conversion',
       fn: '\
         // ~ for-loop { s+= String.fromCharCode }\n\
-        concat_em1(data, data_length);'
+        concat_em1(data, data.length);'
     },
     {
       name: 'concat/lookup',
       fn: '\
         // ~ arg:mapping :: for-loop { s+= mapping[data] }\n\
-        concat_em2(data, data_length, mapping);'
+        concat_em2(data, data.length, mapping);'
     },
     {
       name: 'concat/global-lookup',
       fn: '\
         // ~ global:mapping :: for-loop { s+= mapping[data] }\n\
-        concat_em3(data, data_length);'
+        concat_em3(data, data.length);'
     },
     {
       name: 'concat/cached-global-lookup',
       fn: '\
         // ~ local:mapping :: for-loop { s+= mapping[data] }\n\
-        concat_em4(data, data_length);'
+        concat_em4(data, data.length);'
     },
   ],
   setup: "\

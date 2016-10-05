@@ -21,6 +21,7 @@
         'fpcvt-alt5.js',\n\
         'fpcvt-alt6.js',\n\
         'fpcvt-alt7.js',\n\
+        'fpcvt-alt8.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\
@@ -29,14 +30,13 @@
 \n\
       var data = [];\n\
       var serialized_data = [];\n\
-      var data_length = 0;\n\
 \n\
       var indexes = [];\n\
       var stream = '';\n\
       var json_s;\n\
 \n\
       function init() {\n\
-        if (data_length) return;\n\
+        if (data.length) return;\n\
 \n\
         for (var i = 0, l = 1000; i < l; i++) {\n\
           var x = Math.random();\n\
@@ -45,11 +45,10 @@
           var a = (1 + Math.random() * 21) | 0;\n\
           var b = z.toPrecision(a);\n\
           data[i] = parseFloat(b);\n\
-          serialized_data[i] = encode_fp_value2(b);\n\
+          serialized_data[i] = encode_fp_value4(b);\n\
           indexes[i] = i;\n\
           stream += serialized_data[i];\n\
         }\n\
-        data_length = l;\n\
         json_s = JSON.stringify(data);\n\
 \n\
         window.console && console.log('init:: data set:', data.slice(0, 20), '...');\n\
@@ -74,7 +73,7 @@
         };\n\
         var len = stream.length;\n\
         while (stepinfo.consumed_length < len) {\n\
-          var flt = decode_fp_value2(stream, stepinfo);\n\
+          var flt = decode_fp_value4(stream, stepinfo);\n\
 \n\
           total += flt;\n\
         }\n\
@@ -97,7 +96,7 @@
     {
       name: 'Indexed FP column store',
       fn: '\
-        indexed_native(data, indexes, data_length);'
+        indexed_native(data, indexes, data.length);'
     },
     {
       name: 'FP inlined stream',

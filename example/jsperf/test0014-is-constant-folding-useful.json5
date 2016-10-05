@@ -16,12 +16,11 @@
       });\n\
 \n\
       var data = [];\n\
-      var data_length = 0;\n\
       var mapping = [];\n\
       var glob_sum = 0;\n\
 \n\
       function init() {\n\
-        if (data_length) return;\n\
+        if (data.length) return;\n\
 \n\
         for (var i = 0, l = 1000; i < l; ) {\n\
           var x = Math.random() * 0x10000;\n\
@@ -31,7 +30,6 @@
           data[i] = x;\n\
           i++;\n\
         }\n\
-        data_length = l;\n\
 \n\
         for (var i = 0, l = 0x10000; i < l; i++) {\n\
           mapping[i] = String.fromCharCode(i);\n\

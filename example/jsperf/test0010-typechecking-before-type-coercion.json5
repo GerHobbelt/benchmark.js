@@ -16,13 +16,12 @@
 \n\
       var data = [];\n\
       var data2 = [];\n\
-      var data_length = 0;\n\
 \n\
       var glob = 0;\n\
       var glob2 = 0;\n\
 \n\
       function init() {\n\
-        if (data_length) return;\n\
+        if (data.length) return;\n\
 \n\
         for (var i = 0, l = 1000; i < l; ) {\n\
           var x = Math.random() * 127;\n\
@@ -49,7 +48,6 @@
           data2[i] = z;\n\
           i++;\n\
         }\n\
-        data_length = l;\n\
 \n\
         glob = always_coerce_1(data);\n\
         glob2 = always_coerce_10(data2);\n\

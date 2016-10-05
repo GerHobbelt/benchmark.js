@@ -16,7 +16,6 @@
 \n\
       var dataX = [];\n\
       var data = [];\n\
-      var data_length = 0;\n\
 \n\
       var glob = 0;\n\
 \n\
@@ -28,7 +27,7 @@
       var jump_table2;\n\
 \n\
       function init() {\n\
-        if (data_length) return;\n\
+        if (data.length) return;\n\
 \n\
         // use random generator to help generate the test code so that it cannot be\n\
         // easily simplified by common code reduction, etc.\n\
@@ -43,7 +42,6 @@
           data[i] = x;\n\
           i++;\n\
         }\n\
-        data_length = l;\n\
 \n\
         var code1 = [], code2 = [], code3 = [], code3C = {}, code4 = [], code5C = [], code5 = [];\n\
         for (var i = 0, l = L; i < l; i++) {\n\
@@ -89,7 +87,7 @@
           '];',\n\
           'var sum = 0;',\n\
           'var d = data;',\n\
-          'for (var i = 0, l = data_length; i < l; i++) {',\n\
+          'for (var i = 0, l = data.length; i < l; i++) {',\n\
           '  var idx = d[i];',\n\
           '  sum += jt[idx]();',\n\
           '}',\n\
@@ -99,7 +97,7 @@
           '];',\n\
           'var sum = 0;',\n\
           'var d = data;',\n\
-          'for (var i = 0, l = data_length; i < l; i++) {',\n\
+          'for (var i = 0, l = data.length; i < l; i++) {',\n\
           '  var idx = d[i];',\n\
           '  sum += jt[idx]();',\n\
           '}',\n\
@@ -108,7 +106,7 @@
         code3 = [\n\
           'var sum = 0;',\n\
           'var d = data;',\n\
-          'for (var i = 0, l = data_length; i < l; i++) {',\n\
+          'for (var i = 0, l = data.length; i < l; i++) {',\n\
           'var idx = d[i];',\n\
           'var i1 = idx & ' + M + ';',\n\
           'var i2 = idx - i1;',\n\
@@ -121,7 +119,7 @@
         code2 = [\n\
           'var sum = 0;',\n\
           'var d = data;',\n\
-          'for (var i = 0, l = data_length; i < l; i++) {',\n\
+          'for (var i = 0, l = data.length; i < l; i++) {',\n\
           'var idx = d[i];',\n\
         ].concat(code2, [\n\
           '}',\n\
@@ -131,7 +129,7 @@
         code1 = [\n\
           'var sum = 0;',\n\
           'var d = data;',\n\
-          'for (var i = 0, l = data_length; i < l; i++) {',\n\
+          'for (var i = 0, l = data.length; i < l; i++) {',\n\
           'var idx = d[i];',\n\
           'switch (idx) {',\n\
         ].concat(code1, [\n\

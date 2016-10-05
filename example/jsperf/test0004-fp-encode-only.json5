@@ -6,6 +6,7 @@
     'test0005-fp-decode-only.json5',
     'test0006-fp-encode-plus-decode.json5',
     'test0006b-fp-encode-plus-decode.json5',
+    'test0007-inlining-fp-vs-indexed-column-storage.json5',
   ],
 
   HTML: "",
@@ -20,6 +21,7 @@
         'fpcvt-alt5.js',\n\
         'fpcvt-alt6.js',\n\
         'fpcvt-alt7.js',\n\
+        'fpcvt-alt8.js',\n\
       ].forEach(function (src) {\n\
         var script = document.createElement('script');\n\
         script.src = src;\n\
@@ -128,7 +130,7 @@
 \n\
         // also test the reserve to ensure we cover the entire *decodable* range as wll as the entire *encodable* range!\n\
         //\n\
-	// Note the comment about 'holes' in fpcvt.js -- here we happen to test those holes alongside expected encoder outputs!\n\
+        // Note the comment about 'holes' in fpcvt.js -- here we happen to test those holes alongside expected encoder outputs!\n\
         for (var i = 0x8000; i < 0xF900; i++) {\n\
           if (i >= 0xD800 && i <= 0xDFFF) continue;\n\
           var t = String.fromCharCode(i);\n\
