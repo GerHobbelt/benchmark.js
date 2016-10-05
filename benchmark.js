@@ -401,8 +401,12 @@
       }
       setOptions(bench, options);
 
-      bench.id || (bench.id = ++counter);
-      bench.fn == null && (bench.fn = fn);
+      if (!bench.id) {
+        bench.id = ++counter;
+      }
+      if (bench.fn == null) {
+        bench.fn = fn;
+      }
 
       bench.stats = cloneDeep(bench.stats);
       bench.times = cloneDeep(bench.times);
@@ -1678,11 +1682,11 @@
 
         var compiled = createCompiled(bench, decompilable, deferred, funcBody),
             isEmpty = !(templateData.fn || stringable),
-            compiled_mode = 1;
+            compiled_mode;
 
         // blow away the cached compiled test functions, if any, until we find that any compiled test function produced here is viable.
         bench.compiled = clone.compiled = null;
-        bench.compiled_mode = clone.compiled_mode = 0;
+        bench.compiled_mode = clone.compiled_mode = compiled_mode = 1;
 
         try {
           if (isEmpty) {
@@ -1703,14 +1707,14 @@
           bench.count = count;
 
           emitEvent(clone, 'warning', 'compiling the benchmark failed', {
-            compiled_mode: bench.compiled_mode,
+            compiled_mode: compiled_mode,
             error: e,
             bench: bench,
           });
         }
         // Fallback when a test exits early or errors during pretest.
         if (!compiled && !deferred && !isEmpty) {
-          compiled_mode = 2;
+          bench.compiled_mode = clone.compiled_mode = compiled_mode = 2;
           funcBody = (
             stringable || (decompilable && !clone.error)
               ? 'function f#(bench, global, Benchmark, timer) {⚫${fn}⚫}⚫var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫i# = m#.count'
@@ -1742,7 +1746,7 @@
             }
 
             emitEvent(clone, 'warning', 'compiling the benchmark failed', {
-              compiled_mode: bench.compiled_mode,
+              compiled_mode: compiled_mode,
               error: e,
               bench: bench,
             });
@@ -1751,7 +1755,7 @@
 
         // Second fallback when a test exits early or errors during pretest and first fallback above did not deliver.
         if (!compiled && !deferred && !isEmpty && decompilable) {
-          compiled_mode = 3;
+          bench.compiled_mode = clone.compiled_mode = compiled_mode = 3;
           funcBody = 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count' +
             ',⚫n# = t#.ns;⚫${setup}⚫${begin};⚫m#.f# = f#;⚫while (i#--) {⚫m#.f#(m#, global, Benchmark, t#);⚫}⚫${end};⚫' +
             'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
@@ -1779,12 +1783,15 @@
             }
 
             emitEvent(clone, 'warning', 'compiling the benchmark failed', {
-              compiled_mode: bench.compiled_mode,
+              compiled_mode: compiled_mode,
               error: e,
               bench: bench,
             });
           }
         }
+
+        // reset the Benchmark members which would now contain an incorrect value when the above test runs failed: `(clone.error != null)`
+        bench.compiled_mode = clone.compiled_mode = 0;
 
         // If no errors run the full test loop.
         if (!clone.error) {
@@ -1792,8 +1799,25 @@
           // this is done mostly for test/verification purposes where we wish to
           // check how the benchmark has been constructed *exactly*:
           bench.compiled_mode = clone.compiled_mode = compiled_mode;
+
           compiled = bench.compiled = clone.compiled = createCompiled(bench, decompilable, deferred, funcBody);
-          result = compiled.call(deferred || bench, context, timer, Benchmark).elapsed;
+
+          // Even when we've tested the benchmark code, it can still crash when stress-tested here,
+          // hence we once again have to wrap it in `try/catch` to ensure decent user feedback
+          // on failure -- otherwise you end up with anonymous 'script error at line 0' reports
+          // and their ilk  |;-(
+          try {
+            result = compiled.call(deferred || bench, context, timer, Benchmark).elapsed;
+          } catch (e) {
+            //bench.compiled = clone.compiled = compiled = null;
+            clone.error = e || new Error(String(e));
+
+            emitEvent(clone, 'error', 'running the benchmark failed', {
+              compiled_mode: compiled_mode,
+              error: e,
+              bench: bench,
+            });
+          }
         }
         return result;
       };
