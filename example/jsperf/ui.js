@@ -18,6 +18,9 @@
   /** Cache of event handlers */
   var handlers = {};
 
+  /** Cache for HTML chunk updates via `setHTML()` */
+  var htmlChunkCache = {};
+
   /** A flag to indicate that the page has loaded */
   var pageLoaded = false;
 
@@ -133,13 +136,19 @@
      *
      * @private
      */
-    'cycle': function() {
+    'cycle': function(ev) {
       var bench = this,
-          size = bench.stats.sample.length;
+          size = bench.stats.sample.length,
+          target = ev.target;
+
+      current_task_description = (ev.type === 'start' ? 'preparing' : 'running') + ' benchmark #' + target.id + ': ' + target.name;
 
       if (!bench.aborted) {
-        setStatus(mdRenderPartialInline(bench.name) + ' &times; ' + formatNumber(bench.count) + ' (' +
+        setStatus(mdRenderPartialInline(bench.name) + ' × ' + formatNumber(bench.count) + ' (' +
           size + ' sample' + (size == 1 ? '' : 's') + ')');
+
+        // and update the running status of the benchmark in the table as well:
+        ui.render(bench.id - 1);
       }
     },
 
@@ -151,8 +160,18 @@
     'start': function() {
       // call user provided init() function
       if (isFunction(window.init) && !ui.has_executed_init) {
-        init();
-        ui.has_executed_init = true;
+        // We are going to execute userland code here: it can crash 
+        // hence we have to wrap it in `try/catch` to ensure decent user feedback
+        // on failure.
+        try {
+          window.init();
+          ui.has_executed_init = true;
+        } catch (e) {
+          ui.has_executed_init = false;
+          var error = e || new Error(String(e));
+
+          logError(e, 'running the benchmark\'s init() function failed');
+        }
       }
     }
   };
@@ -285,7 +304,7 @@
         addListener('run', 'click', handlers.button.run);
 
         setHTML('run', texts.run.ready);
-        setHTML('user-agent', Benchmark.platform);
+        setHTML('user-agent', Benchmark.platform.toString());
         setStatus(texts.status.ready);
 
         // prefill author details
@@ -414,10 +433,20 @@
    * @returns {Element} The element.
    */
   function setHTML(element, html) {
-    if ((element = $(element))) {
-      element.innerHTML = html == null ? '' : html;
+    var $el = $(element);
+    if ($el) {
+      html = html == null ? '' : html;
+      // only update the DOM when we are actually going to *change* it:
+      if (htmlChunkCache[element] !== html) {
+      //if ($el.innerHTML !== html) {
+        $el.innerHTML = html;
+        htmlChunkCache[element] = html;
+        // if ($el.innerHTML !== html) {    // this check triggers some times as the browser can clean up our data! --> `innerHTML !== html`
+        //   debugger;
+        // }
+      }
     }
-    return element;
+    return $el;
   }
 
   // strip the common leading whitespace block off all input lines
@@ -513,19 +542,35 @@
    * @private
    * @param {string|Object} text The text to append or options object.
    */
-  function logError(text) {
+  function logError(text, extra_text) {
     var table,
         div = $('error-info'),
         options = {};
 
-    // juggle arguments
-    if (typeof text === 'object' && text) {
-      options = text;
-      text = options.text;
+    // print 'higher level error' info *before* reporting the primary (detail) error:
+    if (extra_text) {
+      logError(extra_text);
     }
-    else if (arguments.length) {
+
+    // juggle arguments
+    if (text instanceof Error) {
+      // we received an Exception as first argument; optionally followed by
+      // a 'higher level' extra_text info message or object:
+      options.text = text.message;
+      options.exception = text;
+      options.stacktrace = extractStackTrace(text);
+    }
+    else if (typeof text === 'object' && (text.text || text.clear)) {
+      options = text;
+    }
+    else if (typeof text === 'object') {
+      options.text = text.message;
+      options.infos = text;
+    }
+    else if (text != null) {
       options.text = text;
     }
+
     if (!div) {
       table = $('test-table');
       div = createElement('div');
@@ -535,12 +580,89 @@
     if (options.clear) {
       div.className = div.innerHTML = '';
       errors.length = 0;
+      return;
     }
-    if ('text' in options && _.indexOf(errors, text) < 0) {
+
+    // construct the error message:
+    text = '<p>' + (options.text || 'ERROR') + '</p>';
+    var infos = [];
+    if (options.infos) {
+      if (Array.isArray(options.infos)) {
+        infos = infos.concat(options.infos);
+      } else {
+        for (var k in options.infos) {
+          if (options.infos[k] != null) {
+            infos.push(k + ': ' + options.infos[k]);
+          }
+        }
+      }
+    } 
+    if (current_task_description) {
+      infos.push('activity: ' + current_task_description);
+    }
+    if (options.stacktrace) {
+      infos.push('stackTrace: ' + join(options.stacktrace, ' &#187; '));
+    }
+    if (infos.length) {
+      text += '<ul><li>' + join(infos, '</li><li>') + '</li></ul>';
+    }
+
+    if (_.indexOf(errors, text) < 0) {
       errors.push(text);
       addClass(div, classNames.show);
       appendHTML(div, text);
     }
+  }
+
+  /**
+   * Extract the stacktrace from the given exception/error object, if available.
+   *
+   * @private
+   * @param {Error} ex The exception which carries the stack dump to be extracted.
+   *        When no exception instance is passed to this function, the current
+   *        call stack will be obtained and produced instead.
+   *
+   * @return {Array} Returns an array of stacktrace lines, if any. Always returns an array,
+   *         which *MAY* be empty if no stacktrace is accessible.
+   */
+  function extractStackTrace(ex) {
+    var st = [];
+    if (ex && ex.stack) {
+      var stackdump = '' + ex.stack;
+      st = stackdump.split('\n');
+      st.shift();
+      var depth_track = 0;
+      st = st.map(function translate(f) {
+        f = f
+        .trim()
+        // anonymous - unnamed functions:
+        .replace(/^at [a-z]+:\/\/.+?\/([a-z0-9_]+)\.js:([0-9]+)(?:\:.*)?$/i, 'SRC::$1.L$2')
+        .replace(/^at ([a-z_\$][a-z0-9_\$\.]*)\s[^\s]+$/i, '$1');
+
+        if (f.indexOf('Suite.ui.') === 0) {
+          depth_track++;
+        } else if (depth_track) {
+          depth_track++;
+        }
+        if (depth_track > 2) {
+          // nuke all remaining stack lines from this point forward:
+          f = null;
+        }
+        return f;
+      })
+      .filter(function (l) {
+        return l != null;
+      });
+    } else {
+      try {
+        throw new Error('stackdump');
+      } catch (e) {
+        if (e.stack) {
+          st = extractStackTrace(e);
+        }
+      }
+    } 
+    return st;
   }
 
   /**
@@ -589,6 +711,9 @@
    * @returns {Object} The suite instance.
    */
   function render(index) {
+    if (index != null && (index < 0 || index >= ui.benchmarks.length)) {
+      debugger;
+    }
     _.each(index == null ? (index = 0, ui.benchmarks) : [ui.benchmarks[index]], function(bench) {
       var parsed,
           cell = $(prefix + (++index)),
@@ -596,15 +721,14 @@
           hz = bench.hz;
 
       // reset title and class
-      cell.title = '';
+      //cell.title = '';
       cell.className = classNames.results;
 
       // status: error
       if (error) {
         setHTML(cell, 'Error');
         addClass(cell, classNames.error);
-        parsed = join(error, '</li><li>');
-        logError('<p>' + error + '.</p>' + (parsed ? '<ul><li>' + parsed + '</li></ul>' : ''));
+        logError(error, 'failed to complete benchmark #' + bench.id + ': ' + bench.name);
       }
       else {
         // status: running
@@ -644,7 +768,13 @@
   ui.on('add', function(event) {
     var bench = event.target,
         index = ui.benchmarks.length,
-        id = index + 1;
+        id;
+
+    id = index + 1;
+    if (id !== bench.id) {
+      debugger;
+    }
+    id = bench.id;
 
     var table = $('test-rows-container');
     var table_row_template = $('test-row-template').innerHTML;
@@ -708,11 +838,16 @@
       ui.render(index);
     }
   })
-  .on('start cycle', function() {
-    ui.render();
+  .on('start cycle', function(ev) {
+    var target = ev.target;
+    current_task_description = 'running benchmark #' + target.id + ': ' + target.name;
+
+    ui.render(ev.type === 'start' ? null : target.id - 1);
     setHTML('run', texts.run.running);
   })
-  .on('complete', function() {
+  .on('complete', function(ev) {
+    current_task_description = 'summarizing benchmark results';
+
     var benches = filter(ui.benchmarks, 'successful'),
         fastest = filter(benches, 'fastest'),
         slowest = filter(benches, 'slowest');
@@ -821,7 +956,18 @@
     // run this code in global scope:
     console.log('init code loading into global scope:\n', prep_source_code);
     current_task_description = 'run init + setup + teardown code sections';
-    globalEval(prep_source_code);
+
+    // We are going to execute userland code here: it can crash 
+    // hence we have to wrap it in `try/catch` to ensure decent user feedback
+    // on failure.
+    try {
+      globalEval(prep_source_code);
+    } catch (e) {
+      var error = e || new Error(String(e));
+
+      logError(e, 'running the benchmark\'s preparation code failed');
+    }
+
     current_task_description = null;
 
     function addBenchmarks(tests, group_parent) {
@@ -937,40 +1083,12 @@
     }());
 
     // catch and display errors from the "preparation code"
-    window.onerror = function(message, fileName, lineNumber, charPos, exception) {
-      var st = [];
-      if (exception && exception.stack) {
-        st = exception.stack.split('\n');
-        st.shift();
-        var depth_track = 0;
-        st = st.map(function translate(f) {
-          f = f
-          .trim()
-          // anonymous - unnamed functions:
-          .replace(/^at [a-z]+:\/\/.+?\/([a-z0-9_]+)\.js:([0-9]+)(?:\:.*)?$/i, 'SRC::$1.L$2')
-          .replace(/^at ([a-z_\$][a-z0-9_\$\.]*)\s[^\s]+$/i, '$1');
-
-          if (f.indexOf('Suite.ui.') === 0) {
-            depth_track++;
-          } else if (depth_track) {
-            depth_track++;
-          }
-          if (depth_track > 2) {
-            // nuke all remaining stack lines from this point forward:
-            f = null;
-          }
-          return f;
-        })
-        .filter(function (l) {
-          return l != null;
-        });
-      }
-      console.error('ERROR: ', exception);
-      logError('<p>' + message + '.</p><ul><li>' + join({
-        'message': message,
-        'fileName': fileName,
-        'lineNumber': lineNumber
-      }, '</li><li>') + (current_task_description ? '</li><li>activity: ' + current_task_description : '') + (st.length ? '</li><li>stackTrace: ' + join(st, ' &#187; ') : '') + '</li></ul>');
+    window.onerror = function (message, fileName, lineNumber, charPos, exception) {
+      logError(exception, {
+        message: message,
+        fileName: fileName,
+        lineNumber: lineNumber
+      });
       scrollEl.scrollTop = $('error-info').offsetTop;
     };
   }
