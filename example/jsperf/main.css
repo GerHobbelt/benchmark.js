@@ -486,8 +486,31 @@ a:focus span,
 #comments .owner .meta a {
   color: #fff;
 }
-#controls,
-#run,
+#controls {
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-bottom: 8px solid rgba(224, 224, 224, 0.9);
+  width: 100%;
+}
+#controls.show {
+  display: block;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -ms-flex-pack: center;
+      justify-content: center;
+  -ms-flex-align: center;
+      align-items: center;
+}
+#controls:after {
+  content: "";
+  display: table;
+  clear: both;
+}
 .buttons {
   float: right;
 }
@@ -577,10 +600,12 @@ hgroup h2,
 }
 pre {
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   background-color: #f7f7f7;
   margin: 0;
   box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 table #results-1 {
   width: 100px;
@@ -704,9 +729,6 @@ applet {
 #bs-results .google-visualization-table-tr-head td {
   white-space: normal;
 }
-#controls {
-  margin-top: -3.35em;
-}
 #comments h1 {
   padding: 0;
 }
@@ -804,7 +826,6 @@ textarea,
   padding: 6px 0 6px 6px;
   overflow-y: hidden;
 }
-#controls.show,
 #firebug.show,
 #java.show {
   display: block;
@@ -865,9 +886,8 @@ textarea,
   section > h1,
   section > h2,
   section > h3 {
-    margin-left: 1em;
-    margin-right: 1em;
-    border: 1px solid red;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
   }
 }
 @media (max-width: 1040px) {

@@ -204,8 +204,26 @@ a:hover span, a:focus span, #comments .owner .meta a {
 
 #controls {
   position: fixed;
-  right: 0px;
-  top: 54px;
+  left: 0;
+  // top: 54px;
+  top: 0;
+
+  padding: 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-bottom: 8px solid rgba(224, 224, 224, 0.9);
+  width: 100%;
+
+  &.show {
+    display: block;
+
+    // center children: 
+    // 
+    // https://stackoverflow.com/questions/114543/horizontally-center-a-div-in-a-div/16144913#16144913
+    display: flex;
+    flex-wrap: wrap;          // optional. only if you want the items to wrap 
+    justify-content: center;  // for horizontal alignment 
+    align-items: center;      // for vertical alignment 
+  }
 
   // using https://css-tricks.com/snippets/css/clear-fix/
   &:after {
@@ -215,7 +233,7 @@ a:hover span, a:focus span, #comments .owner .meta a {
   }
 }
 
-#run, .buttons {
+.buttons {
   float: right;
 }
 
@@ -307,11 +325,19 @@ hgroup h2, #controls, #firebug, #java {
 
 pre {
   width: 100%;
-  overflow: auto;
+  //overflow: auto;
+  overflow: hidden;
   background-color: #f7f7f7;
 
   margin: 0;
   box-sizing: border-box;       // include padding and border in the 100% width so we don't get punished with a horizontal scrollbar! 
+
+  // http://stackoverflow.com/questions/248011/how-do-i-wrap-text-in-a-pre-tag
+  white-space: pre-wrap;          // Since CSS 2.1 
+  // white-space: -moz-pre-wrap;  // Mozilla, since 1999 
+  // white-space: -pre-wrap;      // Opera 4-6 
+  // white-space: -o-pre-wrap;    // Opera 7 
+  word-wrap: break-word;          // Internet Explorer 5.5+ 
 }
 
 table #results-1 {
@@ -458,9 +484,9 @@ footer {
   white-space: normal;
 }
 
-#controls {
-  margin-top: -3.35em;
-}
+// #controls {
+//   margin-top: -3.35em;
+// }
 
 #comments h1 {
   padding: 0;
@@ -571,7 +597,7 @@ footer {
   overflow-y: hidden;
 }
 
-#controls.show, #firebug.show, #java.show {
+#firebug.show, #java.show {
   display: block;
 }
 
@@ -643,9 +669,9 @@ footer {
   section > h1, 
   section > h2, 
   section > h3 {
-    margin-left: 1em;
-    margin-right: 1em;
-    border: 1px solid red;
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    // border: 1px solid red;
   }
 }
 
