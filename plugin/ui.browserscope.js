@@ -135,12 +135,19 @@
    * @returns {Object} The new script element.
    */
   function loadScript(src, sibling, context) {
-    context = sibling ? sibling.ownerDocument || [sibling, sibling = 0][0] : context;
-    var script = createElement('script', context),
-        nextSibling = sibling ? sibling.nextSibling : query('script', context).pop();
-
+    if (sibling) {
+      context = sibling.ownerDocument;
+      if (!context) {
+        context = sibling;
+        sibling = query('script', context).pop();
+      }
+    }
+    if (!sibling) {
+      sibling = query('*', context).pop();
+    }
+    var script = createElement('script', context);
     script.src = src;
-    return (sibling || nextSibling).parentNode.insertBefore(script,  nextSibling);
+    return sibling.parentNode.insertBefore(script, sibling.nextSibling);
   }
 
   /**
@@ -1038,22 +1045,25 @@
     // the frame window of the charts
     me.chartWindow = iwin;
 
-    // the element the charts are inserted into
-    me.container = query('#bs-chart', idoc)[0];
+    // ensure that content in iframe is processed by executing on next tick
+    setTimeout(function() {
+      // the element the charts are inserted into
+      me.container = query('#bs-chart', idoc)[0];
 
-    // Browserscope's UA div is inserted before an element with the id of "bs-ua-script"
-    loadScript('https://www.browserscope.org/ua?o=js', me.container).id = 'bs-ua-script';
+      // Browserscope's UA div is inserted before an element with the id of "bs-ua-script"
+      loadScript('https://www.browserscope.org/ua?o=js', me.container).id = 'bs-ua-script';
 
-    // the "autoload" string is created following the guide at
-    // https://developers.google.com/loader/?hl=en#auto-loading
-    loadScript('https://www.google.com/jsapi?autoload=' + encodeURIComponent('{' +
-      'modules:[{' +
-        'name:"visualization",' +
-        'version:1,' +
-        'packages:["corechart","table"],' +
-        'callback:ui.browserscope.load' +
-      '}]' +
-    '}'), idoc);
+      // the "autoload" string is created following the guide at
+      // https://developers.google.com/loader/?hl=en#auto-loading
+      loadScript('https://www.google.com/jsapi?autoload=' + encodeURIComponent('{' +
+        'modules:[{' +
+          'name:"visualization",' +
+          'version:1,' +
+          'packages:["corechart","table"],' +
+          'callback:ui.browserscope.load' +
+        '}]' +
+      '}'), idoc);
+    }, 1);
   };
 
   // hide the chart while benchmarks are running

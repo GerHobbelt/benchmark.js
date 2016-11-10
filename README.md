@@ -1,4 +1,4 @@
-# Benchmark.js v2.1.2-19
+# Benchmark.js v2.1.2
 
 A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof JavaScript benchmarks") benchmarking library that supports high-resolution timers & returns statistically significant results. As seen on [jsPerf](https://jsperf.com/).
 
@@ -10,7 +10,7 @@ A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof J
 
 ## Download
 
- * [Development source](https://raw.githubusercontent.com/gerhobbelt/benchmark.js/2.1.2-19/benchmark.js)
+ * [Development source](https://raw.githubusercontent.com/bestiejs/benchmark.js/2.1.2/benchmark.js)
 
 
 ## [JSPERF.COM / BenchmarkJS functionality example](./example/jsperf/)
@@ -113,7 +113,7 @@ Also note that rough support for a test *catalog* is available for the `/example
 
 ## Support
 
-Tested in Chrome 46-47, Firefox 42-43, IE 9-11, Edge 13, Safari 8-9, Node.js 0.10-6, & PhantomJS 1.9.8.
+Tested in Chrome 53-54, Firefox 48-49, IE 11, Edge 14, Safari 9-10, Node.js 6-7, & PhantomJS 2.1.1.
 
 
 ## @BestieJS
