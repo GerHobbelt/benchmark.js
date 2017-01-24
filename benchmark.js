@@ -1144,7 +1144,7 @@
       // Copy own properties.
       _.forOwn(suite, function (value, key) {
         if (!_.has(result, key)) {
-          result[key] = value && _.isFunction(value.clone)
+          result[key] = _.isFunction(_.get(value, 'clone'))
             ? value.clone()
             : cloneDeep(value);
         }
@@ -1546,26 +1546,28 @@
               destination = data.destination,
               currValue = destination[key];
 
-          // Skip pseudo private properties like `_timerId` which could be a
-          // Java object in environments like RingoJS.
-          if (key.charAt(0) == '_') {
+          // Skip pseudo private properties and event listeners.
+          if (/^_|^events$|^on[A-Z]/.test(key)) {
             return;
           }
-          if (value && typeof value == 'object') {
+          if (_.isObjectLike(value)) {
             if (_.isArray(value)) {
               // Check if an array value has changed to a non-array value.
               if (!_.isArray(currValue)) {
-                changed = currValue = [];
+                changed = true;
+                currValue = [];
               }
               // Check if an array has changed its length.
               if (currValue.length !== value.length) {
-                changed = currValue = currValue.slice(0, value.length);
+                changed = true;
+                currValue = currValue.slice(0, value.length);
                 currValue.length = value.length;
               }
             }
             // Check if an object has changed to a non-object value.
-            else if (!currValue || typeof currValue !== 'object') {
-              changed = currValue = {};
+            else if (!_.isObjectLike(currValue)) {
+              changed = true;
+              currValue = {};
             }
             // Register a changed object.
             if (changed) {
@@ -1574,7 +1576,7 @@
             queue.push({ destination: currValue, source: value });
           }
           // Register a changed primitive.
-          else if (value !== currValue && !(value == null || _.isFunction(value))) {
+          else if (!_.eq(currValue, value) && value !== undefined) {
             changes.push({ destination: destination, key: key, value: value });
           }
         });
@@ -1582,7 +1584,8 @@
       while ((data = queue[index++]));
 
       // If changed emit the `reset` event and if it isn't cancelled reset the benchmark.
-      if (changes.length && (bench.emit(event = Event('reset')), !event.cancelled)) {
+      if (changes.length &&
+          (bench.emit(event = Event('reset')), !event.cancelled)) {
         _.each(changes, function (data) {
           data.destination[data.key] = data.value;
         });
@@ -2016,7 +2019,7 @@
        * Adds a clone to the queue.
        */
       function enqueue() {
-        queue.push(bench.clone({
+        queue.push(_.assign(bench.clone(), {
           _original: bench,
           events: {
             abort: [update],
@@ -2496,7 +2499,7 @@
        * @memberOf Benchmark
        * @type string
        */
-      'version': '2.1.2'
+      'version': '2.1.3'
     });
 
     _.assign(Benchmark, {
