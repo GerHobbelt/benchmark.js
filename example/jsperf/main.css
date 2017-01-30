@@ -486,6 +486,9 @@ a:focus span,
 #comments .owner .meta a {
   color: #fff;
 }
+article {
+  margin-top: 3em;
+}
 #controls {
   position: fixed;
   left: 0;
@@ -494,6 +497,7 @@ a:focus span,
   background-color: rgba(255, 255, 255, 0.9);
   border-bottom: 8px solid rgba(224, 224, 224, 0.9);
   width: 100%;
+  height: 2em;
 }
 #controls.show {
   display: block;
