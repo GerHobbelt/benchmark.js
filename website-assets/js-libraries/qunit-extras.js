@@ -5,27 +5,20 @@
  * Available under MIT license <http://mths.be/mit>
  */
 ;(function() {
-
-  /** Used as a safe reference for `undefined` in pre ES5 environments. */
-  var undefined;
-
-  /** Used for built-in method references. */
-  var arrayProto = Array.prototype;
-
-  /** Built-in value references. */
-  var push = arrayProto.push,
-      slice = arrayProto.slice,
-      unshift = arrayProto.unshift;
+  'use strict';
 
   /** Used as a horizontal rule in console output. */
   var hr = '----------------------------------------';
 
-  /** Used to display the wait throbber. */
-  var throbberDelay = 500,
-      waitCount = -1;
-
   /** Used to match parts of the assert message. */
   var reDied = /^Died on test #\d+/;
+
+  /** `Object#toString` result reference. */
+  var symbolTag = '[object Symbol]';
+
+  /** Used to display the wait throbber. */
+  var wait = 500,
+      waitCount = -1;
 
   /** Used to associate color names with their corresponding codes. */
   var ansiCodes = {
@@ -36,25 +29,33 @@
   };
 
   /** Detect free variable `global` from Node.js. */
-  var freeGlobal = checkGlobal(typeof global == 'object' && global);
+  var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
 
   /** Detect free variable `self`. */
-  var freeSelf = checkGlobal(typeof self == 'object' && self);
-
-  /** Detect `this` as the global object. */
-  var thisGlobal = checkGlobal(typeof this == 'object' && this);
+  var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
 
   /** Used as a reference to the global object. */
-  var root = freeGlobal || freeSelf || thisGlobal || Function('return this')();
+  var root = freeGlobal || freeSelf || Function('return this')();
 
   /** Detect free variable `exports`. */
-  var freeExports = freeGlobal && typeof exports == 'object' && exports;
+  var freeExports = typeof exports == 'object' && exports && !exports.nodeType && exports;
 
   /** Detect free variable `module`. */
-  var freeModule = freeExports && typeof module == 'object' && module;
+  var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
 
   /** Detect the popular CommonJS extension `module.exports`. */
   var moduleExports = freeModule && freeModule.exports === freeExports;
+
+  /** Used for built-in method references. */
+  var arrayProto = Array.prototype,
+      objectProto = Object.prototype;
+
+  /** Built-in value references. */
+  var objectToString = objectProto.toString,
+      push = arrayProto.push,
+      slice = arrayProto.slice,
+      symbolToString = root.Symbol ? root.Symbol.prototype.toString : undefined,
+      unshift = arrayProto.unshift;
 
   /** Detect environment objects. */
   var phantom = root.phantom ,
@@ -79,17 +80,6 @@
   }());
 
   /*--------------------------------------------------------------------------*/
-
-  /**
-   * Checks if `value` is a global object.
-   *
-   * @private
-   * @param {*} value The value to check.
-   * @returns {null|Object} Returns `value` if it's a global object, else `null`.
-   */
-  function checkGlobal(value) {
-    return (value && value.Object === Object) ? value : null;
-  }
 
   /**
    * Adds text color to the terminal output of `string`.
@@ -131,13 +121,19 @@
    * @returns {boolean} Returns `true` if the `value` is found, else `false`.
    */
   function includes(array, value) {
-    var length = array ? array.length : 0;
-    while (length--) {
-      if (array[length] === value) {
-        return true;
-      }
-    }
-    return false;
+    var index = array ? array.indexOf(value) : -1;
+    return index > -1;
+  }
+
+  /**
+   * Checks if `value` is classified as a `Symbol` primitive or object.
+   *
+   * @private
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
+   */
+  function isSymbol(value) {
+    return typeof value == 'symbol' || objectToString.call(value) == symbolTag;
   }
 
   /**
@@ -152,19 +148,20 @@
     return length ? array[length - 1] : undefined;
   }
 
+
   /**
    * Writes an inline message to standard output.
    *
    * @private
    * @param {string} [text=''] The text to log.
    */
-  var logInline = (function() {
+  var logln = (function() {
     if (!isNode || isWindows) {
       return function() {};
     }
     // Cleanup any inline logs when exited via `ctrl+c`.
     process.on('SIGINT', function() {
-      logInline();
+      logln();
       process.exit();
     });
 
@@ -185,8 +182,8 @@
    *
    * @private
    */
-  function logThrobber() {
-    logInline('Please wait' + repeat('.', (++waitCount % 3) + 1));
+  function pleaseWait() {
+    logln('Please wait' + repeat('.', (++waitCount % 3) + 1));
   }
 
   /**
@@ -199,6 +196,26 @@
    */
   function repeat(text, n) {
     return Array(n + 1).join(text);
+  }
+
+  /**
+   * Converts `value` to a string.
+   *
+   * @private
+   * @param {*} value The value to convert.
+   * @returns {string} Returns the converted string.
+   */
+  function toString(value) {
+    if (typeof value == 'string') {
+      return value;
+    }
+    if (Array.isArray(value)) {
+      return value.map(toString) + '';
+    }
+    if (isSymbol(value)) {
+      return symbolToString ? symbolToString.call(value) : '';
+    }
+    return (value + '');
   }
 
   /**
@@ -370,6 +387,7 @@
         var asserts = this.assertions,
             config = QUnit.config,
             expected = this.expected,
+            index = -1,
             items = asserts.slice(),
             length = items.length;
 
@@ -382,11 +400,8 @@
             items.push('Expected at least one assertion, but none were run - call expect(0) to accept zero assertions.');
           }
         } else if (expected != length) {
-          items.push('Expected ' + String(expected) + ' assertions, but ' + length + ' were run');
+          items.push('Expected ' + toString(expected) + ' assertions, but ' + length + ' were run');
         }
-        var index = -1;
-        length = items.length;
-
         while (++index < length) {
           var assert = items[index],
               isStr = typeof assert == 'string',
@@ -397,7 +412,7 @@
           if (includes(excusedAsserts, assertMessage) ||
               includes(excusedAsserts, assertDied) ||
               includes(excusedAsserts, assertValue) ||
-              includes(excusedAsserts, String(assertValue).replace(/\s+/g, ''))) {
+              includes(excusedAsserts, toString(assertValue).replace(/\s+/g, ''))) {
             if (isStr) {
               while (asserts.length < expected) {
                 asserts.push({ 'result': true });
@@ -412,7 +427,7 @@
         finish.apply(this, slice.call(arguments, 1));
       });
 
-      // Wrap to add `expected`.
+      // Wrap to add `assert.expected`.
       test.pushResult = wrap(test.pushResult, function(pushResult, details) {
         pushResult.apply(this, slice.call(arguments, 1));
         var assert = last(this.assertions);
@@ -434,7 +449,7 @@
           moduleLogs = module.logs;
 
       if (!isSilent) {
-        logInline();
+        logln();
         if (!module.printed) {
           module.printed = true;
           console.log(hr);
@@ -467,8 +482,8 @@
 
         if (!result && type == 'EQ') {
           message.push(color('magenta',
-            'Expected: ' + (entry.negative ? 'NOT ' : '') + String(expected) + ', ' +
-            'Actual: ' + String(entry.actual)
+            'Expected: ' + (entry.negative ? 'NOT ' : '') + toString(expected) + ', ' +
+            'Actual: ' + toString(entry.actual)
           ));
         }
         if (!isSilent) {
@@ -486,7 +501,7 @@
           statusColor = failures ? 'magenta' : 'green';
 
       if (!isSilent) {
-        logInline();
+        logln();
         console.log(hr);
         console.log(color(statusColor, '    PASS: ' + details.passed + '  FAIL: ' + failures + '  TOTAL: ' + details.total));
         console.log(color(statusColor, '    Finished in ' + details.runtime + ' milliseconds.'));
@@ -512,7 +527,7 @@
     if (!document) {
       // Start log throbber.
       if (!isSilent) {
-        setInterval(logThrobber, throbberDelay);
+        setInterval(pleaseWait, wait);
       }
       // Must call `QUnit.start` in the test file if not loaded in a browser.
       QUnit.config.autostart = false;
@@ -529,4 +544,4 @@
   } else {
     install(root.QUnit);
   }
-}.call(this));
+}());
