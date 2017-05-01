@@ -68,6 +68,8 @@
         return sum;\n\
       }\n\
 \n\
+      // constant folding\n\
+      // = precalc all constant expressions\n\
       function basic_const_folding() {\n\
         var sum = 0;\n\
         for (var i = 0, l = data.length; i < l; i++) {\n\
@@ -89,6 +91,8 @@
         return sum;\n\
       }\n\
 \n\
+      // advanced constant folding\n\
+      // = also precalc all constant **function** calls\n\
       function advanced_const_folding() {\n\
         var sum = 0;\n\
         for (var i = 0, l = data.length; i < l; i++) {\n\
@@ -110,6 +114,8 @@
         return sum;\n\
       }\n\
 \n\
+      // constant propagation\n\
+      // = replace constant references with their value\n\
       function all_folding_plus_constant_propagation() {\n\
         var sum = 0;\n\
         for (var i = 0, l = data.length; i < l; i++) {\n\
@@ -118,7 +124,7 @@
           var c2 = 1 / 0.8414709848078965;\n\
           var c3 = 45;\n\
           var c4 = 45 * 0.42;\n\
-          var c5 = c4 / c2;\n\
+          var c5 = (45 * 0.42) / (1 / 0.8414709848078965);\n\
           var v1 = d & 0x0001;\n\
           var v2;\n\
           if (v1) {\n\
@@ -131,6 +137,8 @@
         return sum;\n\
       }\n\
 \n\
+      // unused variable removal\n\
+      // = discard unused vars carrying precalced constant values\n\
       function plus_unused_variable_removal() {\n\
         var sum = 0;\n\
         for (var i = 0, l = data.length; i < l; i++) {\n\
@@ -152,6 +160,9 @@
         return sum;\n\
       }\n\
 \n\
+      // single use variable inlining\n\
+      // = one ref per var? ==>\n\
+      //   replace variable refs with their assignment expressions\n\
       function plus_single_use_variable_inlining() {\n\
         var sum = 0;\n\
         for (var i = 0, l = data.length; i < l; i++) {\n\
@@ -173,6 +184,9 @@
         return sum;\n\
       }\n\
 \n\
+      // rewrite to ternairy operator\n\
+      // = rewrite simple if..then..else.. statements\n\
+      //   to ..?..:.. ternairy expressions\n\
       function plus_rewrite_to_ternairy_operator() {\n\
         var sum = 0;\n\
         for (var i = 0, l = data.length; i < l; i++) {\n\
@@ -189,6 +203,9 @@
         return sum;\n\
       }\n\
 \n\
+      // invariant code motion\n\
+      // = move unchanging statements/expressions\n\
+      //   outside the loop: have them execute only once\n\
       function via_invariant_code_motion() {\n\
         var sum = 0;\n\
         var c1 = Math.sin(1);\n\
