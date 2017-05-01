@@ -123,7 +123,7 @@
   // only keep the first line of content of the rendered output, for use as 'inline' element elsewhere.
   function mdRenderPartialInline(md) {
     md = markDown.render(md);
-    md = md.trim().split('\n')[0].replace(/^.*?<[ph][^>]*>(.*?)<\/[ph][^>]*>.*/, '$1').replace(/<br>.*/, '').trim();
+    md = md.trim().split('\n')[0].replace(/^.*?<[ph][^>]*>(.*?)(<\/[ph][^>]*>|<br>).*/, '$1').trim();
     return md;
   }
 
