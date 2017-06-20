@@ -1,6 +1,6 @@
 {
   "name": "benchmark",
-  "version": "2.1.4-21",
+  "version": "2.1.4-22",
   "description": "A benchmarking library that supports high-resolution timers & returns statistically significant results.",
   "homepage": "https://benchmarkjs.com/",
   "license": "MIT",
