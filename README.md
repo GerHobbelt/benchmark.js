@@ -5,7 +5,7 @@ A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof J
 
 ## Documentation
 
-* [API Documentation](./docs)
+* [API Documentation](./doc)
 
 
 ## Download
