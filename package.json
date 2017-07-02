@@ -18,7 +18,8 @@
     "doc": "docdown benchmark.js doc/README.md style=github title=\"<a href=\\\"https://benchmarkjs.com/\\\">Benchmark.js</a> <span>v1.1.1-1</span>\" toc=categories url=\"https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js\" && gulp patch-version && gulp",
     "test": "node test/test",
     "build": "npm run doc",
-    "server": "live-server --cors"
+    "server": "live-server --cors",
+    "clear": "rm -f package-lock.json ; rm -rf node_modules"
   },
   "dependencies": {
     "json5": "github:GerHobbelt/json5#0.5.1-12",
@@ -38,7 +39,7 @@
     "istanbul": "0.4.5",
     "less": "2.7.2",
     "less-plugin-autoprefix": "1.5.1",
-    "live-server": "github:GerHobbelt/live-server#1.3.0-18",
+    "live-server": "github:GerHobbelt/live-server#1.3.0-19",
     "markdown-it": "github:GerHobbelt/markdown-it#8.3.2-9",
     "qunit-extras": "3.0.0",
     "qunitjs": "2.3.3",
