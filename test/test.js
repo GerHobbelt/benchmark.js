@@ -562,23 +562,37 @@
 
     QUnit.test('should modify and process the "operationsPerRound" setting correctly for each benchmark', function(assert) {
       var ops_tracker = [];
+      var do_log = true;
 
       Benchmark({
         'setup': function() {
           this.operationsPerRound = 100;
-          ops_tracker.push(this.operationsPerRound);
+          if (do_log) {
+            ops_tracker.push(this.operationsPerRound);
+          }
         },
         'fn': function(deferred) {
           this.operationsPerRound = 200;
-          ops_tracker.push(this.operationsPerRound);
+          if (do_log) {
+            ops_tracker.push(this.operationsPerRound);
+          }
         },
         'teardown': function() {
           this.operationsPerRound = 500;
-          ops_tracker.push(this.operationsPerRound);
+          if (do_log) {
+            ops_tracker.push(this.operationsPerRound);
+          }
         },
         'onComplete': function() {
           var actual = ops_tracker.join(',').replace(/(200,)+/g, '$1').replace(/(100,200,500(?:,|$))+/, '$1');
           assert.strictEqual(actual, '100,200,500');
+        },
+        'onCycle': function (e) {
+          // prevent stack overflow crash due to overlarge ops_tracker array...
+          if (ops_tracker.length > 5e5) {
+            //e.aborted = true;  -- no need to abort the benchmark: we just need to stop filling the log array!
+            do_log = false;
+          }
         }
       })
       .run();
