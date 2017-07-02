@@ -785,6 +785,13 @@
      * @memberOf Benchmark
      * @param {Array} array The array to iterate over.
      * @param {Function|string} callback The function/alias called per iteration.
+     * 
+     * Supported aliases:
+     * - `'successful'`: exclude those benchmark runs which have errored out, haven't run, or have a `hz` (calculated frequency, i.e. number of runs per second) of `Infinity` 
+     * - `'ranking'`: exclude those benchmarks which do not participate in ranking, i.e. have their `ranking` option set to a truthy value or undefined.
+     * - `'fastest'`: ...
+     * - `'slowest'`: ...
+     *
      * @returns {Array} A new array of values that passed callback filter.
      * @example
      *
@@ -819,7 +826,8 @@
       else if (callback === 'fastest' || callback === 'slowest') {
         // Get successful, sort by period + margin of error, and filter fastest/slowest.
         var result = filter(filter(array, 'successful'), 'ranking').sort(function (a, b) {
-          a = a.stats; b = b.stats;
+          a = a.stats; 
+          b = b.stats;
           return (a.mean + a.moe > b.mean + b.moe ? 1 : -1) * (callback === 'fastest' ? 1 : -1);
         });
 
@@ -987,6 +995,7 @@
           ? index
           : (index = false);
       }
+
       // Juggle arguments.
       if (_.isString(name)) {
         // 2 arguments (array, name).
@@ -998,6 +1007,7 @@
         args = _.isArray(args = 'args' in options ? options.args : []) ? args : [args];
         queued = options.queued;
       }
+
       // Start iterating over the array.
       if (raiseIndex() !== false) {
         // Emit "start" event.
@@ -1087,7 +1097,7 @@
      * @memberOf Benchmark.Suite
      * @param {string} name A name to identify the benchmark.
      * @param {Function|string} fn The test to benchmark.
-     * @param {Object} [options={}] Options object.
+     * @param {Object} [options={}] Options object which is passed into the Benchmark constructor for this test.
      * @returns {Object} The suite instance.
      * @example
      *
@@ -1134,7 +1144,7 @@
      *
      * @name clone
      * @memberOf Benchmark.Suite
-     * @param {Object} options Options object to overwrite cloned options.
+     * @param {Object} options Options object to overwrite cloned suite options.
      * @returns {Object} The new suite instance.
      */
     function cloneSuite(options) {
@@ -1157,8 +1167,8 @@
      *
      * @name filter
      * @memberOf Benchmark.Suite
-     * @param {Function|string} callback The function/alias called per iteration.
-     * @returns {Object} A new suite of benchmarks that passed callback filter.
+     * @param {Function|string} callback The `filter()` function/alias called per iteration.
+     * @returns {Object} A new suite of benchmarks that passed the `callback` filter.
      */
     function filterSuite(callback) {
       var suite = this,
@@ -2004,6 +2014,9 @@
      * @private
      * @param {Object} bench The benchmark instance.
      * @param {Object} options The options object.
+     * 
+     * Supported options:
+     * - `async`
      */
     function compute(bench, options) {
       options || (options = {});
@@ -2162,6 +2175,9 @@
      * @private
      * @param {Object} clone The cloned benchmark instance.
      * @param {Object} options The options object.
+     * 
+     * Supported options:
+     * - `async`
      */
     function cycle(clone, options) {
       options || (options = {});
@@ -2276,6 +2292,10 @@
      *
      * @memberOf Benchmark
      * @param {Object} [options={}] Options object.
+     * 
+     * Supported options:
+     * - `async`
+     *
      * @returns {Object} The benchmark instance.
      * @example
      *
@@ -2352,6 +2372,26 @@
          * @type boolean
          */
         defer: false,
+
+        /**
+         * A flag to indicate that the benchmark participates in the ranking process, i.e. 
+         * will be included in 'fastest'/'slowest' filtered reports.
+         *
+         * Non-ranked benchmarks, when used as part of a suite, may for example serve as
+         * additional/'foreign' reference material in overview reports which report all
+         * benchmark results, not just the slowest or fastest one(s). Such non-ranked
+         * benchmarks do not 'pollute' the fastest/slowest results and can therefor be
+         * used to, for example, compare the other benchmarks against an more or less
+         * reduced/simplified version of the code-under-test without having that one
+         * 'win everything' and serve as 100% (= fastest) reference for the rest.
+         *
+         * When you don't specify the `ranking` option for a benchmark, then it
+         * is assumed to be ranked (`ranking = true` is default).
+         *
+         * @memberOf Benchmark.options
+         * @type boolean
+         */
+        ranking: true,
 
         /**
          * The delay between test cycles (secs).
