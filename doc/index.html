@@ -112,6 +112,7 @@
 <li><a href="#benchmarkoptionsonreset"><code>Benchmark.options.onReset</code></a></li>
 <li><a href="#benchmarkoptionsonstart"><code>Benchmark.options.onStart</code></a></li>
 <li><a href="#benchmarkoptionsoperationsperround"><code>Benchmark.options.operationsPerRound</code></a></li>
+<li><a href="#benchmarkoptionsranking"><code>Benchmark.options.ranking</code></a></li>
 <li><a href="#benchmarkplatform"><code>Benchmark.platform</code></a></li>
 <li><a href="#benchmarksupport"><code>Benchmark.support</code></a></li>
 <li><a href="#benchmarksupportbrowser"><code>Benchmark.support.browser</code></a></li>
@@ -315,20 +316,20 @@ var suite = new Benchmark.Suite('foo', {
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototypeabort"></a> <code>Benchmark.Suite.prototype.abort()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1061" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototypeabort"></a> <code>Benchmark.Suite.prototype.abort()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1071" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Aborts all benchmarks in the suite.</p>
 <h4>Returns</h4>
 <p><em>(Object)</em>: The suite instance.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototypeaddname-fn-options"></a> <code>Benchmark.Suite.prototype.add(name, fn, [options={}])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1121" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototypeaddname-fn-options"></a> <code>Benchmark.Suite.prototype.add(name, fn, [options={}])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1131" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Adds a test to the benchmark suite.</p>
 <h4>Arguments</h4>
 <ol>
 <li><code>name</code> <em>(string)</em>: A name to identify the benchmark.</li>
 <li><code>fn</code> <em>(Function|string)</em>: The test to benchmark.</li>
-<li><code>[options={}]</code> <em>(Object)</em>: Options object.</li>
+<li><code>[options={}]</code> <em>(Object)</em>: Options object which is passed into the Benchmark constructor for this test.</li>
 </ol>
 <h4>Returns</h4>
 <p><em>(Object)</em>: The suite instance.</p>
@@ -363,36 +364,36 @@ suite.add({
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototypecloneoptions"></a> <code>Benchmark.Suite.prototype.clone(options)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1140" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototypecloneoptions"></a> <code>Benchmark.Suite.prototype.clone(options)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1150" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Creates a new suite with cloned benchmarks.</p>
 <h4>Arguments</h4>
 <ol>
-<li><code>options</code> <em>(Object)</em>: Options object to overwrite cloned options.</li>
+<li><code>options</code> <em>(Object)</em>: Options object to overwrite cloned suite options.</li>
 </ol>
 <h4>Returns</h4>
 <p><em>(Object)</em>: The new suite instance.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototypefiltercallback"></a> <code>Benchmark.Suite.prototype.filter(callback)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1163" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototypefiltercallback"></a> <code>Benchmark.Suite.prototype.filter(callback)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1173" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An <code>Array#filter</code> like method.</p>
 <h4>Arguments</h4>
 <ol>
-<li><code>callback</code> <em>(Function|string)</em>: The function/alias called per iteration.</li>
+<li><code>callback</code> <em>(Function|string)</em>: The <code>filter()</code> function/alias called per iteration.</li>
 </ol>
 <h4>Returns</h4>
-<p><em>(Object)</em>: A new suite of benchmarks that passed callback filter.</p>
+<p><em>(Object)</em>: A new suite of benchmarks that passed the <code>callback</code> filter.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototypereset"></a> <code>Benchmark.Suite.prototype.reset()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1178" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototypereset"></a> <code>Benchmark.Suite.prototype.reset()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1188" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Resets all benchmarks in the suite.</p>
 <h4>Returns</h4>
 <p><em>(Object)</em>: The suite instance.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototyperunoptions"></a> <code>Benchmark.Suite.prototype.run([options={}])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1215" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototyperunoptions"></a> <code>Benchmark.Suite.prototype.run([options={}])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1225" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Runs the suite.</p>
 <h4>Arguments</h4>
 <ol>
@@ -410,12 +411,23 @@ suite.run({ async: true, queued: true });
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkfilterarray-callback"></a> <code>Benchmark.filter(array, callback)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L805" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkfilterarray-callback"></a> <code>Benchmark.filter(array, callback)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L812" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A generic <code>Array#filter</code> like method.</p>
 <h4>Arguments</h4>
 <ol>
 <li><code>array</code> <em>(Array)</em>: The array to iterate over.</li>
-<li><code>callback</code> <em>(Function|string)</em>: The function/alias called per iteration.</li>
+<li><code>callback</code> <em>(Function|string)</em>: The function/alias called per iteration.
+<br>
+<br>
+Supported aliases:<br>
+<br>
+* <code>'successful'</code>: exclude those benchmark runs which have errored out, haven’t run, or have a <code>hz</code> *(calculated frequency, i.e. number of runs per second)* of <code>Infinity</code>
+<br>
+* <code>'ranking'</code>: exclude those benchmarks which do not participate in ranking, i.e. have their <code>ranking</code> option set to a truthy value or undefined.
+<br>
+* <code>'fastest'</code>: …
+<br>
+* <code>'slowest'</code>: …</li>
 </ol>
 <h4>Returns</h4>
 <p><em>(Array)</em>: A new array of values that passed callback filter.</p>
@@ -437,7 +449,7 @@ Benchmark.filter(benches, 'successful');
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkformatnumbernumber"></a> <code>Benchmark.formatNumber(number)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L841" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkformatnumbernumber"></a> <code>Benchmark.formatNumber(number)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L849" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Converts a number to a more readable comma-separated string representation.</p>
 <h4>Arguments</h4>
 <ol>
@@ -448,7 +460,7 @@ Benchmark.filter(benches, 'successful');
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkinvokebenches-name-args"></a> <code>Benchmark.invoke(benches, name, [args])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L886" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkinvokebenches-name-args"></a> <code>Benchmark.invoke(benches, name, [args])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L894" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Invokes a method on all items in an array.</p>
 <h4>Arguments</h4>
 <ol>
@@ -490,7 +502,7 @@ Benchmark.invoke(benches, {
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkjoinobject-separator1-separator2:"></a> <code>Benchmark.join(object, [separator1=','], [separator2=': '])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1040" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkjoinobject-separator1-separator2:"></a> <code>Benchmark.join(object, [separator1=','], [separator2=': '])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1050" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Creates a string of joined array values or object key-value pairs.</p>
 <h4>Arguments</h4>
 <ol>
@@ -514,14 +526,14 @@ Benchmark.invoke(benches, {
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeabort"></a> <code>Benchmark.prototype.abort()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1381" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeabort"></a> <code>Benchmark.prototype.abort()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1391" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Aborts the benchmark without recording times.</p>
 <h4>Returns</h4>
 <p><em>(Object)</em>: The benchmark instance.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypecloneoptions"></a> <code>Benchmark.prototype.clone(options)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1445" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypecloneoptions"></a> <code>Benchmark.prototype.clone(options)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1455" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Creates a new benchmark using the same test and options.</p>
 <h4>Arguments</h4>
 <ol>
@@ -537,7 +549,7 @@ Benchmark.invoke(benches, {
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypecompareother"></a> <code>Benchmark.prototype.compare(other)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1469" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypecompareother"></a> <code>Benchmark.prototype.compare(other)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1479" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Determines if a benchmark is faster than another.</p>
 <h4>Arguments</h4>
 <ol>
@@ -548,7 +560,7 @@ Benchmark.invoke(benches, {
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeemittype-args"></a> <code>Benchmark.prototype.emit(type, [args])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1255" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeemittype-args"></a> <code>Benchmark.prototype.emit(type, [args])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1265" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Executes all registered listeners of the specified event type.</p>
 <h4>Arguments</h4>
 <ol>
@@ -560,7 +572,7 @@ Benchmark.invoke(benches, {
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypelistenerstype"></a> <code>Benchmark.prototype.listeners(type)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1285" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypelistenerstype"></a> <code>Benchmark.prototype.listeners(type)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1295" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Returns an array of event listeners for a given type that can be manipulated
 to add or remove listeners.</p>
 <h4>Arguments</h4>
@@ -572,7 +584,7 @@ to add or remove listeners.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeofftype-listener"></a> <code>Benchmark.prototype.off([type], [listener])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1318" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeofftype-listener"></a> <code>Benchmark.prototype.off([type], [listener])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1328" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Unregisters a listener for the specified event type(s),
 or unregisters all listeners for the specified event type(s),
 or unregisters all listeners for all event types.</p>
@@ -602,7 +614,7 @@ bench.off();
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeontype-listener"></a> <code>Benchmark.prototype.on(type, listener)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1360" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeontype-listener"></a> <code>Benchmark.prototype.on(type, listener)</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1370" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Registers a listener for the specified event type(s).</p>
 <h4>Arguments</h4>
 <ol>
@@ -621,18 +633,23 @@ bench.on('start cycle', listener);
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypereset"></a> <code>Benchmark.prototype.reset()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1522" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypereset"></a> <code>Benchmark.prototype.reset()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1532" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Reset properties and abort if running.</p>
 <h4>Returns</h4>
 <p><em>(Object)</em>: The benchmark instance.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototyperunoptions"></a> <code>Benchmark.prototype.run([options={}])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2288" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototyperunoptions"></a> <code>Benchmark.prototype.run([options={}])</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2308" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Runs the benchmark.</p>
 <h4>Arguments</h4>
 <ol>
-<li><code>[options={}]</code> <em>(Object)</em>: Options object.</li>
+<li><code>[options={}]</code> <em>(Object)</em>: Options object.
+<br>
+<br>
+Supported options:<br>
+<br>
+* <code>async</code></li>
 </ol>
 <h4>Returns</h4>
 <p><em>(Object)</em>: The benchmark instance.</p>
@@ -646,7 +663,7 @@ bench.run({ async: true });
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypetostring"></a> <code>Benchmark.prototype.toString()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1603" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypetostring"></a> <code>Benchmark.prototype.toString()</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1613" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Displays relevant benchmark information when coerced to a string.</p>
 <h4>Returns</h4>
 <p><em>(string)</em>: A string representation of the benchmark instance.</p>
@@ -656,119 +673,119 @@ bench.run({ async: true });
 <!-- div -->
 <h2>Properties</h2>
 <!-- div -->
-<h3><a name="benchmarkdeferredprototypebenchmark"></a> <code>Benchmark.Deferred.prototype.benchmark</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2806" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkdeferredprototypebenchmark"></a> <code>Benchmark.Deferred.prototype.benchmark</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2846" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The deferred benchmark instance.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkdeferredprototypecycles"></a> <code>Benchmark.Deferred.prototype.cycles</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2814" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkdeferredprototypecycles"></a> <code>Benchmark.Deferred.prototype.cycles</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2854" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The number of deferred cycles performed while benchmarking.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkdeferredprototypeelapsed"></a> <code>Benchmark.Deferred.prototype.elapsed</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2822" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkdeferredprototypeelapsed"></a> <code>Benchmark.Deferred.prototype.elapsed</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2862" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The time taken to complete the deferred benchmark <em>(secs)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkdeferredprototypetimestamp"></a> <code>Benchmark.Deferred.prototype.timeStamp</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2830" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkdeferredprototypetimestamp"></a> <code>Benchmark.Deferred.prototype.timeStamp</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2870" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A timestamp of when the deferred benchmark started <em>(ms)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkeventprototypeaborted"></a> <code>Benchmark.Event.prototype.aborted</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2847" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkeventprototypeaborted"></a> <code>Benchmark.Event.prototype.aborted</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2887" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate if the emitters listener iteration is aborted.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkeventprototypecancelled"></a> <code>Benchmark.Event.prototype.cancelled</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2855" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkeventprototypecancelled"></a> <code>Benchmark.Event.prototype.cancelled</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2895" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate if the default action is cancelled.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkeventprototypecurrenttarget"></a> <code>Benchmark.Event.prototype.currentTarget</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2863" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkeventprototypecurrenttarget"></a> <code>Benchmark.Event.prototype.currentTarget</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2903" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The object whose listeners are currently being processed.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkeventprototyperesult"></a> <code>Benchmark.Event.prototype.result</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2871" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkeventprototyperesult"></a> <code>Benchmark.Event.prototype.result</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2911" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The return value of the last executed listener.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkeventprototypetarget"></a> <code>Benchmark.Event.prototype.target</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2879" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkeventprototypetarget"></a> <code>Benchmark.Event.prototype.target</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2919" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The object to which the event was originally emitted.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkeventprototypetimestamp"></a> <code>Benchmark.Event.prototype.timeStamp</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2887" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkeventprototypetimestamp"></a> <code>Benchmark.Event.prototype.timeStamp</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2927" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A timestamp of when the event was created <em>(ms)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkeventprototypetype"></a> <code>Benchmark.Event.prototype.type</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2895" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkeventprototypetype"></a> <code>Benchmark.Event.prototype.type</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2935" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The event type.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteoptions"></a> <code>Benchmark.Suite.options</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2907" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteoptions"></a> <code>Benchmark.Suite.options</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2947" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The default options copied by suite instances.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteoptionsname"></a> <code>Benchmark.Suite.options.name</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2915" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteoptionsname"></a> <code>Benchmark.Suite.options.name</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2955" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The name of the suite.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototypeaborted"></a> <code>Benchmark.Suite.prototype.aborted</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2936" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototypeaborted"></a> <code>Benchmark.Suite.prototype.aborted</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2976" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate if the suite is aborted.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototypelength"></a> <code>Benchmark.Suite.prototype.length</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2928" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototypelength"></a> <code>Benchmark.Suite.prototype.length</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2968" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The number of benchmarks in the suite.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarksuiteprototyperunning"></a> <code>Benchmark.Suite.prototype.running</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2944" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarksuiteprototyperunning"></a> <code>Benchmark.Suite.prototype.running</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2984" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate if the suite is running.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptions"></a> <code>Benchmark.options</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2337" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptions"></a> <code>Benchmark.options</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2357" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The default options copied by benchmark instances.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsasync"></a> <code>Benchmark.options.async</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2346" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsasync"></a> <code>Benchmark.options.async</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2366" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate that benchmark cycles will execute asynchronously
 by default.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsdefer"></a> <code>Benchmark.options.defer</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2354" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsdefer"></a> <code>Benchmark.options.defer</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2374" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate that the benchmark clock is deferred.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsdelay"></a> <code>Benchmark.options.delay</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2361" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsdelay"></a> <code>Benchmark.options.delay</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2401" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The delay between test cycles <em>(secs)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsid"></a> <code>Benchmark.options.id</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2370" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsid"></a> <code>Benchmark.options.id</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2410" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Displayed by <code>Benchmark#toString</code> when a <code>name</code> is not available
 <em>(auto-generated if absent)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsinitcount"></a> <code>Benchmark.options.initCount</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2378" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsinitcount"></a> <code>Benchmark.options.initCount</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2418" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The default number of times to execute a test on a benchmark’s first cycle.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsmaxtime"></a> <code>Benchmark.options.maxTime</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2398" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsmaxtime"></a> <code>Benchmark.options.maxTime</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2438" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The maximum time a benchmark is allowed to run before finishing <em>(secs)</em>.
 <br>
 <br>
@@ -776,59 +793,78 @@ Note: Cycle delays aren’t counted toward the maximum time.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsminsamples"></a> <code>Benchmark.options.minSamples</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2406" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsminsamples"></a> <code>Benchmark.options.minSamples</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2446" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The minimum sample size required to perform statistical analysis.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsmintime"></a> <code>Benchmark.options.minTime</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2414" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsmintime"></a> <code>Benchmark.options.minTime</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2454" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The time needed to reduce the percent uncertainty of measurement to <code>1</code>% <em>(secs)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsname"></a> <code>Benchmark.options.name</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2422" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsname"></a> <code>Benchmark.options.name</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2462" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The name of the benchmark.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsonabort"></a> <code>Benchmark.options.onAbort</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2430" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsonabort"></a> <code>Benchmark.options.onAbort</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2470" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An event listener called when the benchmark is aborted.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsoncomplete"></a> <code>Benchmark.options.onComplete</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2438" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsoncomplete"></a> <code>Benchmark.options.onComplete</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2478" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An event listener called when the benchmark completes running.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsoncycle"></a> <code>Benchmark.options.onCycle</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2446" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsoncycle"></a> <code>Benchmark.options.onCycle</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2486" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An event listener called after each run cycle.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsonerror"></a> <code>Benchmark.options.onError</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2454" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsonerror"></a> <code>Benchmark.options.onError</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2494" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An event listener called when a test errors.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsonreset"></a> <code>Benchmark.options.onReset</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2462" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsonreset"></a> <code>Benchmark.options.onReset</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2502" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An event listener called when the benchmark is reset.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsonstart"></a> <code>Benchmark.options.onStart</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2470" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsonstart"></a> <code>Benchmark.options.onStart</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2510" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An event listener called when the benchmark starts running.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkoptionsoperationsperround"></a> <code>Benchmark.options.operationsPerRound</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2388" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsoperationsperround"></a> <code>Benchmark.options.operationsPerRound</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2428" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The default number of tests run per benchmark function call: set this if you
 want the ops/sec to represent the number of single operations when your benchmark
 code is itself a loop or a repeating sequence of the same operations.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkplatform"></a> <code>Benchmark.platform</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2481" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkoptionsranking"></a> <code>Benchmark.options.ranking</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2394" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<p>A flag to indicate that the benchmark participates in the ranking process, i.e.
+will be included in ‘fastest’/‘slowest’ filtered reports.
+<br>
+<br>
+Non-ranked benchmarks, when used as part of a suite, may for example serve as
+additional/‘foreign’ reference material in overview reports which report all
+benchmark results, not just the slowest or fastest one(s). Such non-ranked
+benchmarks do not ‘pollute’ the fastest/slowest results and can therefor be
+used to, for example, compare the other benchmarks against an more or less
+reduced/simplified version of the code-under-test without having that one
+’win everything’ and serve as <code>100</code>% <em>(= fastest)</em> reference for the rest.
+<br>
+<br>
+When you don’t specify the <code>ranking</code> option for a benchmark, then it
+is assumed to be ranked <em>(<code>ranking = true</code> is default)</em>.</p>
+<hr>
+<!-- /div -->
+<!-- div -->
+<h3><a name="benchmarkplatform"></a> <code>Benchmark.platform</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2521" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Platform object with properties describing things like browser name,
 version, and operating system. See <a href="https://mths.be/platform"><code>platform.js</code></a>.</p>
 <hr>
@@ -844,27 +880,27 @@ version, and operating system. See <a href="https://mths.be/platform"><code>plat
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkversion"></a> <code>Benchmark.version</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2502" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkversion"></a> <code>Benchmark.version</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2542" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The semantic version number.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeaborted"></a> <code>Benchmark.prototype.aborted</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2595" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeaborted"></a> <code>Benchmark.prototype.aborted</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2635" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate if the benchmark is aborted.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypecompiled"></a> <code>Benchmark.prototype.compiled</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2571" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypecompiled"></a> <code>Benchmark.prototype.compiled</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2611" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The compiled test function.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypecount"></a> <code>Benchmark.prototype.count</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2535" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypecount"></a> <code>Benchmark.prototype.count</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2575" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The number of times a test was executed.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypecycles"></a> <code>Benchmark.prototype.cycles</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2543" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypecycles"></a> <code>Benchmark.prototype.cycles</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2583" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The number of cycles performed while benchmarking.</p>
 <hr>
 <!-- /div -->
@@ -874,22 +910,22 @@ version, and operating system. See <a href="https://mths.be/platform"><code>plat
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeerror"></a> <code>Benchmark.prototype.error</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2579" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeerror"></a> <code>Benchmark.prototype.error</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2619" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The error object if the test failed.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypefn"></a> <code>Benchmark.prototype.fn</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2587" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypefn"></a> <code>Benchmark.prototype.fn</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2627" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The test to benchmark.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypehz"></a> <code>Benchmark.prototype.hz</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2551" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypehz"></a> <code>Benchmark.prototype.hz</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2591" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The number of executions per second.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeoperationsperround"></a> <code>Benchmark.prototype.operationsPerRound</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2563" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeoperationsperround"></a> <code>Benchmark.prototype.operationsPerRound</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2603" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The number of tests per single benchmark execution:
 this represents the number of single operations when your benchmark
 code is itself a loop or a repeating sequence of the same operations.
@@ -899,12 +935,12 @@ This value MAY be set up by the <code>setup</code> code to override the default 
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototyperunning"></a> <code>Benchmark.prototype.running</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2603" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototyperunning"></a> <code>Benchmark.prototype.running</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2643" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A flag to indicate if the benchmark is running.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypesetup"></a> <code>Benchmark.prototype.setup</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2666" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypesetup"></a> <code>Benchmark.prototype.setup</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2706" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Compiled into the test and executed immediately <strong>before</strong> the test loop.</p>
 <h4>Example</h4>
 <pre><code class="language-js">// basic usage
@@ -964,12 +1000,12 @@ var a = 0;
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypestats"></a> <code>Benchmark.prototype.stats</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2682" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypestats"></a> <code>Benchmark.prototype.stats</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2722" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An object of stats including mean, margin or error, and standard deviation.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypeteardown"></a> <code>Benchmark.prototype.teardown</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2674" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypeteardown"></a> <code>Benchmark.prototype.teardown</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2714" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>Compiled into the test and executed immediately <strong>after</strong> the test loop.</p>
 <hr>
 <!-- /div -->
@@ -979,62 +1015,62 @@ var a = 0;
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmarkprototypetimes"></a> <code>Benchmark.prototype.times</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2747" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmarkprototypetimes"></a> <code>Benchmark.prototype.times</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2787" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>An object of timing data including cycle, elapsed, period, start, and stop.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-statsdeviation"></a> <code>Benchmark#stats.deviation</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2714" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-statsdeviation"></a> <code>Benchmark#stats.deviation</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2754" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The sample standard deviation.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-statsmean"></a> <code>Benchmark#stats.mean</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2722" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-statsmean"></a> <code>Benchmark#stats.mean</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2762" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The sample arithmetic mean <em>(secs)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-statsmoe"></a> <code>Benchmark#stats.moe</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2690" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-statsmoe"></a> <code>Benchmark#stats.moe</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2730" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The margin of error.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-statsrme"></a> <code>Benchmark#stats.rme</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2698" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-statsrme"></a> <code>Benchmark#stats.rme</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2738" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The relative margin of error <em>(expressed as a percentage of the mean)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-statssample"></a> <code>Benchmark#stats.sample</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2730" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-statssample"></a> <code>Benchmark#stats.sample</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2770" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The array of sampled periods.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-statssem"></a> <code>Benchmark#stats.sem</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2706" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-statssem"></a> <code>Benchmark#stats.sem</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2746" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The standard error of the mean.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-statsvariance"></a> <code>Benchmark#stats.variance</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2738" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-statsvariance"></a> <code>Benchmark#stats.variance</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2778" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The sample variance.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-timescycle"></a> <code>Benchmark#times.cycle</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2755" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-timescycle"></a> <code>Benchmark#times.cycle</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2795" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The time taken to complete the last cycle <em>(secs)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-timeselapsed"></a> <code>Benchmark#times.elapsed</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2763" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-timeselapsed"></a> <code>Benchmark#times.elapsed</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2803" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The time taken to complete the benchmark <em>(secs)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-timesperiod"></a> <code>Benchmark#times.period</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2771" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-timesperiod"></a> <code>Benchmark#times.period</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2811" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>The time taken to execute the test once <em>(secs)</em>.</p>
 <hr>
 <!-- /div -->
 <!-- div -->
-<h3><a name="benchmark-timestimestamp"></a> <code>Benchmark#times.timeStamp</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2779" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
+<h3><a name="benchmark-timestimestamp"></a> <code>Benchmark#times.timeStamp</code> <a href="https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2819" title="View in source">Ⓢ</a> <a href="#toc-methods" title="Jump back to the TOC.">Ⓣ</a></h3>
 <p>A timestamp of when the benchmark started <em>(ms)</em>.</p>
 <hr>
 <!-- /div -->
