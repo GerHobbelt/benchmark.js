@@ -1,5 +1,5 @@
 /*!
- * Benchmark.js <https://benchmarkjs.com/> 2.1.4-25
+ * Benchmark.js <https://benchmarkjs.com/> 2.1.4-26
  * Copyright 2010-2016 Mathias Bynens <https://mths.be/>
  * Based on JSLitmus.js, copyright Robert Kieffer <http://broofa.com/>
  * Modified by John-David Dalton <http://allyoucanleet.com/>
@@ -2539,7 +2539,7 @@
        * @memberOf Benchmark
        * @type string
        */
-      version: '2.1.4-25'
+      version: '2.1.4-26'
     });
 
     _.assign(Benchmark, {
