@@ -1,10 +1,14 @@
-# <a href="https://benchmarkjs.com/">Benchmark.js</a> <span>v2.1.x</span>
+# <a href="https://benchmarkjs.com/">Benchmark.js</a> <span>v2.1.4-23</span>
 
 <!-- div class="toc-container" -->
 
+
+
+
 <!-- div -->
 
-## `Methods`
+## <a name="toc-methods"></a> Methods
+
 * <a href="#benchmarkname-fn-options">`Benchmark`</a>
 * <a href="#benchmarkdeferredclone">`Benchmark.Deferred`</a>
 * <a href="#benchmarkdeferredprototyperesolve">`Benchmark.Deferred.prototype.resolve`</a>
@@ -34,9 +38,13 @@
 
 <!-- /div -->
 
+
+
+
 <!-- div -->
 
-## `Properties`
+## <a name="toc-properties"></a> Properties
+
 * <a href="#benchmarkdeferredprototypebenchmark">`Benchmark.Deferred.prototype.benchmark`</a>
 * <a href="#benchmarkdeferredprototypecycles">`Benchmark.Deferred.prototype.cycles`</a>
 * <a href="#benchmarkdeferredprototypeelapsed">`Benchmark.Deferred.prototype.elapsed`</a>
@@ -107,14 +115,19 @@
 
 <!-- div class="doc-container" -->
 
+
+
+
 <!-- div -->
 
-## `Methods`
+## Methods
+
+
+
 
 <!-- div -->
 
-<h3 id="benchmarkname-fn-options"><code>Benchmark(name, fn, [options={}])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L375 "View in source") [&#x24C9;][1]
+### <a name="benchmarkname-fn-options"></a> `Benchmark(name, fn, [options={}])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L375 "View in source") [&#x24C9;][1]
 
 The Benchmark constructor.
 <br>
@@ -126,12 +139,20 @@ methods are:<br>
 [`has`](https://lodash.com/docs#has), [`indexOf`](https://lodash.com/docs#indexOf),
 [`map`](https://lodash.com/docs#map), and [`reduce`](https://lodash.com/docs#reduce)
 
+
+
+
 #### Arguments
+
 1. `name` *(string)*: A name to identify the benchmark.
 2. `fn` *(Function|string)*: The test to benchmark.
 3. `[options={}]` *(Object)*: Options object.
 
+
+
+
 #### Example
+
 ```js
 // basic usage (the `new` operator is optional)
 var bench = new Benchmark(fn);
@@ -198,28 +219,35 @@ var bench = new Benchmark('foo', function () {
   'My name is '.concat(this.name); // "My name is foo"
 });
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkdeferredclone"><code>Benchmark.Deferred(clone)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L422 "View in source") [&#x24C9;][1]
+### <a name="benchmarkdeferredclone"></a> `Benchmark.Deferred(clone)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L422 "View in source") [&#x24C9;][1]
 
 The Deferred constructor.
 
+
+
+
 #### Arguments
+
 1. `clone` *(Object)*: The cloned benchmark instance.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkdeferredprototyperesolve"><code>Benchmark.Deferred.prototype.resolve()</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L756 "View in source") [&#x24C9;][1]
+### <a name="benchmarkdeferredprototyperesolve"></a> `Benchmark.Deferred.prototype.resolve()` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L756 "View in source") [&#x24C9;][1]
 
 Handles cycling/completing the deferred benchmark.
 
@@ -227,10 +255,11 @@ Handles cycling/completing the deferred benchmark.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventtype"><code>Benchmark.Event(type)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L445 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventtype"></a> `Benchmark.Event(type)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L445 "View in source") [&#x24C9;][1]
 
 The Event constructor.
 <br>
@@ -245,17 +274,22 @@ Every Event instance has these members at least:
 <br>
 * `type`: the `type` value when that constructor argument is a String.
 
+
+
+
 #### Arguments
+
 1. `type` *(Object|string)*: The event type.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuitename-options"><code>Benchmark.Suite(name, [options={}])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L503 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuitename-options"></a> `Benchmark.Suite(name, [options={}])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L503 "View in source") [&#x24C9;][1]
 
 The Suite constructor.
 <br>
@@ -265,11 +299,19 @@ make working with Suites easier. The wrapped lodash methods are:<br>
 [`each/forEach`](https://lodash.com/docs#forEach), [`indexOf`](https://lodash.com/docs#indexOf),
 [`map`](https://lodash.com/docs#map), and [`reduce`](https://lodash.com/docs#reduce)
 
+
+
+
 #### Arguments
+
 1. `name` *(string)*: A name to identify the suite.
 2. `[options={}]` *(Object)*: Options object.
 
+
+
+
 #### Example
+
 ```js
 // basic usage (the `new` operator is optional)
 var suite = new Benchmark.Suite;
@@ -299,40 +341,59 @@ var suite = new Benchmark.Suite('foo', {
   onComplete: onComplete
 });
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototypeabort"><code>Benchmark.Suite.prototype.abort()</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1061 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototypeabort"></a> `Benchmark.Suite.prototype.abort()` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1061 "View in source") [&#x24C9;][1]
 
 Aborts all benchmarks in the suite.
 
+
+
+
 #### Returns
+
 *(Object)*: The suite instance.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototypeaddname-fn-options"><code>Benchmark.Suite.prototype.add(name, fn, [options={}])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1121 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototypeaddname-fn-options"></a> `Benchmark.Suite.prototype.add(name, fn, [options={}])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1121 "View in source") [&#x24C9;][1]
 
 Adds a test to the benchmark suite.
 
+
+
+
 #### Arguments
+
 1. `name` *(string)*: A name to identify the benchmark.
 2. `fn` *(Function|string)*: The test to benchmark.
 3. `[options={}]` *(Object)*: Options object.
 
+
+
+
 #### Returns
+
 *(Object)*: The suite instance.
 
+
+
+
 #### Example
+
 ```js
 // basic usage
 suite.add(fn);
@@ -361,72 +422,109 @@ suite.add({
   onComplete: onComplete
 });
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototypecloneoptions"><code>Benchmark.Suite.prototype.clone(options)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1140 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototypecloneoptions"></a> `Benchmark.Suite.prototype.clone(options)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1140 "View in source") [&#x24C9;][1]
 
 Creates a new suite with cloned benchmarks.
 
+
+
+
 #### Arguments
+
 1. `options` *(Object)*: Options object to overwrite cloned options.
 
+
+
+
 #### Returns
+
 *(Object)*: The new suite instance.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototypefiltercallback"><code>Benchmark.Suite.prototype.filter(callback)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1163 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototypefiltercallback"></a> `Benchmark.Suite.prototype.filter(callback)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1163 "View in source") [&#x24C9;][1]
 
 An `Array#filter` like method.
 
+
+
+
 #### Arguments
+
 1. `callback` *(Function|string)*: The function/alias called per iteration.
 
+
+
+
 #### Returns
+
 *(Object)*: A new suite of benchmarks that passed callback filter.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototypereset"><code>Benchmark.Suite.prototype.reset()</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1178 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototypereset"></a> `Benchmark.Suite.prototype.reset()` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1178 "View in source") [&#x24C9;][1]
 
 Resets all benchmarks in the suite.
 
+
+
+
 #### Returns
+
 *(Object)*: The suite instance.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototyperunoptions"><code>Benchmark.Suite.prototype.run([options={}])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1215 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototyperunoptions"></a> `Benchmark.Suite.prototype.run([options={}])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1215 "View in source") [&#x24C9;][1]
 
 Runs the suite.
 
+
+
+
 #### Arguments
+
 1. `[options={}]` *(Object)*: Options object.
 
+
+
+
 #### Returns
+
 *(Object)*: The suite instance.
 
+
+
+
 #### Example
+
 ```js
 // basic usage
 suite.run();
@@ -434,25 +532,39 @@ suite.run();
 // or with options
 suite.run({ async: true, queued: true });
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkfilterarray-callback"><code>Benchmark.filter(array, callback)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L805 "View in source") [&#x24C9;][1]
+### <a name="benchmarkfilterarray-callback"></a> `Benchmark.filter(array, callback)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L805 "View in source") [&#x24C9;][1]
 
 A generic `Array#filter` like method.
 
+
+
+
 #### Arguments
+
 1. `array` *(Array)*: The array to iterate over.
 2. `callback` *(Function|string)*: The function/alias called per iteration.
 
+
+
+
 #### Returns
+
 *(Array)*: A new array of values that passed callback filter.
 
+
+
+
 #### Example
+
 ```js
 // get odd numbers
 Benchmark.filter([1, 2, 3, 4, 5], function (n) {
@@ -468,43 +580,66 @@ Benchmark.filter(benches, 'slowest');
 // get benchmarks that completed without erroring
 Benchmark.filter(benches, 'successful');
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkformatnumbernumber"><code>Benchmark.formatNumber(number)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L841 "View in source") [&#x24C9;][1]
+### <a name="benchmarkformatnumbernumber"></a> `Benchmark.formatNumber(number)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L841 "View in source") [&#x24C9;][1]
 
 Converts a number to a more readable comma-separated string representation.
 
+
+
+
 #### Arguments
+
 1. `number` *(number)*: The number to convert.
 
+
+
+
 #### Returns
+
 *(string)*: The more readable string representation.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkinvokebenches-name-args"><code>Benchmark.invoke(benches, name, [args])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L886 "View in source") [&#x24C9;][1]
+### <a name="benchmarkinvokebenches-name-args"></a> `Benchmark.invoke(benches, name, [args])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L886 "View in source") [&#x24C9;][1]
 
 Invokes a method on all items in an array.
 
+
+
+
 #### Arguments
+
 1. `benches` *(Array)*: Array of benchmarks to iterate over.
 2. `name` *(Object|string)*: The name of the method to invoke OR options object.
 3. `[args]` *(...&#42;)*: Arguments to invoke the method with.
 
+
+
+
 #### Returns
+
 *(Array)*: A new array of values returned from each method invoked.
 
+
+
+
 #### Example
+
 ```js
 // invoke `reset` on all benchmarks
 Benchmark.invoke(benches, 'reset');
@@ -534,153 +669,231 @@ Benchmark.invoke(benches, {
   onComplete: onComplete
 });
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkjoinobject-separator1-separator2:"><code>Benchmark.join(object, [separator1=','], [separator2=': '])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1040 "View in source") [&#x24C9;][1]
+### <a name="benchmarkjoinobject-separator1-separator2:"></a> `Benchmark.join(object, [separator1=','], [separator2=': '])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1040 "View in source") [&#x24C9;][1]
 
 Creates a string of joined array values or object key-value pairs.
 
+
+
+
 #### Arguments
+
 1. `object` *(Array|Object)*: The object to operate on.
 2. `[separator1=',']` *(string)*: The separator used between key-value pairs.
 3. `[separator2=': ']` *(string)*: The separator used between keys and values.
 
+
+
+
 #### Returns
+
 *(string)*: The joined result.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkrunincontextcontextroot"><code>Benchmark.runInContext([context=root])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L125 "View in source") [&#x24C9;][1]
+### <a name="benchmarkrunincontextcontextroot"></a> `Benchmark.runInContext([context=root])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L125 "View in source") [&#x24C9;][1]
 
 Create a new `Benchmark` function using the given `context` object.
 
+
+
+
 #### Arguments
+
 1. `[context=root]` *(Object)*: The context object.
 
+
+
+
 #### Returns
+
 *(Function)*: Returns a new `Benchmark` function.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeabort"><code>Benchmark.prototype.abort()</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1381 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeabort"></a> `Benchmark.prototype.abort()` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1381 "View in source") [&#x24C9;][1]
 
 Aborts the benchmark without recording times.
 
+
+
+
 #### Returns
+
 *(Object)*: The benchmark instance.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypecloneoptions"><code>Benchmark.prototype.clone(options)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1445 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypecloneoptions"></a> `Benchmark.prototype.clone(options)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1445 "View in source") [&#x24C9;][1]
 
 Creates a new benchmark using the same test and options.
 
+
+
+
 #### Arguments
+
 1. `options` *(Object)*: Options object to overwrite cloned options.
 
+
+
+
 #### Returns
+
 *(Object)*: The new benchmark instance.
 
+
+
+
 #### Example
+
 ```js
 var bizarro = bench.clone({
   name: 'doppelganger'
 });
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypecompareother"><code>Benchmark.prototype.compare(other)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1469 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypecompareother"></a> `Benchmark.prototype.compare(other)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1469 "View in source") [&#x24C9;][1]
 
 Determines if a benchmark is faster than another.
 
+
+
+
 #### Arguments
+
 1. `other` *(Object)*: The benchmark to compare.
 
+
+
+
 #### Returns
+
 *(number)*: Returns `-1` if slower, `1` if faster, and `0` if indeterminate.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeemittype-args"><code>Benchmark.prototype.emit(type, [args])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1255 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeemittype-args"></a> `Benchmark.prototype.emit(type, [args])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1255 "View in source") [&#x24C9;][1]
 
 Executes all registered listeners of the specified event type.
 
+
+
+
 #### Arguments
+
 1. `type` *(Object|string)*: The event type or object.
 2. `[args]` *(...&#42;)*: Arguments to invoke the listener with.
 
+
+
+
 #### Returns
+
 *(&#42;)*: Returns the return value of the last listener executed.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypelistenerstype"><code>Benchmark.prototype.listeners(type)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1285 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypelistenerstype"></a> `Benchmark.prototype.listeners(type)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1285 "View in source") [&#x24C9;][1]
 
 Returns an array of event listeners for a given type that can be manipulated
 to add or remove listeners.
 
+
+
+
 #### Arguments
+
 1. `type` *(string)*: The event type.
 
+
+
+
 #### Returns
+
 *(Array)*: The listeners array.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeofftype-listener"><code>Benchmark.prototype.off([type], [listener])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1318 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeofftype-listener"></a> `Benchmark.prototype.off([type], [listener])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1318 "View in source") [&#x24C9;][1]
 
 Unregisters a listener for the specified event type(s),
 or unregisters all listeners for the specified event type(s),
 or unregisters all listeners for all event types.
 
+
+
+
 #### Arguments
+
 1. `[type]` *(string)*: The event type.
 2. `[listener]` *(Function)*: The function to unregister.
 
+
+
+
 #### Returns
+
 *(Object)*: The current instance.
 
+
+
+
 #### Example
+
 ```js
 // unregister a listener for an event type
 bench.off('cycle', listener);
@@ -697,25 +910,39 @@ bench.off('start cycle complete');
 // unregister all listeners for all event types
 bench.off();
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeontype-listener"><code>Benchmark.prototype.on(type, listener)</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1360 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeontype-listener"></a> `Benchmark.prototype.on(type, listener)` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1360 "View in source") [&#x24C9;][1]
 
 Registers a listener for the specified event type(s).
 
+
+
+
 #### Arguments
+
 1. `type` *(string)*: The event type.
 2. `listener` *(Function)*: The function to register.
 
+
+
+
 #### Returns
+
 *(Object)*: The current instance.
 
+
+
+
 #### Example
+
 ```js
 // register a listener for an event type
 bench.on('cycle', listener);
@@ -723,38 +950,57 @@ bench.on('cycle', listener);
 // register a listener for multiple event types
 bench.on('start cycle', listener);
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypereset"><code>Benchmark.prototype.reset()</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1522 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypereset"></a> `Benchmark.prototype.reset()` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1522 "View in source") [&#x24C9;][1]
 
 Reset properties and abort if running.
 
+
+
+
 #### Returns
+
 *(Object)*: The benchmark instance.
 
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototyperunoptions"><code>Benchmark.prototype.run([options={}])</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2288 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototyperunoptions"></a> `Benchmark.prototype.run([options={}])` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2288 "View in source") [&#x24C9;][1]
 
 Runs the benchmark.
 
+
+
+
 #### Arguments
+
 1. `[options={}]` *(Object)*: Options object.
 
+
+
+
 #### Returns
+
 *(Object)*: The benchmark instance.
 
+
+
+
 #### Example
+
 ```js
 // basic usage
 bench.run();
@@ -762,18 +1008,24 @@ bench.run();
 // or with options
 bench.run({ async: true });
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypetostring"><code>Benchmark.prototype.toString()</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1603 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypetostring"></a> `Benchmark.prototype.toString()` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L1603 "View in source") [&#x24C9;][1]
 
 Displays relevant benchmark information when coerced to a string.
 
+
+
+
 #### Returns
+
 *(string)*: A string representation of the benchmark instance.
 
 ---
@@ -782,14 +1034,19 @@ Displays relevant benchmark information when coerced to a string.
 
 <!-- /div -->
 
+
+
+
 <!-- div -->
 
-## `Properties`
+## Properties
+
+
+
 
 <!-- div -->
 
-<h3 id="benchmarkdeferredprototypebenchmark"><code>Benchmark.Deferred.prototype.benchmark</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2806 "View in source") [&#x24C9;][1]
+### <a name="benchmarkdeferredprototypebenchmark"></a> `Benchmark.Deferred.prototype.benchmark` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2806 "View in source") [&#x24C9;][1]
 
 The deferred benchmark instance.
 
@@ -797,10 +1054,11 @@ The deferred benchmark instance.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkdeferredprototypecycles"><code>Benchmark.Deferred.prototype.cycles</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2814 "View in source") [&#x24C9;][1]
+### <a name="benchmarkdeferredprototypecycles"></a> `Benchmark.Deferred.prototype.cycles` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2814 "View in source") [&#x24C9;][1]
 
 The number of deferred cycles performed while benchmarking.
 
@@ -808,10 +1066,11 @@ The number of deferred cycles performed while benchmarking.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkdeferredprototypeelapsed"><code>Benchmark.Deferred.prototype.elapsed</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2822 "View in source") [&#x24C9;][1]
+### <a name="benchmarkdeferredprototypeelapsed"></a> `Benchmark.Deferred.prototype.elapsed` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2822 "View in source") [&#x24C9;][1]
 
 The time taken to complete the deferred benchmark *(secs)*.
 
@@ -819,10 +1078,11 @@ The time taken to complete the deferred benchmark *(secs)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkdeferredprototypetimestamp"><code>Benchmark.Deferred.prototype.timeStamp</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2830 "View in source") [&#x24C9;][1]
+### <a name="benchmarkdeferredprototypetimestamp"></a> `Benchmark.Deferred.prototype.timeStamp` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2830 "View in source") [&#x24C9;][1]
 
 A timestamp of when the deferred benchmark started *(ms)*.
 
@@ -830,10 +1090,11 @@ A timestamp of when the deferred benchmark started *(ms)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventprototypeaborted"><code>Benchmark.Event.prototype.aborted</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2847 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventprototypeaborted"></a> `Benchmark.Event.prototype.aborted` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2847 "View in source") [&#x24C9;][1]
 
 A flag to indicate if the emitters listener iteration is aborted.
 
@@ -841,10 +1102,11 @@ A flag to indicate if the emitters listener iteration is aborted.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventprototypecancelled"><code>Benchmark.Event.prototype.cancelled</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2855 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventprototypecancelled"></a> `Benchmark.Event.prototype.cancelled` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2855 "View in source") [&#x24C9;][1]
 
 A flag to indicate if the default action is cancelled.
 
@@ -852,10 +1114,11 @@ A flag to indicate if the default action is cancelled.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventprototypecurrenttarget"><code>Benchmark.Event.prototype.currentTarget</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2863 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventprototypecurrenttarget"></a> `Benchmark.Event.prototype.currentTarget` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2863 "View in source") [&#x24C9;][1]
 
 The object whose listeners are currently being processed.
 
@@ -863,10 +1126,11 @@ The object whose listeners are currently being processed.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventprototyperesult"><code>Benchmark.Event.prototype.result</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2871 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventprototyperesult"></a> `Benchmark.Event.prototype.result` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2871 "View in source") [&#x24C9;][1]
 
 The return value of the last executed listener.
 
@@ -874,10 +1138,11 @@ The return value of the last executed listener.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventprototypetarget"><code>Benchmark.Event.prototype.target</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2879 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventprototypetarget"></a> `Benchmark.Event.prototype.target` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2879 "View in source") [&#x24C9;][1]
 
 The object to which the event was originally emitted.
 
@@ -885,10 +1150,11 @@ The object to which the event was originally emitted.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventprototypetimestamp"><code>Benchmark.Event.prototype.timeStamp</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2887 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventprototypetimestamp"></a> `Benchmark.Event.prototype.timeStamp` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2887 "View in source") [&#x24C9;][1]
 
 A timestamp of when the event was created *(ms)*.
 
@@ -896,10 +1162,11 @@ A timestamp of when the event was created *(ms)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkeventprototypetype"><code>Benchmark.Event.prototype.type</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2895 "View in source") [&#x24C9;][1]
+### <a name="benchmarkeventprototypetype"></a> `Benchmark.Event.prototype.type` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2895 "View in source") [&#x24C9;][1]
 
 The event type.
 
@@ -907,10 +1174,11 @@ The event type.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteoptions"><code>Benchmark.Suite.options</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2907 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteoptions"></a> `Benchmark.Suite.options` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2907 "View in source") [&#x24C9;][1]
 
 The default options copied by suite instances.
 
@@ -918,10 +1186,11 @@ The default options copied by suite instances.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteoptionsname"><code>Benchmark.Suite.options.name</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2915 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteoptionsname"></a> `Benchmark.Suite.options.name` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2915 "View in source") [&#x24C9;][1]
 
 The name of the suite.
 
@@ -929,10 +1198,11 @@ The name of the suite.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototypeaborted"><code>Benchmark.Suite.prototype.aborted</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2936 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototypeaborted"></a> `Benchmark.Suite.prototype.aborted` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2936 "View in source") [&#x24C9;][1]
 
 A flag to indicate if the suite is aborted.
 
@@ -940,10 +1210,11 @@ A flag to indicate if the suite is aborted.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototypelength"><code>Benchmark.Suite.prototype.length</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2928 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototypelength"></a> `Benchmark.Suite.prototype.length` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2928 "View in source") [&#x24C9;][1]
 
 The number of benchmarks in the suite.
 
@@ -951,10 +1222,11 @@ The number of benchmarks in the suite.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksuiteprototyperunning"><code>Benchmark.Suite.prototype.running</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2944 "View in source") [&#x24C9;][1]
+### <a name="benchmarksuiteprototyperunning"></a> `Benchmark.Suite.prototype.running` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2944 "View in source") [&#x24C9;][1]
 
 A flag to indicate if the suite is running.
 
@@ -962,10 +1234,11 @@ A flag to indicate if the suite is running.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptions"><code>Benchmark.options</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2337 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptions"></a> `Benchmark.options` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2337 "View in source") [&#x24C9;][1]
 
 The default options copied by benchmark instances.
 
@@ -973,10 +1246,11 @@ The default options copied by benchmark instances.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsasync"><code>Benchmark.options.async</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2346 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsasync"></a> `Benchmark.options.async` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2346 "View in source") [&#x24C9;][1]
 
 A flag to indicate that benchmark cycles will execute asynchronously
 by default.
@@ -985,10 +1259,11 @@ by default.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsdefer"><code>Benchmark.options.defer</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2354 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsdefer"></a> `Benchmark.options.defer` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2354 "View in source") [&#x24C9;][1]
 
 A flag to indicate that the benchmark clock is deferred.
 
@@ -996,10 +1271,11 @@ A flag to indicate that the benchmark clock is deferred.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsdelay"><code>Benchmark.options.delay</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2361 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsdelay"></a> `Benchmark.options.delay` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2361 "View in source") [&#x24C9;][1]
 
 The delay between test cycles *(secs)*.
 
@@ -1007,10 +1283,11 @@ The delay between test cycles *(secs)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsid"><code>Benchmark.options.id</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2370 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsid"></a> `Benchmark.options.id` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2370 "View in source") [&#x24C9;][1]
 
 Displayed by `Benchmark#toString` when a `name` is not available
 *(auto-generated if absent)*.
@@ -1019,10 +1296,11 @@ Displayed by `Benchmark#toString` when a `name` is not available
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsinitcount"><code>Benchmark.options.initCount</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2378 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsinitcount"></a> `Benchmark.options.initCount` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2378 "View in source") [&#x24C9;][1]
 
 The default number of times to execute a test on a benchmark's first cycle.
 
@@ -1030,10 +1308,11 @@ The default number of times to execute a test on a benchmark's first cycle.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsmaxtime"><code>Benchmark.options.maxTime</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2398 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsmaxtime"></a> `Benchmark.options.maxTime` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2398 "View in source") [&#x24C9;][1]
 
 The maximum time a benchmark is allowed to run before finishing *(secs)*.
 <br>
@@ -1044,10 +1323,11 @@ Note: Cycle delays aren't counted toward the maximum time.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsminsamples"><code>Benchmark.options.minSamples</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2406 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsminsamples"></a> `Benchmark.options.minSamples` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2406 "View in source") [&#x24C9;][1]
 
 The minimum sample size required to perform statistical analysis.
 
@@ -1055,10 +1335,11 @@ The minimum sample size required to perform statistical analysis.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsmintime"><code>Benchmark.options.minTime</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2414 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsmintime"></a> `Benchmark.options.minTime` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2414 "View in source") [&#x24C9;][1]
 
 The time needed to reduce the percent uncertainty of measurement to `1`% *(secs)*.
 
@@ -1066,10 +1347,11 @@ The time needed to reduce the percent uncertainty of measurement to `1`% *(secs)
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsname"><code>Benchmark.options.name</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2422 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsname"></a> `Benchmark.options.name` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2422 "View in source") [&#x24C9;][1]
 
 The name of the benchmark.
 
@@ -1077,10 +1359,11 @@ The name of the benchmark.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsonabort"><code>Benchmark.options.onAbort</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2430 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsonabort"></a> `Benchmark.options.onAbort` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2430 "View in source") [&#x24C9;][1]
 
 An event listener called when the benchmark is aborted.
 
@@ -1088,10 +1371,11 @@ An event listener called when the benchmark is aborted.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsoncomplete"><code>Benchmark.options.onComplete</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2438 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsoncomplete"></a> `Benchmark.options.onComplete` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2438 "View in source") [&#x24C9;][1]
 
 An event listener called when the benchmark completes running.
 
@@ -1099,10 +1383,11 @@ An event listener called when the benchmark completes running.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsoncycle"><code>Benchmark.options.onCycle</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2446 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsoncycle"></a> `Benchmark.options.onCycle` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2446 "View in source") [&#x24C9;][1]
 
 An event listener called after each run cycle.
 
@@ -1110,10 +1395,11 @@ An event listener called after each run cycle.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsonerror"><code>Benchmark.options.onError</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2454 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsonerror"></a> `Benchmark.options.onError` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2454 "View in source") [&#x24C9;][1]
 
 An event listener called when a test errors.
 
@@ -1121,10 +1407,11 @@ An event listener called when a test errors.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsonreset"><code>Benchmark.options.onReset</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2462 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsonreset"></a> `Benchmark.options.onReset` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2462 "View in source") [&#x24C9;][1]
 
 An event listener called when the benchmark is reset.
 
@@ -1132,10 +1419,11 @@ An event listener called when the benchmark is reset.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsonstart"><code>Benchmark.options.onStart</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2470 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsonstart"></a> `Benchmark.options.onStart` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2470 "View in source") [&#x24C9;][1]
 
 An event listener called when the benchmark starts running.
 
@@ -1143,10 +1431,11 @@ An event listener called when the benchmark starts running.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkoptionsoperationsperround"><code>Benchmark.options.operationsPerRound</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2388 "View in source") [&#x24C9;][1]
+### <a name="benchmarkoptionsoperationsperround"></a> `Benchmark.options.operationsPerRound` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2388 "View in source") [&#x24C9;][1]
 
 The default number of tests run per benchmark function call: set this if you 
 want the ops/sec to represent the number of single operations when your benchmark 
@@ -1156,10 +1445,11 @@ code is itself a loop or a repeating sequence of the same operations.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkplatform"><code>Benchmark.platform</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2481 "View in source") [&#x24C9;][1]
+### <a name="benchmarkplatform"></a> `Benchmark.platform` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2481 "View in source") [&#x24C9;][1]
 
 Platform object with properties describing things like browser name,
 version, and operating system. See [`platform.js`](https://mths.be/platform).
@@ -1168,10 +1458,11 @@ version, and operating system. See [`platform.js`](https://mths.be/platform).
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksupport"><code>Benchmark.support</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L209 "View in source") [&#x24C9;][1]
+### <a name="benchmarksupport"></a> `Benchmark.support` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L209 "View in source") [&#x24C9;][1]
 
 An object used to flag environments/features.
 
@@ -1179,10 +1470,11 @@ An object used to flag environments/features.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksupportbrowser"><code>Benchmark.support.browser</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L219 "View in source") [&#x24C9;][1]
+### <a name="benchmarksupportbrowser"></a> `Benchmark.support.browser` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L219 "View in source") [&#x24C9;][1]
 
 Detect if running in a browser environment.
 
@@ -1190,10 +1482,11 @@ Detect if running in a browser environment.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkversion"><code>Benchmark.version</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2502 "View in source") [&#x24C9;][1]
+### <a name="benchmarkversion"></a> `Benchmark.version` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2502 "View in source") [&#x24C9;][1]
 
 The semantic version number.
 
@@ -1201,10 +1494,11 @@ The semantic version number.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeaborted"><code>Benchmark.prototype.aborted</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2595 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeaborted"></a> `Benchmark.prototype.aborted` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2595 "View in source") [&#x24C9;][1]
 
 A flag to indicate if the benchmark is aborted.
 
@@ -1212,10 +1506,11 @@ A flag to indicate if the benchmark is aborted.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypecompiled"><code>Benchmark.prototype.compiled</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2571 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypecompiled"></a> `Benchmark.prototype.compiled` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2571 "View in source") [&#x24C9;][1]
 
 The compiled test function.
 
@@ -1223,10 +1518,11 @@ The compiled test function.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypecount"><code>Benchmark.prototype.count</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2535 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypecount"></a> `Benchmark.prototype.count` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2535 "View in source") [&#x24C9;][1]
 
 The number of times a test was executed.
 
@@ -1234,10 +1530,11 @@ The number of times a test was executed.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypecycles"><code>Benchmark.prototype.cycles</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2543 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypecycles"></a> `Benchmark.prototype.cycles` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2543 "View in source") [&#x24C9;][1]
 
 The number of cycles performed while benchmarking.
 
@@ -1245,10 +1542,11 @@ The number of cycles performed while benchmarking.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksupportdecompilation"><code>Benchmark.support.decompilation</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L236 "View in source") [&#x24C9;][1]
+### <a name="benchmarksupportdecompilation"></a> `Benchmark.support.decompilation` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L236 "View in source") [&#x24C9;][1]
 
 Detect if function decompilation is support.
 
@@ -1256,10 +1554,11 @@ Detect if function decompilation is support.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeerror"><code>Benchmark.prototype.error</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2579 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeerror"></a> `Benchmark.prototype.error` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2579 "View in source") [&#x24C9;][1]
 
 The error object if the test failed.
 
@@ -1267,10 +1566,11 @@ The error object if the test failed.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypefn"><code>Benchmark.prototype.fn</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2587 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypefn"></a> `Benchmark.prototype.fn` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2587 "View in source") [&#x24C9;][1]
 
 The test to benchmark.
 
@@ -1278,10 +1578,11 @@ The test to benchmark.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypehz"><code>Benchmark.prototype.hz</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2551 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypehz"></a> `Benchmark.prototype.hz` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2551 "View in source") [&#x24C9;][1]
 
 The number of executions per second.
 
@@ -1289,10 +1590,11 @@ The number of executions per second.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeoperationsperround"><code>Benchmark.prototype.operationsPerRound</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2563 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeoperationsperround"></a> `Benchmark.prototype.operationsPerRound` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2563 "View in source") [&#x24C9;][1]
 
 The number of tests per single benchmark execution: 
 this represents the number of single operations when your benchmark 
@@ -1305,10 +1607,11 @@ This value MAY be set up by the `setup` code to override the default of `1`.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototyperunning"><code>Benchmark.prototype.running</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2603 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototyperunning"></a> `Benchmark.prototype.running` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2603 "View in source") [&#x24C9;][1]
 
 A flag to indicate if the benchmark is running.
 
@@ -1316,14 +1619,19 @@ A flag to indicate if the benchmark is running.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypesetup"><code>Benchmark.prototype.setup</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2666 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypesetup"></a> `Benchmark.prototype.setup` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2666 "View in source") [&#x24C9;][1]
 
 Compiled into the test and executed immediately **before** the test loop.
 
+
+
+
 #### Example
+
 ```js
 // basic usage
 var bench = Benchmark({
@@ -1379,14 +1687,16 @@ var a = 0;
   }())
 }())
 ```
+
 ---
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypestats"><code>Benchmark.prototype.stats</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2682 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypestats"></a> `Benchmark.prototype.stats` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2682 "View in source") [&#x24C9;][1]
 
 An object of stats including mean, margin or error, and standard deviation.
 
@@ -1394,10 +1704,11 @@ An object of stats including mean, margin or error, and standard deviation.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypeteardown"><code>Benchmark.prototype.teardown</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2674 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypeteardown"></a> `Benchmark.prototype.teardown` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2674 "View in source") [&#x24C9;][1]
 
 Compiled into the test and executed immediately **after** the test loop.
 
@@ -1405,10 +1716,11 @@ Compiled into the test and executed immediately **after** the test loop.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarksupporttimeout"><code>Benchmark.support.timeout</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L227 "View in source") [&#x24C9;][1]
+### <a name="benchmarksupporttimeout"></a> `Benchmark.support.timeout` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L227 "View in source") [&#x24C9;][1]
 
 Detect if the Timers API exists.
 
@@ -1416,10 +1728,11 @@ Detect if the Timers API exists.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmarkprototypetimes"><code>Benchmark.prototype.times</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2747 "View in source") [&#x24C9;][1]
+### <a name="benchmarkprototypetimes"></a> `Benchmark.prototype.times` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2747 "View in source") [&#x24C9;][1]
 
 An object of timing data including cycle, elapsed, period, start, and stop.
 
@@ -1427,10 +1740,11 @@ An object of timing data including cycle, elapsed, period, start, and stop.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-statsdeviation"><code>Benchmark#stats.deviation</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2714 "View in source") [&#x24C9;][1]
+### <a name="benchmark-statsdeviation"></a> `Benchmark#stats.deviation` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2714 "View in source") [&#x24C9;][1]
 
 The sample standard deviation.
 
@@ -1438,10 +1752,11 @@ The sample standard deviation.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-statsmean"><code>Benchmark#stats.mean</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2722 "View in source") [&#x24C9;][1]
+### <a name="benchmark-statsmean"></a> `Benchmark#stats.mean` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2722 "View in source") [&#x24C9;][1]
 
 The sample arithmetic mean *(secs)*.
 
@@ -1449,10 +1764,11 @@ The sample arithmetic mean *(secs)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-statsmoe"><code>Benchmark#stats.moe</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2690 "View in source") [&#x24C9;][1]
+### <a name="benchmark-statsmoe"></a> `Benchmark#stats.moe` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2690 "View in source") [&#x24C9;][1]
 
 The margin of error.
 
@@ -1460,10 +1776,11 @@ The margin of error.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-statsrme"><code>Benchmark#stats.rme</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2698 "View in source") [&#x24C9;][1]
+### <a name="benchmark-statsrme"></a> `Benchmark#stats.rme` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2698 "View in source") [&#x24C9;][1]
 
 The relative margin of error *(expressed as a percentage of the mean)*.
 
@@ -1471,10 +1788,11 @@ The relative margin of error *(expressed as a percentage of the mean)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-statssample"><code>Benchmark#stats.sample</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2730 "View in source") [&#x24C9;][1]
+### <a name="benchmark-statssample"></a> `Benchmark#stats.sample` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2730 "View in source") [&#x24C9;][1]
 
 The array of sampled periods.
 
@@ -1482,10 +1800,11 @@ The array of sampled periods.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-statssem"><code>Benchmark#stats.sem</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2706 "View in source") [&#x24C9;][1]
+### <a name="benchmark-statssem"></a> `Benchmark#stats.sem` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2706 "View in source") [&#x24C9;][1]
 
 The standard error of the mean.
 
@@ -1493,10 +1812,11 @@ The standard error of the mean.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-statsvariance"><code>Benchmark#stats.variance</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2738 "View in source") [&#x24C9;][1]
+### <a name="benchmark-statsvariance"></a> `Benchmark#stats.variance` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2738 "View in source") [&#x24C9;][1]
 
 The sample variance.
 
@@ -1504,10 +1824,11 @@ The sample variance.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-timescycle"><code>Benchmark#times.cycle</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2755 "View in source") [&#x24C9;][1]
+### <a name="benchmark-timescycle"></a> `Benchmark#times.cycle` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2755 "View in source") [&#x24C9;][1]
 
 The time taken to complete the last cycle *(secs)*.
 
@@ -1515,10 +1836,11 @@ The time taken to complete the last cycle *(secs)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-timeselapsed"><code>Benchmark#times.elapsed</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2763 "View in source") [&#x24C9;][1]
+### <a name="benchmark-timeselapsed"></a> `Benchmark#times.elapsed` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2763 "View in source") [&#x24C9;][1]
 
 The time taken to complete the benchmark *(secs)*.
 
@@ -1526,10 +1848,11 @@ The time taken to complete the benchmark *(secs)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-timesperiod"><code>Benchmark#times.period</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2771 "View in source") [&#x24C9;][1]
+### <a name="benchmark-timesperiod"></a> `Benchmark#times.period` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2771 "View in source") [&#x24C9;][1]
 
 The time taken to execute the test once *(secs)*.
 
@@ -1537,10 +1860,11 @@ The time taken to execute the test once *(secs)*.
 
 <!-- /div -->
 
+
+
 <!-- div -->
 
-<h3 id="benchmark-timestimestamp"><code>Benchmark#times.timeStamp</code></h3>
-[&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2779 "View in source") [&#x24C9;][1]
+### <a name="benchmark-timestimestamp"></a> `Benchmark#times.timeStamp` [&#x24C8;](https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js#L2779 "View in source") [&#x24C9;][1]
 
 A timestamp of when the benchmark started *(ms)*.
 
@@ -1552,4 +1876,7 @@ A timestamp of when the benchmark started *(ms)*.
 
 <!-- /div -->
 
- [1]: #methods "Jump back to the TOC."
+
+
+
+ [1]: #toc-methods "Jump back to the TOC."

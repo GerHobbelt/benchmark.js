@@ -702,8 +702,7 @@ applet {
   display: block;
   width: 232px;
   height: 39px;
-  -webkit-filter: none;
-          filter: none;
+  filter: none;
   background: url(https://www.browserscope.org/static/img/logo.png) 0 0 no-repeat;
 }
 #bs-ua {

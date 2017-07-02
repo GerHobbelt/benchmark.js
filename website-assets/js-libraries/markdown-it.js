@@ -1,4 +1,4 @@
-/*! markdown-it 8.0.0 https://github.com//markdown-it/markdown-it @license MIT */(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.markdownit = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*! markdown-it 8.3.2-9 https://github.com//markdown-it/markdown-it @license MIT */(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.markdownit = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 // HTML5 entities map: { name -> utf16string }
 //
 'use strict';
@@ -40,6 +40,11 @@ module.exports = [
   'frame',
   'frameset',
   'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
   'head',
   'header',
   'hr',
@@ -198,7 +203,7 @@ function replaceEntityPattern(match, name) {
   if (name.charCodeAt(0) === 0x23/* # */ && DIGITAL_ENTITY_TEST_RE.test(name)) {
     code = name[1].toLowerCase() === 'x' ?
       parseInt(name.slice(2), 16)
-    :
+      :
       parseInt(name.slice(1), 10);
     if (isValidEntityCode(code)) {
       return fromCodePoint(code);
@@ -454,7 +459,6 @@ module.exports = function parseLinkDestination(str, pos, max) {
 
     if (code === 0x28 /* ( */) {
       level++;
-      if (level > 1) { break; }
     }
 
     if (code === 0x29 /* ) */) {
@@ -920,7 +924,7 @@ function MarkdownIt(presetName, options) {
    * Link components parser functions, useful to write plugins. See details
    * [here](https://github.com/markdown-it/markdown-it/blob/master/lib/helpers).
    **/
-  this.helpers = helpers;
+  this.helpers = utils.assign({}, helpers);
 
 
   this.options = {};
@@ -1092,11 +1096,14 @@ MarkdownIt.prototype.use = function (plugin /*, params, ... */) {
  *
  * `env` is used to pass data between "distributed" rules and return additional
  * metadata like reference info, needed for the renderer. It also can be used to
- * inject data in specific cases. Usually, you will be ok to pass `{}`,
+ * inject data in specific cases. Usually, you will be ok to pass `{}` or NULL,
  * and then pass updated object to renderer.
  **/
 MarkdownIt.prototype.parse = function (src, env) {
-  var state = new this.core.State(src, this, env);
+  if (typeof src !== 'string') {
+    throw new Error('Input data should be a String');
+  }
+  var state = new this.core.State(src, this, env || {});
 
   this.core.process(state);
 
@@ -1241,7 +1248,7 @@ ParserBlock.prototype.tokenize = function (state, startLine, endLine) {
       if (ok) { break; }
     }
 
-    // set state.tight iff we had an empty line before current tag
+    // set state.tight if we had an empty line before current tag
     // i.e. latest empty line should not count
     state.tight = !hasEmptyLines;
 
@@ -1793,7 +1800,7 @@ default_rules.fence = function (tokens, idx, options, env, slf) {
   }
 
 
-  return  '<pre><code' + slf.renderAttrs(token) + '>'
+  return  '<pre><code' + slf.renderAttrs(token, options) + '>'
         + highlighted
         + '</code></pre>\n';
 };
@@ -1879,8 +1886,12 @@ function Renderer() {
  *
  * Render token attributes to string.
  **/
-Renderer.prototype.renderAttrs = function renderAttrs(token) {
+Renderer.prototype.renderAttrs = function renderAttrs(token, options) {
   var i, l, result;
+
+  if (options && options.default_attributes && options.default_attributes[token.tag]) {
+    token.attrs = (token.attrs || []).concat(options.default_attributes[token.tag]);
+  }
 
   if (!token.attrs) { return ''; }
 
@@ -1929,7 +1940,7 @@ Renderer.prototype.renderToken = function renderToken(tokens, idx, options) {
   result += (token.nesting === -1 ? '</' : '<') + token.tag;
 
   // Encode attributes, e.g. `<img src="foo"`
-  result += this.renderAttrs(token);
+  result += this.renderAttrs(token, options);
 
   // Add a slash for self-closing tags, e.g. `<img src="foo" /`
   if (token.nesting === 0 && options.xhtmlOut) {
@@ -1948,6 +1959,9 @@ Renderer.prototype.renderToken = function renderToken(tokens, idx, options) {
           // Block-level tag containing an inline tag.
           //
           needLf = false;
+
+        } else if (nextToken.tag === 'blockquote' && nextToken.tag === token.tag) {
+          // in spec.txt blockquote wants \n inside
 
         } else if (nextToken.nesting === -1 && nextToken.tag === token.tag) {
           // Opening tag + closing tag of the same type. E.g. `<li></li>`.
@@ -2414,6 +2428,7 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
       ch,
       i,
       initial,
+      isOutdented,
       l,
       lastLineEmpty,
       lines,
@@ -2429,8 +2444,12 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
       terminate,
       terminatorRules,
       token,
+      oldLineMax = state.lineMax,
       pos = state.bMarks[startLine] + state.tShift[startLine],
       max = state.eMarks[startLine];
+
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
 
   // check the block quote marker
   if (state.src.charCodeAt(pos++) !== 0x3E/* > */) { return false; }
@@ -2438,9 +2457,6 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
   // we know that it's going to be a valid blockquote,
   // so no point trying to find the end of it in silent mode
   if (silent) { return true; }
-
-  oldIndent = state.blkIndent;
-  state.blkIndent = 0;
 
   // skip spaces after ">" and re-calculate offset
   initial = offset = state.sCount[startLine] + pos - (state.bMarks[startLine] + state.tShift[startLine]);
@@ -2522,13 +2538,21 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
   //     >
   //     test
   //     ```
-  //  3. another tag
+  //  3. another tag:
   //     ```
   //     > test
   //      - - -
   //     ```
   for (nextLine = startLine + 1; nextLine < endLine; nextLine++) {
-    if (state.sCount[nextLine] < oldIndent) { break; }
+    // check if it's outdented, i.e. it's inside list item and indented
+    // less than said list item:
+    //
+    // ```
+    // 1. anything
+    //    > current blockquote
+    // 2. checking this line
+    // ```
+    isOutdented = state.sCount[nextLine] < state.blkIndent;
 
     pos = state.bMarks[nextLine] + state.tShift[nextLine];
     max = state.eMarks[nextLine];
@@ -2538,7 +2562,7 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
       break;
     }
 
-    if (state.src.charCodeAt(pos++) === 0x3E/* > */) {
+    if (state.src.charCodeAt(pos++) === 0x3E/* > */ && !isOutdented) {
       // This line is inside the blockquote.
 
       // skip spaces after ">" and re-calculate offset
@@ -2616,7 +2640,29 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
         break;
       }
     }
-    if (terminate) { break; }
+
+    if (terminate) {
+      // Quirk to enforce "hard termination mode" for paragraphs;
+      // normally if you call `tokenize(state, startLine, nextLine)`,
+      // paragraphs will look below nextLine for paragraph continuation,
+      // but if blockquote is terminated by another tag, they shouldn't
+      state.lineMax = nextLine;
+
+      if (state.blkIndent !== 0) {
+        // state.blkIndent was non-zero, we now set it to zero,
+        // so we need to re-calculate all offsets to appear as
+        // if indent wasn't changed
+        oldBMarks.push(state.bMarks[nextLine]);
+        oldBSCount.push(state.bsCount[nextLine]);
+        oldTShift.push(state.tShift[nextLine]);
+        oldSCount.push(state.sCount[nextLine]);
+        state.sCount[nextLine] -= state.blkIndent;
+      }
+
+      break;
+    }
+
+    if (isOutdented) break;
 
     oldBMarks.push(state.bMarks[nextLine]);
     oldBSCount.push(state.bsCount[nextLine]);
@@ -2628,6 +2674,9 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
     state.sCount[nextLine] = -1;
   }
 
+  oldIndent = state.blkIndent;
+  state.blkIndent = 0;
+
   token        = state.push('blockquote_open', 'blockquote', 1);
   token.markup = '>';
   token.map    = lines = [ startLine, 0 ];
@@ -2637,6 +2686,7 @@ module.exports = function blockquote(state, startLine, endLine, silent) {
   token        = state.push('blockquote_close', 'blockquote', -1);
   token.markup = '>';
 
+  state.lineMax = oldLineMax;
   state.parentType = oldParentType;
   lines[1] = state.line;
 
@@ -2701,6 +2751,9 @@ module.exports = function fence(state, startLine, endLine, silent) {
       pos = state.bMarks[startLine] + state.tShift[startLine],
       max = state.eMarks[startLine];
 
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
+
   if (pos + 3 > max) { return false; }
 
   marker = state.src.charCodeAt(pos);
@@ -2720,7 +2773,7 @@ module.exports = function fence(state, startLine, endLine, silent) {
   markup = state.src.slice(mem, pos);
   params = state.src.slice(pos, max);
 
-  if (params.indexOf('`') >= 0) { return false; }
+  if (params.indexOf(String.fromCharCode(marker)) >= 0) { return false; }
 
   // Since start is found, we can report success here in validation mode
   if (silent) { return true; }
@@ -2795,6 +2848,9 @@ module.exports = function heading(state, startLine, endLine, silent) {
       pos = state.bMarks[startLine] + state.tShift[startLine],
       max = state.eMarks[startLine];
 
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
+
   ch  = state.src.charCodeAt(pos);
 
   if (ch !== 0x23/* # */ || pos >= max) { return false; }
@@ -2848,6 +2904,9 @@ module.exports = function hr(state, startLine, endLine, silent) {
   var marker, cnt, ch, token,
       pos = state.bMarks[startLine] + state.tShift[startLine],
       max = state.eMarks[startLine];
+
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
 
   marker = state.src.charCodeAt(pos++);
 
@@ -2908,6 +2967,9 @@ module.exports = function html_block(state, startLine, endLine, silent) {
       pos = state.bMarks[startLine] + state.tShift[startLine],
       max = state.eMarks[startLine];
 
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
+
   if (!state.md.options.html) { return false; }
 
   if (state.src.charCodeAt(pos) !== 0x3C/* < */) { return false; }
@@ -2963,6 +3025,9 @@ module.exports = function lheading(state, startLine, endLine/*, silent*/) {
   var content, terminate, i, l, token, pos, max, level, marker,
       nextLine = startLine + 1, oldParentType,
       terminatorRules = state.md.block.ruler.getRules('paragraph');
+
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
 
   oldParentType = state.parentType;
   state.parentType = 'paragraph'; // use paragraph to match terminatorRules
@@ -3043,7 +3108,7 @@ module.exports = function lheading(state, startLine, endLine/*, silent*/) {
 var isSpace = require('../common/utils').isSpace;
 
 
-// Search `[-+*][\n ]`, returns next pos arter marker on success
+// Search `[-+*][\n ]`, returns next pos after marker on success
 // or -1 on fail.
 function skipBulletListMarker(state, startLine) {
   var marker, pos, max, ch;
@@ -3071,7 +3136,7 @@ function skipBulletListMarker(state, startLine) {
   return pos;
 }
 
-// Search `\d+[.)][\n ]`, returns next pos arter marker on success
+// Search `\d+[.)][\n ]`, returns next pos after marker on success
 // or -1 on fail.
 function skipOrderedListMarker(state, startLine) {
   var ch,
@@ -3167,6 +3232,9 @@ module.exports = function list(state, startLine, endLine, silent) {
       isTerminatingParagraph = false,
       tight = true;
 
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
+
   // limit conditions when list can interrupt
   // a paragraph (validation mode only)
   if (silent && state.parentType === 'paragraph') {
@@ -3245,12 +3313,10 @@ module.exports = function list(state, startLine, endLine, silent) {
     while (pos < max) {
       ch = state.src.charCodeAt(pos);
 
-      if (isSpace(ch)) {
-        if (ch === 0x09) {
-          offset += 4 - (offset + state.bsCount[nextLine]) % 4;
-        } else {
-          offset++;
-        }
+      if (ch === 0x09) {
+        offset += 4 - (offset + state.bsCount[nextLine]) % 4;
+      } else if (ch === 0x20) {
+        offset++;
       } else {
         break;
       }
@@ -3351,7 +3417,7 @@ module.exports = function list(state, startLine, endLine, silent) {
     if (markerCharCode !== state.src.charCodeAt(posAfterMarker - 1)) { break; }
   }
 
-  // Finilize list
+  // Finalize list
   if (isOrdered) {
     token = state.push('ordered_list_close', 'ol', -1);
   } else {
@@ -3430,8 +3496,6 @@ module.exports = function paragraph(state, startLine/*, endLine*/) {
 'use strict';
 
 
-var parseLinkDestination = require('../helpers/parse_link_destination');
-var parseLinkTitle       = require('../helpers/parse_link_title');
 var normalizeReference   = require('../common/utils').normalizeReference;
 var isSpace              = require('../common/utils').isSpace;
 
@@ -3457,6 +3521,9 @@ module.exports = function reference(state, startLine, _endLine, silent) {
       pos = state.bMarks[startLine] + state.tShift[startLine],
       max = state.eMarks[startLine],
       nextLine = startLine + 1;
+
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
 
   if (state.src.charCodeAt(pos) !== 0x5B/* [ */) { return false; }
 
@@ -3535,7 +3602,7 @@ module.exports = function reference(state, startLine, _endLine, silent) {
 
   // [label]:   destination   'title'
   //            ^^^^^^^^^^^ parse this
-  res = parseLinkDestination(str, pos, max);
+  res = state.md.helpers.parseLinkDestination(str, pos, max);
   if (!res.ok) { return false; }
 
   href = state.md.normalizeLink(res.str);
@@ -3564,7 +3631,7 @@ module.exports = function reference(state, startLine, _endLine, silent) {
 
   // [label]:   destination   'title'
   //                          ^^^^^^^ parse this
-  res = parseLinkTitle(str, pos, max);
+  res = state.md.helpers.parseLinkTitle(str, pos, max);
   if (pos < max && start !== pos && res.ok) {
     title = res.str;
     pos = res.pos;
@@ -3611,7 +3678,9 @@ module.exports = function reference(state, startLine, _endLine, silent) {
   // Reference can not terminate anything. This check is for safety only.
   /*istanbul ignore if*/
   if (silent) { return true; }
-
+  if (typeof state.env === 'undefined') {
+    state.env = {};
+  }
   if (typeof state.env.references === 'undefined') {
     state.env.references = {};
   }
@@ -3625,7 +3694,7 @@ module.exports = function reference(state, startLine, _endLine, silent) {
   return true;
 };
 
-},{"../common/utils":4,"../helpers/parse_link_destination":6,"../helpers/parse_link_title":8}],28:[function(require,module,exports){
+},{"../common/utils":4}],28:[function(require,module,exports){
 // Parser state class
 
 'use strict';
@@ -3668,8 +3737,7 @@ function StateBlock(src, md, env, tokens) {
   this.bsCount = [];
 
   // block parser variables
-  this.blkIndent  = 0; // required block content indent
-                       // (for example, if we are in list)
+  this.blkIndent  = 0; // required block content indent (for example, if we are in list)
   this.line       = 0; // line index in src
   this.lineMax    = 0; // lines count
   this.tight      = false;  // loose/tight mode for lists
@@ -3862,6 +3930,8 @@ module.exports = StateBlock;
 
 'use strict';
 
+var isSpace = require('../common/utils').isSpace;
+
 
 function getLine(state, line) {
   var pos = state.bMarks[line] + state.blkIndent,
@@ -3883,13 +3953,22 @@ function escapedSplit(str) {
   ch  = str.charCodeAt(pos);
 
   while (pos < max) {
-    if (ch === 0x60/* ` */ && (escapes % 2 === 0)) {
-      backTicked = !backTicked;
-      lastBackTick = pos;
+    if (ch === 0x60/* ` */) {
+      if (backTicked) {
+        // make \` close code sequence, but not open it;
+        // the reason is: `\` is correct code block
+        backTicked = false;
+        lastBackTick = pos;
+      } else if (escapes % 2 === 0) {
+        backTicked = true;
+        lastBackTick = pos;
+      }
     } else if (ch === 0x7c/* | */ && (escapes % 2 === 0) && !backTicked) {
       result.push(str.substring(lastPos, pos));
       lastPos = pos + 1;
-    } else if (ch === 0x5c/* \ */) {
+    }
+
+    if (ch === 0x5c/* \ */) {
       escapes++;
     } else {
       escapes = 0;
@@ -3915,25 +3994,37 @@ function escapedSplit(str) {
 
 module.exports = function table(state, startLine, endLine, silent) {
   var ch, lineText, pos, i, nextLine, columns, columnCount, token,
-      aligns, t, tableLines, tbodyLines;
+      aligns, t, tableLines, tbodyLines, len;
 
-  // should have at least three lines
+  // should have at least two lines
   if (startLine + 2 > endLine) { return false; }
 
   nextLine = startLine + 1;
 
   if (state.sCount[nextLine] < state.blkIndent) { return false; }
 
-  // first character of the second line should be '|' or '-'
+  // if it's indented more than 3 spaces, it should be a code block
+  if (state.sCount[nextLine] - state.blkIndent >= 4) { return false; }
+
+  // first character of the second line should be '|', '-', ':',
+  // and no other characters are allowed but spaces;
+  // basically, this is the equivalent of /^[-:|][-:|\s]*$/ regexp
 
   pos = state.bMarks[nextLine] + state.tShift[nextLine];
   if (pos >= state.eMarks[nextLine]) { return false; }
 
-  ch = state.src.charCodeAt(pos);
+  ch = state.src.charCodeAt(pos++);
   if (ch !== 0x7C/* | */ && ch !== 0x2D/* - */ && ch !== 0x3A/* : */) { return false; }
 
+  while (pos < state.eMarks[nextLine]) {
+    ch = state.src.charCodeAt(pos);
+
+    if (ch !== 0x7C/* | */ && ch !== 0x2D/* - */ && ch !== 0x3A/* : */ && !isSpace(ch)) { return false; }
+
+    pos++;
+  }
+
   lineText = getLine(state, startLine + 1);
-  if (!/^[-:| ]+$/.test(lineText)) { return false; }
 
   columns = lineText.split('|');
   aligns = [];
@@ -3961,6 +4052,7 @@ module.exports = function table(state, startLine, endLine, silent) {
 
   lineText = getLine(state, startLine).trim();
   if (lineText.indexOf('|') === -1) { return false; }
+  if (state.sCount[startLine] - state.blkIndent >= 4) { return false; }
   columns = escapedSplit(lineText.replace(/^\||\|$/g, ''));
 
   // header row will define an amount of columns in the entire table,
@@ -4003,15 +4095,14 @@ module.exports = function table(state, startLine, endLine, silent) {
   for (nextLine = startLine + 2; nextLine < endLine; nextLine++) {
     if (state.sCount[nextLine] < state.blkIndent) { break; }
 
-    lineText = getLine(state, nextLine);
+    lineText = getLine(state, nextLine).trim();
     if (lineText.indexOf('|') === -1) { break; }
-
-    // keep spaces at beginning of line to indicate an empty first cell, but
-    // strip trailing whitespace
-    columns = escapedSplit(lineText.replace(/^\||\|\s*$/g, ''));
+    if (state.sCount[nextLine] - state.blkIndent >= 4) { break; }
+    columns = escapedSplit(lineText.replace(/^\||\|$/g, ''));
 
     token = state.push('tr_open', 'tr', 1);
-    for (i = 0; i < columnCount; i++) {
+    len = Math.max(columns.length, columnCount);
+    for (i = 0; i < len; i++) {
       token          = state.push('td_open', 'td', 1);
       if (aligns[i]) {
         token.attrs  = [ [ 'style', 'text-align:' + aligns[i] ] ];
@@ -4033,7 +4124,7 @@ module.exports = function table(state, startLine, endLine, silent) {
   return true;
 };
 
-},{}],30:[function(require,module,exports){
+},{"../common/utils":4}],30:[function(require,module,exports){
 'use strict';
 
 
@@ -4224,7 +4315,7 @@ module.exports = function inline(state) {
 };
 
 },{}],34:[function(require,module,exports){
-// Simple typographyc replacements
+// Simple typographic replacements
 //
 // (c) (C) → ©
 // (tm) (TM) → ™
@@ -4234,6 +4325,8 @@ module.exports = function inline(state) {
 // ... → … (also ?.... → ?.., !.... → !..)
 // ???????? → ???, !!!!! → !!!, `,,` → `,`
 // -- → &ndash;, --- → &mdash;
+// --> → →; <-- → ←; <--> → ↔
+// ==> → ⇒; <== → ⇐; <==> → ⇔
 //
 'use strict';
 
@@ -4241,7 +4334,7 @@ module.exports = function inline(state) {
 // - fractionals 1/2, 1/4, 3/4 -> ½, ¼, ¾
 // - miltiplication 2 x 4 -> 2 × 4
 
-var RARE_RE = /\+-|\.\.|\?\?\?\?|!!!!|,,|--/;
+var RARE_RE = /\+-|\.\.|\?\?\?\?|!!!!|,,|--|==/;
 
 // Workaround for phantomjs - need regex without /g flag,
 // or root check will fail every second time
@@ -4288,16 +4381,34 @@ function replace_rare(inlineTokens) {
     if (token.type === 'text' && !inside_autolink) {
       if (RARE_RE.test(token.content)) {
         token.content = token.content
-                    .replace(/\+-/g, '±')
-                    // .., ..., ....... -> …
-                    // but ?..... & !..... -> ?.. & !..
-                    .replace(/\.{2,}/g, '…').replace(/([?!])…/g, '$1..')
-                    .replace(/([?!]){4,}/g, '$1$1$1').replace(/,{2,}/g, ',')
-                    // em-dash
-                    .replace(/(^|[^-])---([^-]|$)/mg, '$1\u2014$2')
-                    // en-dash
-                    .replace(/(^|\s)--(\s|$)/mg, '$1\u2013$2')
-                    .replace(/(^|[^-\s])--([^-\s]|$)/mg, '$1\u2013$2');
+          .replace(/\+-/g, '±')
+          // .., ..., ....... -> …
+          // but ?..... & !..... -> ?.. & !..
+          .replace(/\.{2,}/g, '…').replace(/([?!])…/g, '$1..')
+          .replace(/([?!]){4,}/g, '$1$1$1').replace(/,{2,}/g, ',')
+          // <-->
+          .replace(/(^|\s)<-->(\s|$)/mg, '$1\u2194$2')
+          .replace(/(^|[^<\s])<-->([^>\s]|$)/mg, '$1\u2194$2')
+          // -->
+          .replace(/(^|\s)-->(\s|$)/mg, '$1\u2192$2')
+          .replace(/(^|[^-\s])-->([^>\s]|$)/mg, '$1\u2192$2')
+          // -->
+          .replace(/(^|\s)<--(\s|$)/mg, '$1\u2190$2')
+          .replace(/(^|[^<\s])<--([^-\s]|$)/mg, '$1\u2190$2')
+          // <==>
+          .replace(/(^|\s)<==>(\s|$)/mg, '$1\u21d4$2')
+          .replace(/(^|[^<\s])<==>([^>\s]|$)/mg, '$1\u21d4$2')
+          // ==>
+          .replace(/(^|\s)==>(\s|$)/mg, '$1\u21d2$2')
+          .replace(/(^|[^=\s])==>([^>\s]|$)/mg, '$1\u21d2$2')
+          // -->
+          .replace(/(^|\s)<==(\s|$)/mg, '$1\u21d0$2')
+          .replace(/(^|[^<\s])<==([^=\s]|$)/mg, '$1\u21d0$2')
+          // em-dash
+          .replace(/(^|[^-])---([^-]|$)/mg, '$1\u2014$2')
+          // en-dash
+          .replace(/(^|\s)--(\s|$)/mg, '$1\u2013$2')
+          .replace(/(^|[^-\s,\/])--([^-\s,\/]|$)/mg, '$1\u2013$2');
       }
     }
 
@@ -4655,8 +4766,8 @@ module.exports = function backtick(state, silent) {
         token         = state.push('code_inline', 'code', 0);
         token.markup  = marker;
         token.content = state.src.slice(pos, matchStart)
-                                 .replace(/[ \n]+/g, ' ')
-                                 .trim();
+          .replace(/[ \n]+/g, ' ')
+          .trim();
       }
       state.pos = matchEnd;
       return true;
@@ -4794,7 +4905,7 @@ module.exports.postProcess = function emphasis(state) {
       delimiters = state.delimiters,
       max = state.delimiters.length;
 
-  for (i = 0; i < max; i++) {
+  for (i = max - 1; i >= 0; i--) {
     startDelim = delimiters[i];
 
     if (startDelim.marker !== 0x5F/* _ */ && startDelim.marker !== 0x2A/* * */) {
@@ -4813,11 +4924,11 @@ module.exports.postProcess = function emphasis(state) {
     //
     // `<em><em>whatever</em></em>` -> `<strong>whatever</strong>`
     //
-    isStrong = i + 1 < max &&
-               delimiters[i + 1].end === startDelim.end - 1 &&
-               delimiters[i + 1].token === startDelim.token + 1 &&
-               delimiters[startDelim.end - 1].token === endDelim.token - 1 &&
-               delimiters[i + 1].marker === startDelim.marker;
+    isStrong = i - 1 >= 0 &&
+               delimiters[i - 1].end === startDelim.end + 1 &&
+               delimiters[i - 1].token === startDelim.token - 1 &&
+               delimiters[startDelim.end + 1].token === endDelim.token + 1 &&
+               delimiters[i - 1].marker === startDelim.marker;
 
     ch = String.fromCharCode(startDelim.marker);
 
@@ -4836,9 +4947,9 @@ module.exports.postProcess = function emphasis(state) {
     token.content = '';
 
     if (isStrong) {
-      state.tokens[delimiters[i + 1].token].content = '';
-      state.tokens[delimiters[startDelim.end - 1].token].content = '';
-      i++;
+      state.tokens[delimiters[i - 1].token].content = '';
+      state.tokens[delimiters[startDelim.end + 1].token].content = '';
+      i--;
     }
   }
 };
@@ -5001,9 +5112,6 @@ module.exports = function html_inline(state, silent) {
 
 'use strict';
 
-var parseLinkLabel       = require('../helpers/parse_link_label');
-var parseLinkDestination = require('../helpers/parse_link_destination');
-var parseLinkTitle       = require('../helpers/parse_link_title');
 var normalizeReference   = require('../common/utils').normalizeReference;
 var isSpace              = require('../common/utils').isSpace;
 
@@ -5030,7 +5138,7 @@ module.exports = function image(state, silent) {
   if (state.src.charCodeAt(state.pos + 1) !== 0x5B/* [ */) { return false; }
 
   labelStart = state.pos + 2;
-  labelEnd = parseLinkLabel(state, state.pos + 1, false);
+  labelEnd = state.md.helpers.parseLinkLabel(state, state.pos + 1, false);
 
   // parser failed to find ']', so it's not a valid link
   if (labelEnd < 0) { return false; }
@@ -5053,7 +5161,7 @@ module.exports = function image(state, silent) {
     // [link](  <href>  "title"  )
     //          ^^^^^^ parsing link destination
     start = pos;
-    res = parseLinkDestination(state.src, pos, state.posMax);
+    res = state.md.helpers.parseLinkDestination(state.src, pos, state.posMax);
     if (res.ok) {
       href = state.md.normalizeLink(res.str);
       if (state.md.validateLink(href)) {
@@ -5073,7 +5181,7 @@ module.exports = function image(state, silent) {
 
     // [link](  <href>  "title"  )
     //                  ^^^^^^^ parsing link title
-    res = parseLinkTitle(state.src, pos, state.posMax);
+    res = state.md.helpers.parseLinkTitle(state.src, pos, state.posMax);
     if (pos < max && start !== pos && res.ok) {
       title = res.str;
       pos = res.pos;
@@ -5097,11 +5205,11 @@ module.exports = function image(state, silent) {
     //
     // Link reference
     //
-    if (typeof state.env.references === 'undefined') { return false; }
+    if (typeof state.env === 'undefined' || typeof state.env.references === 'undefined') { return false; }
 
     if (pos < max && state.src.charCodeAt(pos) === 0x5B/* [ */) {
       start = pos + 1;
-      pos = parseLinkLabel(state, pos);
+      pos = state.md.helpers.parseLinkLabel(state, pos);
       if (pos >= 0) {
         label = state.src.slice(start, pos++);
       } else {
@@ -5153,14 +5261,11 @@ module.exports = function image(state, silent) {
   return true;
 };
 
-},{"../common/utils":4,"../helpers/parse_link_destination":6,"../helpers/parse_link_label":7,"../helpers/parse_link_title":8}],45:[function(require,module,exports){
+},{"../common/utils":4}],45:[function(require,module,exports){
 // Process [link](<to> "stuff")
 
 'use strict';
 
-var parseLinkLabel       = require('../helpers/parse_link_label');
-var parseLinkDestination = require('../helpers/parse_link_destination');
-var parseLinkTitle       = require('../helpers/parse_link_title');
 var normalizeReference   = require('../common/utils').normalizeReference;
 var isSpace              = require('../common/utils').isSpace;
 
@@ -5179,12 +5284,13 @@ module.exports = function link(state, silent) {
       href = '',
       oldPos = state.pos,
       max = state.posMax,
-      start = state.pos;
+      start = state.pos,
+      parseReference = true;
 
   if (state.src.charCodeAt(state.pos) !== 0x5B/* [ */) { return false; }
 
   labelStart = state.pos + 1;
-  labelEnd = parseLinkLabel(state, state.pos, true);
+  labelEnd = state.md.helpers.parseLinkLabel(state, state.pos, true);
 
   // parser failed to find ']', so it's not a valid link
   if (labelEnd < 0) { return false; }
@@ -5194,6 +5300,9 @@ module.exports = function link(state, silent) {
     //
     // Inline link
     //
+
+    // might have found a valid shortcut link, disable reference parsing
+    parseReference = false;
 
     // [link](  <href>  "title"  )
     //        ^^ skipping these spaces
@@ -5207,7 +5316,7 @@ module.exports = function link(state, silent) {
     // [link](  <href>  "title"  )
     //          ^^^^^^ parsing link destination
     start = pos;
-    res = parseLinkDestination(state.src, pos, state.posMax);
+    res = state.md.helpers.parseLinkDestination(state.src, pos, state.posMax);
     if (res.ok) {
       href = state.md.normalizeLink(res.str);
       if (state.md.validateLink(href)) {
@@ -5227,7 +5336,7 @@ module.exports = function link(state, silent) {
 
     // [link](  <href>  "title"  )
     //                  ^^^^^^^ parsing link title
-    res = parseLinkTitle(state.src, pos, state.posMax);
+    res = state.md.helpers.parseLinkTitle(state.src, pos, state.posMax);
     if (pos < max && start !== pos && res.ok) {
       title = res.str;
       pos = res.pos;
@@ -5243,19 +5352,21 @@ module.exports = function link(state, silent) {
     }
 
     if (pos >= max || state.src.charCodeAt(pos) !== 0x29/* ) */) {
-      state.pos = oldPos;
-      return false;
+      // parsing a valid shortcut link failed, fallback to reference
+      parseReference = true;
     }
     pos++;
-  } else {
+  }
+
+  if (parseReference) {
     //
     // Link reference
     //
-    if (typeof state.env.references === 'undefined') { return false; }
+    if (typeof state.env === 'undefined' || typeof state.env.references === 'undefined') { return false; }
 
     if (pos < max && state.src.charCodeAt(pos) === 0x5B/* [ */) {
       start = pos + 1;
-      pos = parseLinkLabel(state, pos);
+      pos = state.md.helpers.parseLinkLabel(state, pos);
       if (pos >= 0) {
         label = state.src.slice(start, pos++);
       } else {
@@ -5302,10 +5413,13 @@ module.exports = function link(state, silent) {
   return true;
 };
 
-},{"../common/utils":4,"../helpers/parse_link_destination":6,"../helpers/parse_link_label":7,"../helpers/parse_link_title":8}],46:[function(require,module,exports){
+},{"../common/utils":4}],46:[function(require,module,exports){
 // Proceess '\n'
 
 'use strict';
+
+var isSpace = require('../common/utils').isSpace;
+
 
 module.exports = function newline(state, silent) {
   var pmax, max, pos = state.pos;
@@ -5337,13 +5451,13 @@ module.exports = function newline(state, silent) {
   pos++;
 
   // skip heading spaces for next line
-  while (pos < max && state.src.charCodeAt(pos) === 0x20) { pos++; }
+  while (pos < max && isSpace(state.src.charCodeAt(pos))) { pos++; }
 
   state.pos = pos;
   return true;
 };
 
-},{}],47:[function(require,module,exports){
+},{"../common/utils":4}],47:[function(require,module,exports){
 // Inline parser state
 
 'use strict';
@@ -5367,8 +5481,7 @@ function StateInline(src, md, env, outTokens) {
   this.pending = '';
   this.pendingLevel = 0;
 
-  this.cache = {};        // Stores { start: end } pairs. Useful for backtrack
-                          // optimization of pairs parse (emphasis, strikes).
+  this.cache = {};        // Stores { start: end } pairs. Useful for backtrack optimization of pairs parse (emphasis, strikes).
 
   this.delimiters = [];   // Emphasis-like delimiters
 }
@@ -5917,6 +6030,30 @@ Token.prototype.attrJoin = function attrJoin(name, value) {
 };
 
 
+/**
+ * Token.clone()
+ *
+ * Obtain a shallow clone of the token.  You can use this while rendering to
+ * prevent modifying the token list while rendering.
+ **/
+
+Token.prototype.clone = function clone() {
+  var token = new Token(this.type, this.tag, this.nesting);
+
+  token.attrs = this.attrs;
+  token.level = this.level;
+  token.children = this.children;
+  token.content = this.content;
+  token.map = this.map;
+  token.markup = this.markup;
+  token.info = this.info;
+  token.meta = this.meta;
+  token.block = this.block;
+  token.hidden = this.hidden;
+
+  return token;
+};
+
 module.exports = Token;
 
 },{}],52:[function(require,module,exports){
@@ -6178,8 +6315,8 @@ function compile(self) {
                       .map(escapeRE)
                       .join('|');
   // (?!_) cause 1.5x slowdown
-  self.re.schema_test   = RegExp('(^|(?!_)(?:[><]|' + re.src_ZPCc + '))(' + slist + ')', 'i');
-  self.re.schema_search = RegExp('(^|(?!_)(?:[><]|' + re.src_ZPCc + '))(' + slist + ')', 'ig');
+  self.re.schema_test   = RegExp('(^|(?!_)(?:[><\uff5c]|' + re.src_ZPCc + '))(' + slist + ')', 'i');
+  self.re.schema_search = RegExp('(^|(?!_)(?:[><\uff5c]|' + re.src_ZPCc + '))(' + slist + ')', 'ig');
 
   self.re.pretest       = RegExp(
                             '(' + self.re.schema_test.source + ')|' +
@@ -6579,10 +6716,14 @@ module.exports = function (opts) {
   // \p{\Z\Cc} (white spaces + control)
   re.src_ZCc = [ re.src_Z, re.src_Cc ].join('|');
 
+  // Experimental. List of chars, completely prohibited in links
+  // because can separate it from other part of text
+  var text_separators = '[><\uff5c]';
+
   // All possible word characters (everything without punctuation, spaces & controls)
   // Defined via punctuation & spaces to save space
   // Should be something like \p{\L\N\S\M} (\w but without `_`)
-  re.src_pseudo_letter       = '(?:(?!>|<|' + re.src_ZPCc + ')' + re.src_Any + ')';
+  re.src_pseudo_letter       = '(?:(?!' + text_separators + '|' + re.src_ZPCc + ')' + re.src_Any + ')';
   // The same as abothe but without [0-9]
   // var src_pseudo_letter_non_d = '(?:(?![0-9]|' + src_ZPCc + ')' + src_Any + ')';
 
@@ -6592,8 +6733,8 @@ module.exports = function (opts) {
 
     '(?:(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)';
 
-  // Prohibit [@/] in user/pass to avoid wrong domain fetch.
-  re.src_auth    = '(?:(?:(?!' + re.src_ZCc + '|[@/]).)+@)?';
+  // Prohibit any of "@/[]()" in user/pass to avoid wrong domain fetch.
+  re.src_auth    = '(?:(?:(?!' + re.src_ZCc + '|[@/\\[\\]()]).)+@)?';
 
   re.src_port =
 
@@ -6601,14 +6742,14 @@ module.exports = function (opts) {
 
   re.src_host_terminator =
 
-    '(?=$|>|<|' + re.src_ZPCc + ')(?!-|_|:\\d|\\.-|\\.(?!$|' + re.src_ZPCc + '))';
+    '(?=$|' + text_separators + '|' + re.src_ZPCc + ')(?!-|_|:\\d|\\.-|\\.(?!$|' + re.src_ZPCc + '))';
 
   re.src_path =
 
     '(?:' +
       '[/?#]' +
         '(?:' +
-          '(?!' + re.src_ZCc + '|[()[\\]{}.,"\'?!\\-<>]).|' +
+          '(?!' + re.src_ZCc + '|' + text_separators + '|[()[\\]{}.,"\'?!\\-]).|' +
           '\\[(?:(?!' + re.src_ZCc + '|\\]).)*\\]|' +
           '\\((?:(?!' + re.src_ZCc + '|[)]).)*\\)|' +
           '\\{(?:(?!' + re.src_ZCc + '|[}]).)*\\}|' +
@@ -6672,7 +6813,7 @@ module.exports = function (opts) {
     // Don't need IP check, because digits are already allowed in normal domain names
     //   src_ip4 +
     // '|' +
-      '(?:(?:(?:' + re.src_domain + ')\\.)*' + re.src_domain_root + ')' +
+      '(?:(?:(?:' + re.src_domain + ')\\.)*' + re.src_domain/*_root*/ + ')' +
     ')';
 
   re.tpl_host_fuzzy =
@@ -6718,19 +6859,19 @@ module.exports = function (opts) {
 
   re.tpl_email_fuzzy =
 
-      '(^|<|>|\\(|' + re.src_ZCc + ')(' + re.src_email_name + '@' + re.tpl_host_fuzzy_strict + ')';
+      '(^|' + text_separators + '|\\(|' + re.src_ZCc + ')(' + re.src_email_name + '@' + re.tpl_host_fuzzy_strict + ')';
 
   re.tpl_link_fuzzy =
       // Fuzzy link can't be prepended with .:/\- and non punctuation.
       // but can start with > (markdown blockquote)
-      '(^|(?![.:/\\-_@])(?:[$+<=>^`|]|' + re.src_ZPCc + '))' +
-      '((?![$+<=>^`|])' + re.tpl_host_port_fuzzy_strict + re.src_path + ')';
+      '(^|(?![.:/\\-_@])(?:[$+<=>^`|\uff5c]|' + re.src_ZPCc + '))' +
+      '((?![$+<=>^`|\uff5c])' + re.tpl_host_port_fuzzy_strict + re.src_path + ')';
 
   re.tpl_link_no_ip_fuzzy =
       // Fuzzy link can't be prepended with .:/\- and non punctuation.
       // but can start with > (markdown blockquote)
-      '(^|(?![.:/\\-_@])(?:[$+<=>^`|]|' + re.src_ZPCc + '))' +
-      '((?![$+<=>^`|])' + re.tpl_host_port_no_ip_fuzzy_strict + re.src_path + ')';
+      '(^|(?![.:/\\-_@])(?:[$+<=>^`|\uff5c]|' + re.src_ZPCc + '))' +
+      '((?![$+<=>^`|\uff5c])' + re.tpl_host_port_no_ip_fuzzy_strict + re.src_path + ')';
 
   return re;
 };
