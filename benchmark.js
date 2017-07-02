@@ -2539,7 +2539,7 @@
        * @memberOf Benchmark
        * @type string
        */
-      'version': '2.1.4'
+      version: '2.1.4-24'
     });
 
     _.assign(Benchmark, {
