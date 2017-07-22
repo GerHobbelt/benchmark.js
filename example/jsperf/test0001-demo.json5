@@ -27,57 +27,62 @@
   browserscope_API_key: 'ahBzfnVhLXByb2ZpbGVyLWhychELEgRUZXN0GICA4LDez_EKDA',
 
   HTML: "<div>Lorem ipsum</div>",
-  init: "\
-      var arr = [1, 5, 4, 2, 3];\n\
-\n\
-      function init() {\n\
-        window.console && console.log('init called');\n\
-      }\
-        ",
+  init: <<EOT
+      var arr = [1, 5, 4, 2, 3];
+
+      function init() {
+        window.console && console.log('init called');
+      }
+EOT,
   tests: [
     {
       name: 'Normal', 
-      fn: '\
-        x.sort(function(a, b) {\n\
-          return a - b;\n\
-        });'
+      fn: <<EOT
+        x.sort(function(a, b) {
+          return a - b;
+        });
+EOT
     },
     {
       name: 'Exit Early', 
-      fn: '\
-        x.sort(function(a, b) {\n\
-          return a - b;\n\
-        });\n\
-        return;'
+      fn: <<EOT
+        x.sort(function(a, b) {
+          return a - b;
+        });
+        return;
+EOT
     },
     { 
       name: 'Async', 
       'defer': true,
-      'fn': '\
-        setTimeout(function() {\n\
-          deferred.resolve();\n\
-        }, 10);'
+      'fn': <<EOT
+        setTimeout(function() {
+          deferred.resolve();
+        }, 10);
+EOT
     },
     {
       name: 'Error', 
-      fn: '\
-        x.foo(); // unknown method'
+      fn: <<EOT
+        x.foo(); // unknown method
+EOT
     },
     {
       name: 'Comments', 
-      fn: '\
-        // comments at start\n\
-        x.reverse().sort(function(a, b) {\n\
-          return a - b;\n\
-        });\n\
-        // comments at end'
+      fn: <<EOT
+        // comments at start
+        x.reverse().sort(function(a, b) {
+          return a - b;
+        });
+        // comments at end
+EOT
     }
   ],
-  setup: '\
-        Benchmark.prototype.setup = window.foo = 42;\n\
-        var x = arr;\n\
-        ',
-  teardown: '\
-        Benchmark.prototype.teardown = window.foo = 24;\n\
-        '
+  setup: <<EOT
+        Benchmark.prototype.setup = window.foo = 42;
+        var x = arr;
+EOT,
+  teardown: <<EOT
+        Benchmark.prototype.teardown = window.foo = 24;
+EOT
 }
