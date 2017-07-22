@@ -117,7 +117,7 @@
         .replace(/(?: BePC|[ .]*fc[ \d.]+)$/i, '')
         .replace(/\bx86\.64\b/gi, 'x86_64')
         .replace(/\b(Windows Phone) OS\b/, '$1')
-        .replace(/\b(Chrome OS \w+) [\d.]+\b/, '$1')
+        .replace(/\b(Chrome OS \w+)\b/, '$1')
         .split(' on ')[0]
     );
 
@@ -425,6 +425,7 @@
       'PlayBook',
       'PlayStation Vita',
       'PlayStation',
+      { 'label': 'Surface RT', 'pattern': 'Tablet PC 2.0'},
       'TouchPad',
       'Transformer',
       { 'label': 'Wii U', 'pattern': 'WiiU' },
@@ -724,6 +725,12 @@
       description.unshift('desktop mode');
       version || (version = (/\brv:([\d.]+)/.exec(ua) || 0)[1]);
     }
+    // Detect IE 11 Mobile (Surface).
+    else if (/\bTablet PC\b/i.test(ua)) {
+      name = 'IE Mobile';
+      os = 'Windows RT 8.1';
+      version || (version = (/\brv:([\d.]+)/.exec(ua) || 0)[1]);
+    }
     // Detect IE 11 identifying as other browsers.
     else if (name != 'IE' && layout == 'Trident' && (data = /\brv:([\d.]+)/.exec(ua))) {
       if (name) {
@@ -768,11 +775,12 @@
               name = 'NW.js';
               version = data.versions.nw;
             }
-          } else {
+          } 
+          if (!name) {
             name = 'Node.js';
             arch = data.arch;
             os = data.platform;
-            version = /[\d.]+/.exec(data.version)
+            version = /[\d.]+/.exec(data.version);
             version = version ? version[0] : 'unknown';
           }
         }

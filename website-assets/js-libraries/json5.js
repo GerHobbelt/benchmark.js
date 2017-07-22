@@ -1,5 +1,5 @@
 // json5.js
-// Modern JSON. See README.md for details.
+// JSON for Humans. See README.md for details.
 //
 // This file is based directly off of Douglas Crockford's json_parse.js:
 // https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
@@ -34,6 +34,10 @@ JSON5.parse = (function () {
             r:    '\r',
             t:    '\t',
             v:    '\v'
+        },
+        escapee_4_multiline = {
+            '`':  '`',
+            '\\': '\\'
         },
         ws = [
             ' ',
@@ -226,11 +230,15 @@ JSON5.parse = (function () {
                 string = '',
                 delim,      // double quote or single quote
                 uffff,
-                xff;
+                xff,
+                is_basic_str,
+                escapes;
 
-// When parsing for string values, we must look for ' or " and \ characters.
+// When parsing for string values, we must look for ', ", ` and \ characters.
 
-            if (ch === '"' || ch === "'") {
+            is_basic_str = (ch === '"' || ch === "'"); 
+            if (is_basic_str || ch === '`') {
+                escapes = (is_basic_str ? escapee : escapee_4_multiline);
                 delim = ch;
                 while (next()) {
                     if (ch === delim) {
@@ -248,6 +256,7 @@ JSON5.parse = (function () {
                                 uffff = uffff * 16 + hex;
                             }
                             string += String.fromCharCode(uffff);
+                            // TODO: add \u{fffff} support for *Unicode Code Points* as per ES2017
                         } else if (ch === 'x') {
                             xff = 0;
                             for (i = 0; i < 2; i += 1) {
@@ -262,28 +271,162 @@ JSON5.parse = (function () {
                             if (peek() === '\n') {
                                 next();
                             }
+                            // CR and CRLF get transformed to LF when the string being parsed is a `string template` type.
+                            // We also keep the `\\` at the end of line as it's an unrecognized escape in that mode.
+                            if (!is_basic_str) {
+                                string += '\\\n';
+                            }
                         } else if (ch >= '1' && ch <= '7') {
                             // since octal literals are not supported,
                             // octal escapes in strings are not either.
+                            //
+                            // While https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Template_literals
+                            // says otherwise, we still DO NOT support octal escapes in JSON5 '`'-delimited multiline
+                            // strings, as these ARE NOT identical to JavaScript 'template strings' as we DO NOT
+                            // intend to support the `${...}` template variable expansion feature either!
                             break;
-                        } else if (typeof escapee[ch] === 'string') {
-                            string += escapee[ch];
-                        } else {
-                            // javascript treats the '\' char as an escape for any character
+                        } else if (typeof escapes[ch] === 'string') {
+                            string += escapes[ch];
+                        } else if (is_basic_str) {
+                            // javascript treats the '\' char as an escape for any character in a classic string
                             string += ch;
+                        } else {
+                            // in '`'-delimited strings, we only accept \u, \x, \` and \\ escapes;
+                            // everyhing else is copied verbatim
+                            string += '\\' + ch;
                         }
-                    } else if (ch === '\n') {
+                    } else if (is_basic_str && ch === '\n') {
                         // unescaped newlines are invalid; see:
-                        // https://github.com/aseemk/json5/issues/24
-                        // TODO this feels special-cased; are there other
+                        // https://github.com/json5/json5/issues/24
+                        //
+                        // TODO: this feels special-cased; are there other
                         // invalid unescaped chars?
                         break;
+                    } else if (ch === '\r') {
+                        if (peek() === '\n') {
+                            next();
+                        }
+                        // CR and CRLF get transformed to LF when the string being parsed is a `string template` type.
+                        if (!is_basic_str) {
+                            string += '\n';
+                        } else {
+                            // unescaped newlines are invalid; see:
+                            // https://github.com/json5/json5/issues/24
+                            //
+                            // TODO: this feels special-cased; are there other
+                            // invalid unescaped chars?
+                            break;
+                        }
                     } else {
                         string += ch;
                     }
                 }
             }
             error("Bad string");
+        },
+
+        heredoc = function () {
+
+// Parse a heredoc (string) value.
+
+            var i,
+                string,
+                delim,
+                input,
+                m,
+                l,
+                offset,
+                chkstr_e,
+                chkstr_s;
+
+// When parsing for heredoc values, we must extract the EOT marker before anything else.
+// Once we've done that, we skip the first newline and start scanning/consuming heredoc
+// content until we hit the EOT marker on a line by itself, sans whitespace.
+//
+// By convention we do not accept 'formatting whitespace/indentation' before the EOT
+// marker on the same line.
+
+            input = text.substring(at);
+            // we accept 2 or more(!) `<` characters to mark the start of a heredoc chunk:
+            m = /(<+)([^\s\r\n<>,"'\/\[\]\{\}]+)(\r?\n|\r\n?)/.exec(input);
+            if (!m) {
+                error("Expected heredoc starting EOT marker to immediately follow the initial << or <<<");
+            }
+            //offset = m[1].length;
+            delim = m[2];
+
+            // strip off start marker including CRLF:
+            l = m[0].length;
+            input = input.substring(l);
+
+            at += l;
+            columnNumber = 0;
+
+            // scan for first occurrence of the lone EOT marker (which can really be ANYTHING 
+            // as long as the ANYTHING isn't whitespace!):
+            for (i = 0, l = delim.length; ; i = offset + 1) {
+                offset = input.indexOf(delim, i);
+                if (offset < 0) {
+                    error("Expected heredoc terminating EOT marker \"" + delim + "\" on a line by itself (sans whitespace)");
+                }
+                // now check if located EOT delimiter is on a line by its lonesome:
+                if (offset < 1) continue;
+                chkstr_e = input.substring(offset + l);
+                if (chkstr_e.length && chkstr_e[0] !== '\r' && chkstr_e[0] !== '\n') {
+                    // we don't tolerate any whitespace trailing the EOT marker: 
+                    // it must be the only item on the line!
+                    //
+                    // Note: however, we DO TOLERATE a comma field separator following 
+                    // on the same line à la BASH, while we also accept any trailing
+                    // whitespace as per the JSON5 spec for all other field formats
+                    // in an object/array:
+                    if (!chkstr_e.match(/^\s*,\s*(?:\r?\n|\r\n?)/)) {
+                        continue;
+                    } else {
+                        // trailing comma found: bump skip length accordingly
+                    }
+                }
+                chkstr_s = input.substr(offset - 2, 2);
+                if (chkstr_s[1] !== '\r' && chkstr_s[1] !== '\n') {
+                    // we don't tolerate any whitespace leading the EOT marker: 
+                    // it must be at the start of a new line!
+                    continue;
+                } else if (chkstr_s[1] === '\n' && chkstr_s[0] === '\r') {
+                    // found leading CRLF: ignore it entirely
+                    i = offset - 2;
+                } else {
+                    // found leading CR or LF: ignore it
+                    i = offset - 1;
+                }
+
+                // found a legal EOT marker! `i` is now index of first non-content character.
+                //
+                // Hence we now may extract the heredoc'ed content as a string,
+                // ignoring the preceding CR/LF/CRLF:
+                string = input.substring(0, i);
+
+                // and we jump over the EOT marker:
+                offset += l;
+                // we DO NOT jump over the trailing optional comma and/or trailing CR/LF/CRLF
+                // as those are expected to be parsed by the outer call: when parsing a heredoc
+                // string in an array or object specifically, the outer call EXPECTS to see
+                // that trailing comma in global `ch` or it will barf a hairball on the next
+                // element!
+
+                at += offset;
+                columnNumber = l;
+
+                // count the number of lines in the extracted string:
+                var lines = (string.match(/\r?\n|\r\n?/g) || []);
+                lineNumber += lines.length + 2;    // add the skipped newlines at start and end of heredoc: 1 at start, 1 at the end, not counting the trailing EOL as that one isn't skipped yet!
+
+                // also make sure `ch` is primed a la `next()` API:
+                ch = text.charAt(at);
+                next();
+                break;
+            }
+
+            return string;
         },
 
         inlineComment = function () {
@@ -502,7 +645,10 @@ JSON5.parse = (function () {
             return array();
         case '"':
         case "'":
+        case "`":
             return string();
+        case "<":
+            return heredoc();
         case '-':
         case '+':
         case '.':
@@ -515,7 +661,7 @@ JSON5.parse = (function () {
 // Return the json_parse function. It will have access to all of the above
 // functions and variables.
 
-    return function (source, reviver) {
+    return function json_parse(source, reviver) {
         var result;
 
         text = String(source);
@@ -679,6 +825,7 @@ JSON5.stringify = function (obj, replacer, space) {
         '"' : '\\"',
         '\\': '\\\\'
     };
+
     function escapeString(string) {
 
 // If the string contains no control characters, no quote characters, and no
@@ -742,7 +889,10 @@ JSON5.stringify = function (obj, replacer, space) {
                         }
                     }
                     objStack.pop();
-                    buffer += makeIndent(indentStr, objStack.length, true) + "]";
+                    if (obj_part.length) {
+                        buffer += makeIndent(indentStr, objStack.length, true)
+                    }
+                    buffer += "]";
                 } else {
                     checkForCircular(obj_part);
                     buffer = "{";
