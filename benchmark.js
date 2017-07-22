@@ -869,7 +869,8 @@
      * // invoke `emit` with arguments
      * Benchmark.invoke(benches, 'emit', 'complete', listener);
      *
-     * // invoke `run(true)`, treat benchmarks as a queue, and register invoke callbacks
+     * // invoke `run(true)`, treat benchmarks as a queue, and register 
+     * // invoke callbacks
      * Benchmark.invoke(benches, {
      *
      *   // invoke the `run` method
@@ -878,7 +879,8 @@
      *   // pass a single argument
      *   args: true,
      *
-     *   // treat as queue, removing benchmarks from front of `benches` until empty
+     *   // treat as queue, removing benchmarks from front of `benches` 
+     *   // until empty
      *   queued: true,
      *
      *   // called before any benchmarks have been invoked.
