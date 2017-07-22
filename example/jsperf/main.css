@@ -359,6 +359,12 @@ blockquote {
   margin: 0 1em 0.5em 1em;
   padding: 3px .5em 3px 1em;
 }
+blockquote a {
+  color: #75f6ff;
+}
+blockquote a:visited {
+  color: #ffb2f8;
+}
 table {
   width: 100%;
   border-collapse: collapse;

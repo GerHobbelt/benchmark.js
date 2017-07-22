@@ -38,10 +38,11 @@ body {
 a {
   color: #357ab0;
   padding: .2em;
-}
 
-a:hover, a:focus {
-  text-decoration: none;
+  &:hover, 
+  &:focus {
+    text-decoration: none;
+  }
 }
 
 blockquote {
@@ -55,6 +56,14 @@ blockquote {
 
   &.general-warning-notice {
 
+  }
+
+  a {
+    color: #75f6ff;
+
+    &:visited {
+      color: #ffb2f8;
+    }
   }
 }
 
@@ -165,7 +174,7 @@ td.slowest, td.error, .invalid {
   background: pink;
 }
 
-// needs its own rule because of buggy IE 
+// needs its own rule because of buggy IE
 :focus:invalid {
   background: pink;
 }
@@ -176,12 +185,12 @@ td.error {
 }
 
 tr.no-ranking {
-  background-color: rgb(227, 227, 227); 
-  color: rgb(104, 120, 134); 
+  background-color: rgb(227, 227, 227);
+  color: rgb(104, 120, 134);
 }
 tr.no-ranking th {
   background-color: #c5cdd4;
-  color: rgb(93, 93, 93); 
+  color: rgb(93, 93, 93);
 }
 
 button, .submit {
@@ -221,13 +230,13 @@ article {
   &.show {
     display: block;
 
-    // center children: 
-    // 
+    // center children:
+    //
     // https://stackoverflow.com/questions/114543/horizontally-center-a-div-in-a-div/16144913#16144913
     display: flex;
-    flex-wrap: wrap;          // optional. only if you want the items to wrap 
-    justify-content: center;  // for horizontal alignment 
-    align-items: center;      // for vertical alignment 
+    flex-wrap: wrap;          // optional. only if you want the items to wrap
+    justify-content: center;  // for horizontal alignment
+    align-items: center;      // for vertical alignment
   }
 
   // using https://css-tricks.com/snippets/css/clear-fix/
@@ -306,7 +315,7 @@ textarea {
   resize: vertical;
   height: 15em;
   width: 42.6em;
-  *width: 42.4em; // IE < 8 
+  *width: 42.4em; // IE < 8
 }
 
 input, textarea {
@@ -314,7 +323,7 @@ input, textarea {
   padding: .4em;
 }
 
-#visible { // checkboxes, for IE 
+#visible { // checkboxes, for IE
   border: 0;
   padding: 0;
 }
@@ -335,14 +344,14 @@ pre {
   background-color: #f7f7f7;
 
   margin: 0;
-  box-sizing: border-box;       // include padding and border in the 100% width so we don't get punished with a horizontal scrollbar! 
+  box-sizing: border-box;       // include padding and border in the 100% width so we don't get punished with a horizontal scrollbar!
 
   // http://stackoverflow.com/questions/248011/how-do-i-wrap-text-in-a-pre-tag
-  white-space: pre-wrap;          // Since CSS 2.1 
-  // white-space: -moz-pre-wrap;  // Mozilla, since 1999 
-  // white-space: -pre-wrap;      // Opera 4-6 
-  // white-space: -o-pre-wrap;    // Opera 7 
-  word-wrap: break-word;          // Internet Explorer 5.5+ 
+  white-space: pre-wrap;          // Since CSS 2.1
+  // white-space: -moz-pre-wrap;  // Mozilla, since 1999
+  // white-space: -pre-wrap;      // Opera 4-6
+  // white-space: -o-pre-wrap;    // Opera 7
+  word-wrap: break-word;          // Internet Explorer 5.5+
 }
 
 table #results-1 {
@@ -350,8 +359,8 @@ table #results-1 {
 }
 
 table pre {
-  *padding: 1.5em 0; // IE < 8 
-  *overflow-y: hidden; // IE < 8 
+  *padding: 1.5em 0; // IE < 8
+  *overflow-y: hidden; // IE < 8
 }
 
 table pre, table td.code {
@@ -532,7 +541,7 @@ footer {
   margin-bottom: 1em;
 }
 
-// needs its own rule (cannot be grouped with `tbody th`) because of buggy IE 
+// needs its own rule (cannot be grouped with `tbody th`) because of buggy IE
 #comments article:target {
   background: #dde4ea;
 }
@@ -596,8 +605,8 @@ footer {
 }
 
 #prep-code pre {
-  // max-height: 500px; 
-  // overflow: auto; 
+  // max-height: 500px;
+  // overflow: auto;
   padding: 6px 0 6px 6px;
   overflow-y: hidden;
 }
@@ -658,7 +667,7 @@ footer {
   color: #606;
 }
 
-// < 1051px 
+// < 1051px
 @media (max-width: 1050px) {
   table pre, table td.code {
     width: 550px;
@@ -666,13 +675,13 @@ footer {
 
   // make sure there's a tiny white margin between the device edge
   // and the text: this makes it easier to read, at least for me.
-  footer > p, 
-  article > p, 
-  article > hgroup, 
-  section > p, 
-  section > ul, 
-  section > h1, 
-  section > h2, 
+  footer > p,
+  article > p,
+  article > hgroup,
+  section > p,
+  section > ul,
+  section > h1,
+  section > h2,
   section > h3 {
     margin-left: 0.5em;
     margin-right: 0.5em;
@@ -680,7 +689,7 @@ footer {
   }
 }
 
-// < 1041px 
+// < 1041px
 @media (max-width: 1040px) {
   body {
     margin: 0;
@@ -697,21 +706,21 @@ footer {
 
 }
 
-// < 801px 
+// < 801px
 @media (max-width: 800px) {
   table pre, table td.code {
     width: 450px;
   }
 }
 
-// < 681px 
+// < 681px
 @media (max-width: 680px) {
   table pre, table td.code {
     width: 350px;
   }
 }
 
-// < 651px 
+// < 651px
 @media (max-width: 650px) {
   table pre, table td.code {
     width: 200px;
