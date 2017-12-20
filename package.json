@@ -1,5 +1,5 @@
 {
-  "name": "benchmark",
+  "name": "@gerhobbelt/benchmark",
   "version": "2.1.4-29",
   "description": "A benchmarking library that supports high-resolution timers & returns statistically significant results.",
   "homepage": "https://benchmarkjs.com/",
@@ -19,7 +19,8 @@
     "test": "node test/test",
     "build": "npm run doc",
     "server": "live-server --cors",
-    "clear": "rm -f package-lock.json ; rm -rf node_modules"
+    "clear": "rm -f package-lock.json ; rm -rf node_modules",
+    "pub": "npm publish --access public"
   },
   "dependencies": {
     "@gerhobbelt/json5": "0.5.1-21",
