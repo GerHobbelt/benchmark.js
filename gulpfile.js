@@ -2,9 +2,9 @@ var gulp = require('gulp');
 var less = require('gulp-less');
 var LessAutoprefix = require('less-plugin-autoprefix');
 var stripCssComments = require('gulp-strip-css-comments');
-var MarkdownIt = require('markdown-it');
+var MarkdownIt = require('@gerhobbelt/markdown-it');
 var gutil = require('gulp-util');
-var fncallback = require('gulp-fncallback');
+var fncallback = require('@gerhobbelt/gulp-fncallback');
 var path = require('path');
 var fs = require('fs');
 

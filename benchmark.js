@@ -2520,7 +2520,7 @@
        * @memberOf Benchmark
        * @type Object
        */
-      platform: context.platform || require('platform') || ({
+      platform: context.platform || require('@gerhobbelt/platform') || ({
         description: context.navigator && context.navigator.userAgent || null,
         layout: null,
         product: null,
