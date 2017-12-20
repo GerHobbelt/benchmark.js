@@ -446,13 +446,16 @@
           fired.push('teardown');
         },
         'onComplete': function() {
-          var actual = fired.join().replace(/(fn,)+/g, '$1').replace(/(setup,fn,teardown(?:,|$))+/, '$1');
+          // array may contain several million items: .join() will sometimes crash on such large amounts of required string space.
+          fired = fired.filter(function t(el, idx, arr) {
+            return !(el === 'fn' && arr[idx + 1] === 'fn');
+          });
+          var actual = fired.join().replace(/(setup,fn,teardown(?:,|$))+/, '$1');
           assert.strictEqual(actual, 'setup,fn,teardown');
         }
       })
       .run();
       assert.ok(fired.length > 0, 'benchmark must have run at least once');
-
     });
 
     QUnit.test('teardown/setup/fn all should have the (synchronous) benchmark as "this", plus access to the global/window namespace and benchmark + timer instances', function(assert) {
@@ -584,7 +587,11 @@
           }
         },
         'onComplete': function() {
-          var actual = ops_tracker.join(',').replace(/(200,)+/g, '$1').replace(/(100,200,500(?:,|$))+/, '$1');
+          // array may contain several million items: .join() will sometimes crash on such large amounts of required string space.
+          ops_tracker = ops_tracker.filter(function t(el, idx, arr) {
+            return !(el === 200 && arr[idx + 1] === 200);
+          });
+          var actual = ops_tracker.join(',').replace(/(100,200,500(?:,|$))+/, '$1');
           assert.strictEqual(actual, '100,200,500');
         },
         'onCycle': function (e) {
@@ -1654,7 +1661,11 @@
           fired.push('teardown');
         },
         'onComplete': function() {
-          var actual = fired.join().replace(/(fn,)+/g, '$1').replace(/(setup,fn,teardown(?:,|$))+/, '$1');
+          // array may contain several million items: .join() will sometimes crash on such large amounts of required string space.
+          fired = fired.filter(function t(el, idx, arr) {
+            return !(el === 'fn' && arr[idx + 1] === 'fn');
+          });
+          var actual = fired.join().replace(/(setup,fn,teardown(?:,|$))+/, '$1');
           assert.strictEqual(actual, 'setup,fn,teardown');
           done();
         }
@@ -1788,7 +1799,11 @@
           ops_tracker.push(this.benchmark.operationsPerRound);
         },
         'onComplete': function() {
-          var actual = ops_tracker.join(',').replace(/(200,)+/g, '$1').replace(/(100,200,500(?:,|$))+/, '$1');
+          // array may contain several million items: .join() will sometimes crash on such large amounts of required string space.
+          ops_tracker = ops_tracker.filter(function t(el, idx, arr) {
+            return !(el === 200 && arr[idx + 1] === 200);
+          });
+          var actual = ops_tracker.join(',').replace(/(100,200,500(?:,|$))+/, '$1');
           assert.strictEqual(actual, '100,200,500');
           done();
         }
