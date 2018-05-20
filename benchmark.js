@@ -839,8 +839,6 @@
       if (bench.aborted) {
         // cycle() -> clone cycle/complete event -> compute()'s invoked bench.run() cycle/complete.
         deferred.teardown(deferred);
-        clone.running = false;
-        cycle(deferred);
       }
       else if (++deferred.cycles < clone.count) {
         clone.compiled.call(deferred, context, timer, Benchmark);
