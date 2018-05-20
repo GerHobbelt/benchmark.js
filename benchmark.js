@@ -1986,10 +1986,10 @@
         }
         else {
           _.assign(templateData, {
-            setup: decompilable ? getSource(bench.setup) : interpolate('m#.setup(m#, global, Benchmark, t#);'),
+            setup: decompilable ? getSource(setup) : interpolate('m#.setup(m#, global, Benchmark, t#);'),
             fn: decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
             fnArg: fnArg,
-            teardown: decompilable ? getSource(bench.teardown) : interpolate('m#.teardown(m#, global, Benchmark, t#);')
+            teardown: decompilable ? getSource(teardown) : interpolate('m#.teardown(m#, global, Benchmark, t#);')
           });
         }
 
