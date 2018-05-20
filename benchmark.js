@@ -838,7 +838,7 @@
 
       if (bench.aborted) {
         // cycle() -> clone cycle/complete event -> compute()'s invoked bench.run() cycle/complete.
-        deferred.teardown();
+        deferred.teardown(deferred);
         clone.running = false;
         cycle(deferred);
       }
@@ -847,7 +847,39 @@
       }
       else {
         timer.stop(deferred);
-        deferred.teardown();
+        deferred.teardown(deferred);
+      }
+    }
+
+    /*------------------------------------------------------------------------*/
+
+    /**
+     * Handles completing the deferred setup function.
+     *
+     * @memberOf Benchmark.Deferred
+     */
+    function suResolve() {
+      // This is a placeholder function. The actual function is generated with
+      // each benchmark.
+    }
+
+    /*------------------------------------------------------------------------*/
+
+    /**
+     * Handles completing the deferred teardown function.
+     *
+     * @memberOf Benchmark.Deferred
+     */
+    function tdResolve() {
+      var deferred = this,
+          clone = deferred.benchmark,
+          bench = clone._original;
+
+      if (bench.aborted) {
+        clone.running = false;
+        cycle(deferred);
+      }
+      else {
         delay(clone, function () { 
           cycle(deferred); 
         });
@@ -1763,12 +1795,14 @@
             'd#.fn = function ()⚫{⚫var ${fnArg} = this;⚫if (typeof f# === "function") {⚫try {⚫${fn}⚫} catch (e#) {⚫f#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${fn}⚫}⚫};⚫' +
             // set `deferred.teardown`,
             'd#.teardown = function () {⚫this.cycles = 0;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
-            // execute the benchmark's `setup`,
+            // generate setup resolve function
+            'd#.suResolve = function () {⚫t#.start(d#);⚫d#.fn();⚫};⚫' +
+            // execute the benchmark's `setup` with `deferred.suResolve` executing `deferred.fn`
             'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫};⚫' +
-            // start timer,
-            't#.start(d#);⚫' +
-            // and then execute `deferred.fn` and return a dummy object.
-            '}⚫d#.fn();⚫return {⚫uid: "${uid}"⚫};'
+            // When `deferred.cycles` is not `0` then just execute `deferred.fn`
+            '}⚫else {⚫d#.fn();⚫}⚫' +
+            // and return a dummy object.
+            'return {⚫uid: "${uid}"⚫};'
 
           : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count,⚫n# = t#.ns;⚫${setup}⚫${begin};⚫' +
             'while (i#--) {⚫${fn}⚫}⚫${end};⚫${teardown}⚫return {⚫elapsed: r#,⚫uid: "${uid}"⚫};';
@@ -1922,17 +1956,44 @@
        * function arguments `window, timer, Benchmark`.
        */
       function createCompiled(bench, decompilable, deferred, body) {
-        var fn = bench.fn,
-            fnArg = getFirstArgument(fn) || (deferred ? 'deferred' : 'bench');
+        var setup = bench.setup,
+            fn = bench.fn,
+            teardown = bench.teardown,
+            suArg = getFirstArgument(setup) || (deferred ? 'deferred' : 'bench'),
+            fnArg = getFirstArgument(fn) || (deferred ? 'deferred' : 'bench'),
+            tdArg = getFirstArgument(teardown) || (deferred ? 'deferred' : 'bench');
 
         templateData.uid = uid + uidCounter++;
 
-        _.assign(templateData, {
-          setup: decompilable ? getSource(bench.setup) : interpolate('m#.setup(m#, global, Benchmark, t#);'),
-          fn: decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
-          fnArg: fnArg,
-          teardown: decompilable ? getSource(bench.teardown) : interpolate('m#.teardown(m#, global, Benchmark, t#);')
-        });
+        if (deferred) {
+          if (decompilable) {
+            var suSource = getSource(setup),
+                tdSource = getSource(teardown);
+
+            _.assign(templateData, {
+              setup: (suSource == '' || suSource == '// No operation performed.') ? interpolate('d#.suResolve();') : getSource(setup),
+              fn: getSource(fn),
+              fnArg: fnArg,
+              teardown: (tdSource == '' || tdSource == '// No operation performed.') ? interpolate('d#.tdResolve();') : getSource(teardown)
+            });
+          }
+          else {
+            _.assign(templateData, {
+              setup: suArg ? interpolate('m#.setup(' + suArg + ', global, Benchmark, t#);') : interpolate('d#.suResolve();'),
+              fn: interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
+              fnArg: fnArg,
+              teardown: tdArg ? interpolate('m#.teardown(' + tdArg + ', global, Benchmark, t#);') : interpolate('d#.tdResolve();')
+            });
+          }
+        }
+        else {
+          _.assign(templateData, {
+            setup: decompilable ? getSource(bench.setup) : interpolate('m#.setup(m#, global, Benchmark, t#);'),
+            fn: decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
+            fnArg: fnArg,
+            teardown: decompilable ? getSource(bench.teardown) : interpolate('m#.teardown(m#, global, Benchmark, t#);')
+          });
+        }
 
         // Use API of chosen timer.
         if (timer.unit == 'ns') {
@@ -2961,6 +3022,7 @@
 
     _.assign(Deferred.prototype, {
       resolve: resolve,
+      tdResolve: tdResolve
     });
 
     /*------------------------------------------------------------------------*/
