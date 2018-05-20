@@ -1265,8 +1265,10 @@
 
       var fired = false,
           suite = Benchmark.Suite();
+      debugger;
 
       suite.on('complete', function() {
+        debugger;
         assert.strictEqual(fired, false);
         done();
       })
@@ -1275,8 +1277,10 @@
         'fn': function(deferred) {
           // avoid test inlining
           suite.name;
+            debugger;
           // delay resolve
           setTimeout(function() {
+            debugger;
             deferred.resolve();
             suite.abort();
           }, 10);
@@ -1287,8 +1291,10 @@
         'fn': function(deferred) {
           // avoid test inlining
           suite.name;
+            debugger;
           // delay resolve
           setTimeout(function() {
+            debugger;
             deferred.resolve();
             fired = true;
           }, 10);
@@ -1631,11 +1637,59 @@
       var done = assert.async();
 
       Benchmark(function(deferred) {
+        deferred.resolve();
+      }, {
+        'defer': true,
+        'onComplete': function() {
+          assert.strictEqual(this.hz.toFixed(0), '1');
+          done();
+        }
+      })
+      .run();
+    });
+
+    QUnit.test('should run a deferred benchmark correctly with synchronous setup & teardown', function(assert) {
+      var done = assert.async();
+
+      Benchmark(function(deferred) {
         setTimeout(function() { deferred.resolve(); }, 1e3);
       }, {
         'defer': true,
         'setup': function(deferred) { deferred.suResolve(); },
         'teardown': function(deferred) { deferred.tdResolve(); },
+        'onComplete': function() {
+          assert.strictEqual(this.hz.toFixed(0), '1');
+          done();
+        }
+      })
+      .run();
+    });
+
+    QUnit.test('should run a deferred benchmark correctly with asynchronous setup & teardown', function(assert) {
+      var done = assert.async();
+
+      Benchmark(function(deferred) {
+        setTimeout(function() { deferred.resolve(); }, 1e3);
+      }, {
+        'defer': true,
+        'setup': function(deferred) { setTimeout(function() { deferred.suResolve(); }, 1e3); },
+        'teardown': function(deferred) { setTimeout(function() { deferred.tdResolve(); }, 1e3); },
+        'onComplete': function() {
+          assert.strictEqual(this.hz.toFixed(0), '1');
+          done();
+        }
+      })
+      .run();
+    });
+
+    QUnit.test('should run a deferred benchmark correctly with synchronous setup and teardown functions as strings', function(assert) {
+      var done = assert.async();
+
+      Benchmark({
+        'defer': true,
+        'setup': 'var x = [3, 2, 1];',
+        'fn': 'setTimeout(function() { x.sort(); deferred.resolve(); }, 10);',
+        'teardown': 'x.length = 0;',
         'onComplete': function() {
           assert.strictEqual(this.hz.toFixed(0), '1');
           done();

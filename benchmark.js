@@ -305,7 +305,7 @@
       support.timeout = isHostType(context, 'setTimeout') && isHostType(context, 'clearTimeout');
 
       /**
-       * Detect if function decompilation is support.
+       * Detect if function decompilation is supported.
        *
        * @name decompilation
        * @memberOf Benchmark.support
@@ -711,6 +711,15 @@
     }
 
     /**
+     * String representation of the `_.noop()` code, which is used internally
+     * to quickly recognize when this dummy function has been assigned to
+     * a setup, teardown or other callback.
+     *
+     * @private
+     */
+    var NOOP = getSource(_.noop);     // -> '// No operation performed.'
+
+    /**
      * Checks if an object is of the specified class.
      *
      * @private
@@ -872,6 +881,11 @@
       var deferred = this,
           clone = deferred.benchmark,
           bench = clone._original;
+
+      if (clone.execState === 2) {
+        throw new Error("tdResolve invoked multiple times for a single run");
+      }
+      clone.execState = 2;
 
       if (bench.aborted) {
         clone.running = false;
@@ -1758,13 +1772,14 @@
      * @param {Object} bench The benchmark instance.
      * @returns {number} The time taken.
      */
-    function clock() {
+    var clock;
+    clock = function genClock() {
       var options = Benchmark.options,
           templateData = {},
           timers = [{ ns: timer.ns, res: max(0.0015, getRes('ms')), unit: 'ms' }];
 
       // Lazy define for hi-res timers.
-      clock = function (clone) {
+      clock = function runClock(clone) {
         var deferred;
 
         if (clone instanceof Deferred) {
@@ -1794,15 +1809,15 @@
             // set `deferred.teardown`,
             'd#.teardown = function () {⚫this.cycles = 0;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
             // generate setup resolve function
-            'd#.suResolve = function () {⚫t#.start(d#);⚫d#.fn();⚫};⚫' +
+            'd#.suResolve = function () {⚫if (d#.execState === 1) {⚫throw new Error("suResolve invoked multiple times for a single run");⚫}⚫d#.execState = 1;⚫t#.start(d#);⚫d#.fn();⚫};⚫' +
             // execute the benchmark's `setup` with `deferred.suResolve` executing `deferred.fn`
-            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫};⚫' +
+            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫}⚫' +
             // When `deferred.cycles` is not `0` then just execute `deferred.fn`
             '}⚫else {⚫d#.fn();⚫}⚫' +
             // and return a dummy object.
             'return {⚫uid: "${uid}"⚫};'
 
-          : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count,⚫n# = t#.ns;⚫${setup}⚫${begin};⚫' +
+          : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫f# = m#.fn,⚫i# = m#.count,⚫n# = t#.ns;⚫${setup}⚫${begin};⚫' +
             'while (i#--) {⚫${fn}⚫}⚫${end};⚫${teardown}⚫return {⚫elapsed: r#,⚫uid: "${uid}"⚫};';
 
         var compiled = createCompiled(bench, decompilable, deferred, funcBody),
@@ -1842,8 +1857,8 @@
           bench.compiled_mode = clone.compiled_mode = compiled_mode = 2;
           funcBody = (
             stringable || (decompilable && !clone.error)
-              ? 'function f#(bench, global, Benchmark, timer) {⚫${fn}⚫}⚫var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫i# = m#.count'
-              : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count'
+              ? 'function f#(bench, global, Benchmark, timer) {⚫${fn}⚫}⚫var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫i# = m#.count'
+              : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫f# = m#.fn,⚫i# = m#.count'
             ) +
             ',⚫n# = t#.ns;⚫${setup}⚫${begin};⚫m#.f# = f#;⚫while (i#--) {⚫m#.f#(m#, global, Benchmark, t#);⚫}⚫${end};⚫' +
             'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
@@ -1881,7 +1896,7 @@
         // Second fallback when a test exits early or errors during pretest and first fallback above did not deliver.
         if (!compiled && !deferred && !isEmpty && decompilable) {
           bench.compiled_mode = clone.compiled_mode = compiled_mode = 3;
-          funcBody = 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫f# = m#.fn,⚫i# = m#.count' +
+          funcBody = 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫f# = m#.fn,⚫i# = m#.count' +
             ',⚫n# = t#.ns;⚫${setup}⚫${begin};⚫m#.f# = f#;⚫while (i#--) {⚫m#.f#(m#, global, Benchmark, t#);⚫}⚫${end};⚫' +
             'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
 
@@ -1959,37 +1974,40 @@
             teardown = bench.teardown,
             suArg = getFirstArgument(setup) || (deferred ? 'deferred' : 'bench'),
             fnArg = getFirstArgument(fn) || (deferred ? 'deferred' : 'bench'),
-            tdArg = getFirstArgument(teardown) || (deferred ? 'deferred' : 'bench');
+            tdArg = getFirstArgument(teardown) || (deferred ? 'deferred' : 'bench'),
+            suSource = decompilable ? getSource(setup) : '',
+            fnSource = decompilable ? getSource(fn) : '',
+            tdSource = decompilable ? getSource(teardown) : '',
+            suEmpty = (suSource == '' || suSource == NOOP),
+            fnEmpty = (fnSource == '' || fnSource == NOOP),
+            tdEmpty = (tdSource == '' || tdSource == NOOP);
 
         templateData.uid = uid + uidCounter++;
 
         if (deferred) {
           if (decompilable) {
-            var suSource = getSource(setup),
-                tdSource = getSource(teardown);
-
             _.assign(templateData, {
-              setup: (suSource == '' || suSource == '// No operation performed.') ? interpolate('d#.suResolve();') : getSource(setup),
-              fn: getSource(fn),
+              setup: suEmpty ? interpolate('d#.suResolve();') : suSource,
+              fn: fnEmpty ? interpolate('d#.resolve();') : fnSource,
               fnArg: fnArg,
-              teardown: (tdSource == '' || tdSource == '// No operation performed.') ? interpolate('d#.tdResolve();') : getSource(teardown)
+              teardown: tdEmpty ? interpolate('d#.tdResolve();') : tdSource
             });
           }
           else {
             _.assign(templateData, {
-              setup: suArg ? interpolate('m#.setup(' + suArg + ', global, Benchmark, t#);') : interpolate('d#.suResolve();'),
-              fn: interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
+              setup: !suEmpty ? interpolate('m#.setup(' + suArg + ', global, Benchmark, t#);') : interpolate('d#.suResolve();'),
+              fn: !fnEmpty ? interpolate('m#.fn(' + suArg + ', global, Benchmark, t#);') : interpolate('d#.resolve();'),
               fnArg: fnArg,
-              teardown: tdArg ? interpolate('m#.teardown(' + tdArg + ', global, Benchmark, t#);') : interpolate('d#.tdResolve();')
+              teardown: !tdEmpty ? interpolate('m#.teardown(' + tdArg + ', global, Benchmark, t#);') : interpolate('d#.tdResolve();')
             });
           }
         }
         else {
           _.assign(templateData, {
-            setup: decompilable ? getSource(setup) : interpolate('m#.setup(m#, global, Benchmark, t#);'),
-            fn: decompilable ? getSource(fn) : interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
+            setup: !suEmpty ? suSource : interpolate('m#.setup(m#, global, Benchmark, t#);'),
+            fn: !fnEmpty ? fnSource : interpolate('m#.fn(' + fnArg + ', global, Benchmark, t#);'),
             fnArg: fnArg,
-            teardown: decompilable ? getSource(teardown) : interpolate('m#.teardown(m#, global, Benchmark, t#);')
+            teardown: !tdEmpty ? tdSource : interpolate('m#.teardown(m#, global, Benchmark, t#);')
           });
         }
 
@@ -2453,6 +2471,7 @@
       bench.running = false;
       bench.reset();
       bench.running = true;
+      bench.execState = 0;
 
       bench.count = bench.initCount;
       bench.times.timeStamp = (+_.now());
@@ -2789,6 +2808,20 @@
        * @type boolean
        */
       running: false,
+
+      /**
+       * A flag to track the state of the benchmark: 
+       * - 0 = not setup yet
+       * - 1 = benchmark has been setup -> benchmark MAY be running now (or has already been aborted)
+       * - 2 = benchmark has been torn down.
+       *
+       * The state is tracked to help diagnose deferred/async benchmarks and deferred/async setup and teardown
+       * routines.
+       *
+       * @memberOf Benchmark
+       * @type boolean
+       */
+      execState: 0,
 
       /**
        * Compiled into the test and executed immediately **before** the test loop.
