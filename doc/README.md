@@ -1,4 +1,4 @@
-# <a href="https://benchmarkjs.com/">Benchmark.js</a> <span>v2.1.4-32</span>
+# <a href="https://benchmarkjs.com/">Benchmark.js</a> <span>v2.1.4-33</span>
 
 <!-- div class="toc-container" -->
 
