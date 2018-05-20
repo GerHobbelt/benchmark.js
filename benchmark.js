@@ -305,7 +305,7 @@
       support.timeout = isHostType(context, 'setTimeout') && isHostType(context, 'clearTimeout');
 
       /**
-       * Detect if function decompilation is support.
+       * Detect if function decompilation is supported.
        *
        * @name decompilation
        * @memberOf Benchmark.support
@@ -1764,7 +1764,7 @@
             // set `deferred.teardown`,
             'd#.teardown = function () {⚫this.cycles = 0;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
             // execute the benchmark's `setup`,
-            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫};⚫' +
+            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫}⚫' +
             // start timer,
             't#.start(d#);⚫' +
             // and then execute `deferred.fn` and return a dummy object.
