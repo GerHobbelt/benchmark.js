@@ -64,7 +64,7 @@ before_install:
   - nvm use $TRAVIS_NODE_VERSION
 
   # Setup package managers.
-  - npm i -g npm@^5
+  - npm i -g npm@latest
 
 install:
   # Install packages.
