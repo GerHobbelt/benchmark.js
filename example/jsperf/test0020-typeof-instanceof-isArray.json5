@@ -1,0 +1,131 @@
+{
+  title: 'test #20 : find out which is faster to select on type: `typeof`, `instanceof`, `Array.isArray()`, ...',
+  description: 'See also https://jsperf.com/instanceof-vs-typeof/20',
+  related: [
+  ],
+
+  HTML: "",
+  init: `
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:
+      [
+      ].forEach(function (src) {
+        var script = document.createElement('script');
+        script.src = src;
+        document.head.appendChild(script);
+      });
+
+      var x = false;
+      var a = [1, 2, 3];
+      var o = {a: 1, b: 2, c: 3};
+      var f = function ff() {};
+      var s = 'abc';
+      var n = 666;
+      var b = true;
+
+      function init() {
+      }
+
+      `,
+  tests: [
+    {
+      name: 'detect array type',
+      tests: [
+        {
+          name: 'typeof + NOT NULL + slice() exist check',
+          fn: `x = (a && typeof a === 'object' && a.slice);`
+        },
+        {
+          name: 'instanceof',
+          fn: `x = (a instanceof Array);`
+        },
+        {
+          name: 'constructor check',
+          fn: `x = (a.constructor === Array);`
+        },
+        {
+          name: 'Array.isArray',
+          fn: `x = Array.isArray(a);`
+        },
+      ],
+    },
+
+    {
+      name: 'detect object type',
+      tests: [
+        {
+          name: 'typeof + NOT NULL',
+          fn: `x = (a && typeof a === 'object');`
+        },
+        {
+          name: 'instanceof',
+          fn: `x = (a instanceof Object);`
+        },
+        {
+          name: 'constructor check',
+          fn: `x = (a.constructor === Object);`
+        },
+      ],
+    },
+
+    {
+      name: 'detect string type',
+      tests: [
+        {
+          name: 'typeof',
+          fn: `x = (typeof a === 'string');`
+        },
+        {
+          name: 'instanceof',
+          fn: `x = (a instanceof String);`
+        },
+        {
+          name: 'constructor check',
+          fn: `x = (a.constructor === String);`
+        },
+      ],
+    },
+
+    {
+      name: 'detect number type',
+      tests: [
+        {
+          name: 'typeof',
+          fn: `x = (typeof a === 'number');`
+        },
+        {
+          name: 'instanceof',
+          fn: `x = (a instanceof Number);`
+        },
+        {
+          name: 'constructor check',
+          fn: `x = (a.constructor === Number);`
+        },
+      ],
+    },
+
+    {
+      name: 'detect boolean type',
+      tests: [
+        {
+          name: 'typeof',
+          fn: `x = (typeof a === 'boolean');`
+        },
+        {
+          name: 'instanceof',
+          fn: `x = (a instanceof Boolean);`
+        },
+        {
+          name: 'constructor check',
+          fn: `x = (a.constructor === Boolean);`
+        },
+      ],
+    },
+  ],
+  setup: `
+        Benchmark.prototype.setup = function () {
+        };
+        `,
+  teardown: `
+        Benchmark.prototype.teardown = function () { };
+        `
+}

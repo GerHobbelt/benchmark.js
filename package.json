@@ -1,6 +1,6 @@
 {
   "name": "@gerhobbelt/benchmark",
-  "version": "2.1.4-33",
+  "version": "2.1.4-35",
   "description": "A benchmarking library that supports high-resolution timers & returns statistically significant results.",
   "homepage": "https://benchmarkjs.com/",
   "license": "MIT",
@@ -19,10 +19,11 @@
   "repository": "GerHobbelt/benchmark.js",
   "scripts": {
     "build": "npm run doc && npm test",
+    "catalog": "bash ./build-jsperf.sh",
     "doc-orig": "docdown benchmark.js doc/README.md style=github title=\"<a href=\\\"https://benchmarkjs.com/\\\">Benchmark.js</a> <span>v${npm_package_version}</span>\" toc=categories url=https://github.com/bestiejs/benchmark.js/blob/${npm_package_version}/benchmark.js",
     "doc": "docdown benchmark.js doc/README.md style=github title=\"<a href=\\\"https://benchmarkjs.com/\\\">Benchmark.js</a> <span>v1.1.1-1</span>\" toc=categories url=\"https://github.com/GerHobbelt/benchmark.js/blob/master/benchmark.js\" && gulp patch-version && gulp",
     "test": "node test/test",
-    "server": "live-server --cors",
+    "server": "npm run catalog && live-server --cors",
     "clear": "rm -f package-lock.json ; rm -rf node_modules",
     "pub": "npm publish --access public"
   },
@@ -42,7 +43,7 @@
     "gulp-strip-css-comments": "2.0.0",
     "gulp-util": "3.0.8",
     "istanbul": "0.4.5",
-    "less": "3.0.4",
+    "less": "2.7.3",
     "less-plugin-autoprefix": "1.5.1",
     "@gerhobbelt/live-server": "1.3.0-23",
     "@gerhobbelt/markdown-it": "8.4.1-18",

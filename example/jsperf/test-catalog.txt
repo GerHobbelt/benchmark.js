@@ -19,3 +19,5 @@ test0016-secure-hashes-for-code-identification--who-is-the-fastest-kid-on-the-bl
 test0017-math-min-max-vs-if-check.json5
 test0018-the-proper-new-way-to-slice-arguments.json5
 test0019-for-in-vs-object-keys-loop.json5
+test0020-typeof-instanceof-isArray.json5
+test0021-shallow-clones.json5

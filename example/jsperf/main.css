@@ -616,6 +616,7 @@ pre {
   box-sizing: border-box;
   white-space: pre-wrap;
   word-wrap: break-word;
+  font-size: 0.83em;
 }
 table #results-1 {
   width: 100px;

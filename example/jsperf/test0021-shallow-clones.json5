@@ -1,0 +1,163 @@
+{
+  title: 'test #21 : find out which is faster to provide a shallow clone of any object or array',
+  description: 'Some of the tests in here (`JSON.parse+strinify` f.e.) produce a **deep copy** rather than a *shallow copy*: these are included for performance comparison reasons only: sometimes your requirements are more flexible and for those circumstances it\'s good to know how fast *everyone* does deliver.',
+  related: [
+  ],
+
+  HTML: "",
+  init: `
+      // simply injecting script tag to DOM via innerHTML doesn't work, so we have to do it this way:
+      [
+      ].forEach(function (src) {
+        var script = document.createElement('script');
+        script.src = src;
+        document.head.appendChild(script);
+      });
+
+      var obj1, arr1;
+      var obj2, arr2;
+
+      function init() {
+        obj1 = {
+          a: 1, b: 'x', c: new Date(), d: /[x]/g, e: { depth: 42 },
+          f: [ 1, 2, 3, 4, 5, null, NaN, undefined, 10 ]
+        };
+        arr1 = [ 1, 2, 3, 4, 5, null, NaN, undefined, 10, obj1 ];
+      }
+
+      function explicitStructureCopy(src) {
+        return {
+          a: src.a, b: src.b, c: src.c, d: src.d, e: src.e,
+          f: src.f
+        };
+      }
+
+      function explicitStructureCopyV2(src) {
+        return {
+          a: src.a, b: src.b, c: src.c, d: src.d, e: { depth: src.e.depth },
+          f: src.f.slice()
+        };
+      }
+
+      `,
+  tests: [
+    {
+      name: 'object shallow clone implementations',
+      tests: [
+        {
+          name: '`for ... in` loop through keys',
+          fn: `
+            var i = obj1;
+            var o = {};
+            for (var key in i) {
+              o[key] = i[key];
+            }
+            obj2 = o;
+          `
+        },
+        {
+          name: 'loop through `Object.keys()` - for` v1',
+          fn: `
+            var i = obj1;
+            var o = {};
+            var keys = Object.keys(i);
+            for (var k = 0, len = keys.length; k < len; k++) {
+              var key = keys[k];
+              o[key] = i[key];
+            }
+            obj2 = o;
+          `
+        },
+        {
+          name: 'loop through `Object.keys()` - `for` v2',
+          fn: `
+            var i = obj1;
+            var o = {};
+            var keys = Object.keys(i);
+            for (var k = keys.length - 1; k >= 0; k--) {
+              var key = keys[k];
+              o[key] = i[key];
+            }
+            obj2 = o;
+          `
+        },
+        {
+          name: 'loop through `Object.keys()` - `for` v3',
+          fn: `
+            var i = obj1;
+            var o = {};
+            var keys = Object.keys(i);
+            var key;
+            for (var k = 0; key = keys[k]; k++) {
+              o[key] = i[key];
+            }
+            obj2 = o;
+          `
+        },
+        {
+          name: 'loop through `Object.keys()` - `while`',
+          fn: `
+            var i = obj1;
+            var o = {};
+            var keys = Object.keys(i);
+            var k = keys.length - 1;
+            while (k >= 0) {
+              var key = keys[k--];
+              o[key] = i[key];
+            }
+            obj2 = o;
+          `
+        },
+        {
+          name: '`Object.assign()`',
+          fn: `
+            obj2 = Object.assign({}, obj1);
+          `
+        },
+        {
+          name: '`explicitStructureCopy()`',
+          ranking: false,
+          fn: `
+            obj2 = explicitStructureCopy(obj1);
+          `
+        },
+        {
+          name: '`explicitStructureCopyV2()`',
+          ranking: false,
+          fn: `
+            obj2 = explicitStructureCopyV2(obj1);
+          `
+        },
+      ],
+    },
+
+    {
+      name: 'object deep clone implementations',
+      ranking: false,
+      tests: [
+        {
+          name: 'JSON ser/deser',
+          fn: `obj2 = JSON.parse(JSON.stringify(obj1));`
+        },
+      ],
+    },
+
+    {
+      name: 'derivative instance which acts like shallow copy on attribute write',
+      ranking: false,
+      tests: [
+        {
+          name: '`Object.create()`',
+          fn: `obj2 = Object.create(obj1);`
+        },
+      ],
+    },
+  ],
+  setup: `
+        Benchmark.prototype.setup = function () {
+        };
+        `,
+  teardown: `
+        Benchmark.prototype.teardown = function () { };
+        `
+}
