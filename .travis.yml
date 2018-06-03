@@ -7,8 +7,7 @@ node_js:
   - 8
   - 7
   - 6
-  - 5
-  - 4
+
 cache:
   directories:
     - ~/.npm
@@ -24,25 +23,10 @@ env:
     - ISTANBUL=true
     - BIN=phantomjs
 
-matrix:
-  include:
-    - node_js: 4
-      env:
-    - node_js: 5
-      env:
-    - node_js: 6
-      env:
-    - node_js: 7
-      env:
-    - node_js: 8
-      env:
-    - node_js: 9
-      env:
-    - node_js: node
-      env:
 git:
   depth: 10
   submodules: false
+
 branches:
   only:
     - master
