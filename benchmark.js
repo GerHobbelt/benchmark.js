@@ -854,6 +854,26 @@
       }
     }
 
+    /**
+     * Trigger error for deferred benchmark.
+     *
+     * @memberOf Benchmark.Deferred
+     * @param {Error} [err]
+     */
+    function reject(err) {
+        // make sure error not a void like value
+        var error = err || new Error(err);
+        error.originError = err;
+
+        var deferred = this,
+            clone = deferred.benchmark,
+            bench = clone._original;
+
+        var event = Event('error');
+        clone.error = event.message = error;
+        clone.emit(event);
+    }
+
     /*------------------------------------------------------------------------*/
 
     /**
@@ -2961,6 +2981,7 @@
 
     _.assign(Deferred.prototype, {
       resolve: resolve,
+      reject: reject
     });
 
     /*------------------------------------------------------------------------*/
