@@ -68,7 +68,7 @@ before_install:
 
 install:
   # Install packages.
-  - npm i
+  - npm ci
 
 script:
   - |
