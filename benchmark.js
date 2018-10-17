@@ -21,7 +21,9 @@
   var root = (objectTypes[typeof window] && window) || this;
 
   /** Detect free variable `define`. */
-  var freeDefine = typeof define == 'function' && typeof define.amd == 'object' && define.amd && define;
+  var freeDefine = function () {
+    return typeof define == 'function' && typeof define.amd == 'object' && define.amd && define;
+  }
 
   /** Detect free variable `exports`. */
   var freeExports = objectTypes[typeof exports] && exports && !exports.nodeType && exports;
@@ -511,10 +513,10 @@
       // Lazy define.
       createFunction = function(args, body) {
         var result,
-            anchor = freeDefine ? freeDefine.amd : Benchmark,
+            anchor = freeDefine() ? freeDefine().amd : Benchmark,
             prop = uid + 'createFunction';
 
-        runScript((freeDefine ? 'define.amd.' : 'Benchmark.') + prop + '=function(' + args + '){' + body + '}');
+        runScript((freeDefine() ? 'define.amd.' : 'Benchmark.') + prop + '=function(' + args + '){' + body + '}');
         result = anchor[prop];
         delete anchor[prop];
         return result;
@@ -658,12 +660,12 @@
      * @param {string} code The code to run.
      */
     function runScript(code) {
-      var anchor = freeDefine ? define.amd : Benchmark,
+      var anchor = freeDefine() ? define.amd : Benchmark,
           script = doc.createElement('script'),
           sibling = doc.getElementsByTagName('script')[0],
           parent = sibling.parentNode,
           prop = uid + 'runScript',
-          prefix = '(' + (freeDefine ? 'define.amd.' : 'Benchmark.') + prop + '||function(){})();';
+          prefix = '(' + (freeDefine() ? 'define.amd.' : 'Benchmark.') + prop + '||function(){})();';
 
       // Firefox 2.0.0.2 cannot use script injection as intended because it executes
       // asynchronously, but that's OK because script injection is only used to avoid
