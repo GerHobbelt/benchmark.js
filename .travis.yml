@@ -2,6 +2,7 @@ language: node_js
 sudo: false
 node_js:
   - node
+  - 11
   - 10
   - 9
   - 8
@@ -22,7 +23,6 @@ env:
     -
     - ISTANBUL=true
     - BIN=phantomjs
-
 git:
   depth: 10
   submodules: false
