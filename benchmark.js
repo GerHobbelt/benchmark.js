@@ -974,12 +974,17 @@
      * @static
      * @memberOf Benchmark
      * @param {number} number The number to convert.
+     * @param {locale} string Identifying string of the locale to use.
      * @returns {string} The more readable string representation.
      */
-    function formatNumber(number) {
-      number = String(number).split('.');
-      return number[0].replace(/(?=(?:\d{3})+$)(?!\b)/g, ',') +
-        (number[1] ? '.' + number[1] : '');
+    function formatNumber(number, locale) {
+      if (typeof Number.prototype.toLocaleString === 'function') {
+        return number.toLocaleString(locale);
+      } else {
+        number = String(number).split('.');
+        return number[0].replace(/(?=(?:\d{3})+$)(?!\b)/g, ',') +
+          (number[1] ? '.' + number[1] : '');
+      }
     }
 
     /**
@@ -1747,6 +1752,7 @@
           error = bench.error,
           hz = bench.hz,
           id = bench.id,
+          locale = bench.locale,
           stats = bench.stats,
           size = stats.sample.length,
           pm = '\xb1',
@@ -1765,7 +1771,7 @@
         result += ': ' + errorStr;
       }
       else {
-        result += ' x ' + formatNumber(hz.toFixed(hz < 100 ? 2 : 0)) + ' ops/sec ' + pm +
+        result += ' x ' + formatNumber(hz.toFixed(hz < 100 ? 2 : 0), locale) + ' ops/sec ' + pm +
           stats.rme.toFixed(2) + '% (' + size + ' run' + (size === 1 ? '' : 's') + ' sampled)';
       }
       return result;
@@ -2677,7 +2683,15 @@
          * @memberOf Benchmark.options
          * @type Function
          */
-        onStart: undefined
+        onStart: undefined,
+
+        /**
+         * The locale used for formatting numbers
+         *
+         * @memberOf Benchmark.options
+         * @type string
+         */
+        locale: undefined
       },
 
       /**
