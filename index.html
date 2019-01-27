@@ -44,6 +44,7 @@
 -->
 
 <h1>Benchmark.js v2.1.4-35</h1>
+<p><a href="https://travis-ci.org/GerHobbelt/benchmark.js"><img src="https://travis-ci.org/GerHobbelt/benchmark.js.svg?branch=master" alt="Build Status"></a></p>
 <p>A <a href="https://mathiasbynens.be/notes/javascript-benchmarking" title="Bulletproof JavaScript benchmarks">robust</a> benchmarking library that supports high-resolution timers &amp; returns statistically significant results. As seen on <a href="https://jsperf.com/">jsPerf</a>.</p>
 <h2>Documentation</h2>
 <ul>
@@ -105,7 +106,7 @@ suite.add('RegExp#test', function() {
   console.log('Fastest is ' + this.filter('fastest').map('name'));
 })
 // run async
-.run({ 'async': true });
+.run({ 'async': true, 'locale': 'en-US' });
 
 // logs:
 // =&gt; RegExp#test x 4,161,532 +-0.99% (59 cycles)
@@ -128,6 +129,16 @@ suite.add('RegExp#test', function() {
 <p>Also note that rough support for a test <em>catalog</em> is available for the <code>/example/jsperf/</code> demo: run <code>./build-jsperf.sh</code> to update the catalog file and then the next reload of the <code>/example/jsperf/index.html</code> page will show a clickable list of all available tests near the bottom so you can browse and jump from one test file/suite to another.</p>
 <h2>Support</h2>
 <p>Tested in Chrome 54-55, Firefox 49-50, IE 11, Edge 14, Safari 9-10, Node.js 6-7, &amp; PhantomJS 2.1.1.</p>
+<h2>Localization</h2>
+<p>Results are formatted using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString">Number.prototype.toLocaleString</a></p>
+<h3>Node.js</h3>
+<p>Node.js does not support all number localizations by default. Install the optional <a href="https://www.npmjs.com/package/full-icu">full-icu</a> package</p>
+<pre><code>npm i --save full-icu
+</code></pre>
+<p>and run your benchmark as follows:</p>
+<pre><code>NODE_ICU_DATA=./node_modules/full-icu node your_benchmark.js
+</code></pre>
+<p>Read the <a href="https://nodejs.org/dist/latest/docs/api/intl.html">Internationalization chapter</a> from the Node.js documentation for more information.</p>
 <h2>@BestieJS</h2>
 <p>Benchmark.js is part of the @BestieJS <em>“Best in Class”</em> module collection. This means we promote solid browser/environment support, ES5+ precedents, unit testing, &amp; plenty of documentation.</p>
 
