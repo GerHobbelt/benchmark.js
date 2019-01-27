@@ -20,7 +20,11 @@
       function init() {
         obj1 = {
           a: 1, b: 'x', c: new Date(), d: /[x]/g, e: { depth: 42 },
-          f: [ 1, 2, 3, 4, 5, null, NaN, undefined, 10 ]
+          f: [ 1, 2, 3, 4, 5, null, NaN, undefined, 10 ],
+          g: 7, h: 8, i: 9,
+          j: '11',
+          k: { a: 12 },
+          l: { b: 'b' },
         };
         arr1 = [ 1, 2, 3, 4, 5, null, NaN, undefined, 10, obj1 ];
       }
@@ -28,17 +32,52 @@
       function explicitStructureCopy(src) {
         return {
           a: src.a, b: src.b, c: src.c, d: src.d, e: src.e,
-          f: src.f
+          f: src.f, g: src.g, h: src.h, i: src.i, j: src.j,
+          k: src.k, l: src.l,  
         };
       }
 
       function explicitStructureCopyV2(src) {
         return {
           a: src.a, b: src.b, c: src.c, d: src.d, e: { depth: src.e.depth },
-          f: src.f.slice()
+          f: src.f.slice(), g: src.g, h: src.h, i: src.i, j: src.j,
+          k: { a: src.k.a }, 
+          l: { b: src.l.b },
         };
       }
+    
+      function shallow_copy_noclobber(dst, src) {
+        const chk = Object.prototype.hasOwnProperty;
+        for (var k in src) {
+          if (!(k in dst) && chk.call(src, k)) {
+            dst[k] = src[k];
+          }
+        }
+      }
 
+      function shallow_copy(src) {
+        if (src && typeof src === 'object') {
+          // non-Object-type objects, e.g. RegExp, Date, etc., can usually be shallow cloned
+          // using their constructor:
+          if (src.constructor !== Object) {
+            if (Array.isArray(src)) {
+              return src.slice();
+            }
+            var dst = new src.constructor(src);
+
+            // and make sure all custom attributes are added to the clone:
+            shallow_copy_noclobber(dst, src);
+            return dst;
+          }
+          // native objects must be cloned a different way:
+          //
+          //return Object.assign({}, src);
+          var dst = {};
+          shallow_copy_noclobber(dst, src);
+          return dst;
+        }
+        return src;
+      }
       `,
   tests: [
     {
@@ -126,6 +165,12 @@
           ranking: false,
           fn: `
             obj2 = explicitStructureCopyV2(obj1);
+          `
+        },
+        {
+          name: '`shallow_copy()`',
+          fn: `
+            obj2 = shallow_copy(obj1);
           `
         },
       ],
