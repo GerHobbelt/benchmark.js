@@ -1,5 +1,7 @@
 # Benchmark.js v2.1.4-35
 
+[![Build Status](https://travis-ci.org/GerHobbelt/benchmark.js.svg?branch=master)](https://travis-ci.org/GerHobbelt/benchmark.js)
+
 A [robust](https://mathiasbynens.be/notes/javascript-benchmarking "Bulletproof JavaScript benchmarks") benchmarking library that supports high-resolution timers & returns statistically significant results. As seen on [jsPerf](https://jsperf.com/).
 
 
