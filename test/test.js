@@ -166,6 +166,8 @@
 
       var compiled = bench.compiled;
 
+console.error(bench);
+console.error('compiled:',String(bench.compiled));
       assert.ok(bench.compiled_mode === 1, 'inlining the test code is mode 1 (best) and is expected here');
       assert.ok(/var a\s*=\s*1/.test(compiled) && /var a\s*=\s*2/.test(compiled) && /var a\s*=\s*3/.test(compiled), 'compiled benchmark code MUST have inlined the test function et al');
     });
