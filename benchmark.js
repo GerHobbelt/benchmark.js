@@ -643,29 +643,16 @@
             anchor = freeDefine() ? freeDefine().amd : Benchmark,
             prop = uid + 'createFunction';
 
-        console.error("createFunctionInner:", {
-          args,
-          body,
-          prop,
-        });
         runScript((freeDefine() ? 'define.amd.' : 'Benchmark.') + prop + ' = function(' + args + ') {\n' + body + '\n}');
         result = anchor[prop];
         delete anchor[prop];
         return result;
       };
 
-      console.error("createFunctionOuter:", {
-        args,
-        body,
-      });
       // Fix JaegerMonkey bug.
       // For more information see http://bugzil.la/639720.
       createFunction = support.browser && (createFunction('', 'return "' + uid + '";') || _.noop)() === uid ? createFunction : Function;
-      console.error("createFunctionOuter 2:", {
-        args,
-        body,
-        fn: String(createFunction),
-      });
+
       return createFunction(args, body);
     }
 
@@ -1842,13 +1829,13 @@
      * @param {Object} bench The benchmark instance.
      * @returns {number} The time taken.
      */
-    var clock = function benchmarkClockSetup(clone) {
+    var clock = function benchmarkClockSetupOuter(clone) {
       var options = Benchmark.options,
           templateData = {},
           timers = [{ ns: timer.ns, res: max(0.0015, getRes('ms')), unit: 'ms' }];
 
       // Lazy define for hi-res timers.
-      clock = function clockInnerSetup(clone) {
+      clock = function benchmarkClockSetupInner(clone) {
         var deferred;
 
         if (clone instanceof Deferred) {
@@ -1876,11 +1863,11 @@
             // set `deferred.fn`,
             'd#.fn = function ()⚫{⚫var ${fnBaseArg} = this;⚫if (typeof f# === "function") {⚫try {⚫${fn}⚫} catch (e#) {⚫f#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${fn}⚫}⚫};⚫' +
             // set `deferred.teardown`,
-            'd#.teardown = function () {⚫this.cycles = 0;⚫var ${fnBaseArg} = this;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, #d, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
+            'd#.teardown = function () {⚫this.cycles = 0;⚫var ${fnBaseArg} = this;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
             // generate setup resolve function
             'd#.suResolve = function () {⚫t#.start(d#);⚫d#.fn();⚫};⚫' +
             // execute the benchmark's `setup` with `deferred.suResolve` executing `deferred.fn`
-            'if (typeof su# === "function") {⚫var ${fnBaseArg} = this;⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(this, #d, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫}⚫' +
+            'if (typeof su# === "function") {⚫var ${fnBaseArg} = this;⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫}⚫' +
             // start timer,
             't#.start(d#);⚫' +
             // and then execute `deferred.fn` and return a dummy object.
@@ -1897,13 +1884,6 @@
         bench.compiled = clone.compiled = null;
         bench.compiled_mode = clone.compiled_mode = compiled_mode = 1;
 
-        console.error("round 1:", {
-          isEmpty,
-          deferred,
-          compiled,
-          compiled_mode,
-        })
-
         try {
           if (isEmpty) {
             // Firefox may remove dead code from `Function#toString` results.
@@ -1918,13 +1898,6 @@
             bench.count = count;
           }
         } catch (e) {
-        console.error("round 1 error:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-          e,
-        })
-        
           compiled = null;
           clone.error = e || new Error(String(e));
           bench.count = count;
@@ -1936,13 +1909,6 @@
           });
         }
         // Fallback when a test exits early or errors during pretest.
-        console.error("round 2:", {
-          isEmpty,
-          compiled,
-          deferred,
-          compiled_mode,
-        })
-        
         if (!compiled && !deferred && !isEmpty) {
           bench.compiled_mode = clone.compiled_mode = compiled_mode = 2;
           funcBody = (
@@ -1954,11 +1920,6 @@
             'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
 
           compiled = createCompiled(bench, decompilable, deferred, funcBody);
-        console.error("round 2 B:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-        })
 
           try {
             // Pretest one more time to check for errors.
@@ -1968,13 +1929,6 @@
             delete clone.error;
           }
           catch (e) {
-        console.error("round 2 error:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-          e,
-        })
-        
             // Also clean up the benchmark instance which has now quite possibly been polluted by
             // the added `m#.f#` `fn` equivalent test function member:
             // (the code `delete m#.f#;` above probably did not execute when the whole thing crashed!)
@@ -1995,14 +1949,6 @@
           }
         }
 
-        console.error("round 3:", {
-          isEmpty,
-          compiled,
-          deferred,
-          decompilable,
-          compiled_mode,
-        })
-        
         // Second fallback when a test exits early or errors during pretest and first fallback above did not deliver.
         if (!compiled && !deferred && !isEmpty && decompilable) {
           bench.compiled_mode = clone.compiled_mode = compiled_mode = 3;
@@ -2013,12 +1959,6 @@
           decompilable = false;
           compiled = createCompiled(bench, decompilable, deferred, funcBody);
 
-        console.error("round 3 B:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-        })
-
           try {
             // Pretest one more time to check for errors.
             bench.count = 1;
@@ -2027,13 +1967,6 @@
             delete clone.error;
           }
           catch (e) {
-        console.error("round 3 error:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-          e,
-        })
-        
             // Also clean up the benchmark instance which has now quite possibly been polluted by
             // the added `m#.f#` `fn` equivalent test function member:
             // (the code `delete m#.f#;` above probably did not execute when the whole thing crashed!)
@@ -2056,13 +1989,6 @@
         // reset the Benchmark members which would now contain an incorrect value when the above test runs failed: `(clone.error != null)`
         bench.compiled_mode = clone.compiled_mode = 0;
 
-        console.error("round 4:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-          err: clone.error,
-        })
-        
         // If no errors run the full test loop.
         if (!clone.error) {
           // also note the 'compilation mode' for this particular benchmark; 
@@ -2072,16 +1998,6 @@
 
           compiled = bench.compiled = clone.compiled = createCompiled(bench, decompilable, deferred, funcBody);
 
-        console.error("round 4 B:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-          deferred,
-          decompilable,
-          funcBody,
-        })
-        
-
           // Even when we've tested the benchmark code, it can still crash when stress-tested here,
           // hence we once again have to wrap it in `try/catch` to ensure decent user feedback
           // on failure -- otherwise you end up with anonymous 'script error at line 0' reports
@@ -2089,13 +2005,6 @@
           try {
             result = compiled.call(deferred || bench, context, timer, Benchmark).elapsed;
           } catch (e) {
-        console.error("round 4 error:", {
-          isEmpty,
-          compiled,
-          compiled_mode,
-          e,
-        })
-        
             //bench.compiled = clone.compiled = compiled = null;
             clone.error = e || new Error(String(e));
 
@@ -2131,37 +2040,21 @@
             fnSource = getSource(fn),
             tdSource = getSource(teardown);
 
-        console.error("createCompiled:", {
-          compiled_mode: bench.compiled_mode,
-          decompilable,
-          deferred,
-          suArgs,
-          fnArgs,
-          tdArgs,
-          fnBaseArg,
-          uid: templateData.uid,
-          body,
-          suSource,
-          tdSource,
-          fnSource,
-          perfName,
-        });
-
         if (deferred) {
           if (decompilable) {
             _.assign(templateData, {
-              'setup': suSource == '' ? interpolate('d#.suResolve();') : suSource,
-              'fn': fnSource,
-              'fnBaseArg': fnBaseArg,
-              'teardown': tdSource == '' ? interpolate('d#.tdResolve();') : tdSource
+              setup: suSource == '' ? interpolate('d#.suResolve();') : suSource,
+              fn: fnSource,
+              fnBaseArg: fnBaseArg,
+              teardown: tdSource == '' ? interpolate('d#.tdResolve();') : tdSource
             });
           }
           else {
             _.assign(templateData, {
-              'setup': suSource != '' ? interpolate('m#.setup(' + suArg + ', global, Benchmark, t#);') : interpolate('d#.suResolve();'),
-              'fn': interpolate('m#.fn(' + fnBaseArg + ', global, Benchmark, t#);'),
-              'fnBaseArg': fnBaseArg,
-              'teardown': tdSource != '' ? interpolate('m#.teardown(' + tdArg + ', global, Benchmark, t#);') : interpolate('d#.tdResolve();')
+              setup: suSource != '' ? interpolate('m#.setup(' + suArg + ', global, Benchmark, t#);') : interpolate('d#.suResolve();'),
+              fn: interpolate('m#.fn(' + fnBaseArg + ', global, Benchmark, t#);'),
+              fnBaseArg: fnBaseArg,
+              teardown: tdSource != '' ? interpolate('m#.teardown(' + tdArg + ', global, Benchmark, t#);') : interpolate('d#.tdResolve();')
             });
           }
         }
@@ -2212,10 +2105,6 @@
           });
         }
 
-        console.error('prep A: create func:', {
-          body,
-        });
-
         // Define `timer` methods.
         timer.start = createFunction(
           interpolate('o#'),
@@ -2226,12 +2115,6 @@
           interpolate('o#'),
           interpolate('var n# = this.ns,⚫s# = o#.timeStamp,⚫${end};⚫o#.elapsed = r#;')
         );
-
-        console.error('prep done: create func:', {
-          body,
-          args: interpolate('window, t#, Benchmark'),
-          body4real: interpolate('var global = window,⚫clearTimeout = global.clearTimeout,⚫setTimeout = global.setTimeout,⚫timer = t#;⚫' + body),
-        });
 
         // Create compiled test.
         return createFunction(
