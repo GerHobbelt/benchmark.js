@@ -1,5 +1,5 @@
 /*!
- * Benchmark.js <https://benchmarkjs.com/> 2.1.4-33
+ * Benchmark.js <https://benchmarkjs.com/>
  * Copyright 2010-2016 Mathias Bynens <https://mths.be/>
  * Based on JSLitmus.js, copyright Robert Kieffer <http://broofa.com/>
  * Modified by John-David Dalton <http://allyoucanleet.com/>
@@ -21,7 +21,9 @@
   var root = (objectTypes[typeof window] && window) || this;
 
   /** Detect free variable `define`. */
-  var freeDefine = typeof define === 'function' && typeof define.amd === 'object' && define.amd && define;
+  var freeDefine = function () {
+    return typeof define === 'function' && typeof define.amd === 'object' && define.amd && define;
+  }
 
   /** Detect free variable `exports`. */
   var freeExports = objectTypes[typeof exports] && exports && !exports.nodeType && exports;
@@ -313,20 +315,33 @@
        */
       try {
         // Safari 2.x removes commas in object literals from `Function#toString` results.
-        // See http://webk.it/11609 for more details.
+        // See https://bugs.webkit.org/show_bug.cgi?id=11609 for more details.
         // Firefox 3.6 and Opera 9.25 strip grouping parentheses from `Function#toString` results.
         // See http://bugzil.la/559438 for more details.
-        support.decompilation = Function(
-          ('return (' + (function (x) { 
+        // Chrome/Node V8 would strip comments from the source in older Node versions:
+        // see https://github.com/nodejs/node/issues/20355 and https://v8.dev/blog/v8-release-66.
+        // 
+        // Test *compilation* (and implicit *decompilation*) of code:
+        var tf1 = Function(
+          ('"use strict";\nreturn (' + (function (x) { 
             return { 
-              x: '' + (1 + x) + '', 
+              x: '' + 2 + (x + 1), 
               y: 0 
             }; 
           }) + ')')
-          // Avoid issues with code added by Istanbul.
-          .replace(/__cov__[^;]+;/g, '')
-        )()(0).x === '1';
+          // Avoid issues with code added by Istanbul ...
+          .replace(/\b__cov__[^;]+;/g, '')
+          // ... and NYC.
+          .replace(/\bcov_[^;]+;/g, '')
+        );
+        // Also test **explicit** decompilation using both `String()` and `Function.prototype.toString()`:
+        var tf2 = Function('a', 'return (' + String(tf1) + ')()((' + tf1.toString() + ')()(a).x)');
+        var tv = tf2(7);
+        support.decompilation = (tv.x === '2281' && tv.y === 0);
       } catch (e) {
+        if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+          console.warn('Function compilation/decompilation is not supported on this platform:', e);
+        }        
         support.decompilation = false;
       }
     }());
@@ -621,22 +636,24 @@
      * @param {string} body The function body.
      * @returns {Function} The new function.
      */
-    function createFunction() {
+    var createFunction = function createFunctionOuter(args, body) {
       // Lazy define.
-      createFunction = function (args, body) {
+      createFunction = function createFunctionInner(args, body) {
         var result,
-            anchor = freeDefine ? freeDefine.amd : Benchmark,
+            anchor = freeDefine() ? freeDefine().amd : Benchmark,
             prop = uid + 'createFunction';
 
-        runScript((freeDefine ? 'define.amd.' : 'Benchmark.') + prop + ' = function(' + args + ') {\n' + body + '\n}');
+        runScript((freeDefine() ? 'define.amd.' : 'Benchmark.') + prop + ' = function(' + args + ') {\n' + body + '\n}');
         result = anchor[prop];
         delete anchor[prop];
         return result;
       };
+
       // Fix JaegerMonkey bug.
       // For more information see http://bugzil.la/639720.
-      createFunction = support.browser && (createFunction('', 'return "' + uid + '";') || _.noop)() == uid ? createFunction : Function;
-      return createFunction.apply(null, arguments);
+      createFunction = support.browser && (createFunction('', 'return "' + uid + '";') || _.noop)() === uid ? createFunction : Function;
+
+      return createFunction(args, body);
     }
 
     /**
@@ -662,15 +679,27 @@
     }
 
     /**
-     * Gets the name of the first argument from a function's source.
+     * Gets the name(s) of the function arguments from a function's source.
      *
      * @private
      * @param {Function} fn The function.
-     * @returns {string} The argument name.
+     * @returns {Array} The list of argument names. Empty if none were given/found.
      */
-    function getFirstArgument(fn) {
-      return (!_.has(fn, 'toString') &&
-        (/^[\s(]*function[^(]*\(([^\s,)]+)/.exec(fn) || 0)[1]) || '';
+    function getArguments(fn) {
+      if (fn && typeof fn.toString === 'function') {
+        var m = /^(?:\/\*+[\w\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]|\s)*function\b[^(]*\(([^)]*?)\)(?:\/\*+[\w\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]|\s)*\{/.exec(fn);
+        if (m) {
+          // strip off any comments:
+          var args = m[1]
+              .replace(/\/\*+[\w\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]/g, ' ')
+              .split(',')
+              .map(function (a) { 
+                return a.trim();
+              });
+          return args;
+        }
+      }
+      return [];
     }
 
     /**
@@ -689,25 +718,41 @@
     /**
      * Gets the source code of a function.
      *
+     * This function assumes the platform supports function decompliation, 
+     * i.e. `support.decompilation === true`. If this is not true, an empty
+     * string will be produced for any input value.
+     * 
      * @private
      * @param {Function} fn The function.
      * @returns {string} The function's source code.
      */
     function getSource(fn) {
-      var result = '';
-      if (isStringable(fn)) {
-        result = String(fn);
-      } else if (support.decompilation) {
-        // Escape the `{` for Firefox 1.
-        result = _.result(/^[^{]+\{([\s\S]*)\}\s*$/.exec(fn), 1);
+      if (fn == null || fn === _.noop) {
+        return '';
       }
-      // Trim string.
-      result = (result || '').replace(/^\s+|\s+$/g, '');
 
-      // Detect strings containing only the "use strict" directive.
-      return /^(?:\/\*+[\w\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]|\s)*(["'])use strict\1;?$/.test(result)
-        ? ''
-        : result;
+      var result = '';
+      if (isStringable(fn) && support.decompilation) {
+        result = String(fn);
+
+        // Escape the `{` for Firefox 1.
+        var body = /^(?:\/\*+[\w\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]|\s)*function\b[^{]+\{([\s\S]*)\}\s*$/.exec(fn);
+        // Strip off the function interface around the code body:
+        if (body) {
+          result = body[1];
+        }
+      }
+      
+      // Trim string.
+      result = result.trim();
+
+      // Detect functions containing only the "use strict" directive and/or comments: 
+      // those are really empty functions and should be treated as such.
+      if (/^(?:\/\*+[\w\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]|\s)*(["'])use strict\1;?(?:\/\*+[\w\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]|\s)*$/.test(result)) {
+        return '';
+      }
+
+      return result;
     }
 
     /**
@@ -757,7 +802,7 @@
      * @returns {boolean} Returns `true` if the value can be coerced, else `false`.
      */
     function isStringable(value) {
-      return _.isString(value) || (_.has(value, 'toString') && _.isFunction(value.toString));
+      return typeof value === 'string' || (value && typeof value.toString === 'function');
     }
 
     /**
@@ -781,14 +826,14 @@
      * @param {string} code The code to run.
      */
     function runScript(code) {
-      var anchor = freeDefine ? define.amd : Benchmark,
+      var anchor = freeDefine() ? define.amd : Benchmark,
           script = doc.createElement('script'),
           sibling = doc.getElementsByTagName('script')[0] ||
                     doc.body.children[doc.body.children.length - 1] || // Last Element Node in <body> OR
                     doc.body.appendChild(doc.createElement('script')), // Create element to insert next to
           parent = sibling.parentNode,
           prop = uid + 'runScript',
-          prefix = '(' + (freeDefine ? 'define.amd.' : 'Benchmark.') + prop + '||function(){})();';
+          prefix = '(' + (freeDefine() ? 'define.amd.' : 'Benchmark.') + prop + '||function(){})();';
 
       // Firefox 2.0.0.2 cannot use script injection as intended because it executes
       // asynchronously, but that's OK because script injection is only used to avoid
@@ -986,12 +1031,17 @@
      * @static
      * @memberOf Benchmark
      * @param {number} number The number to convert.
+     * @param {locale} string Identifying string of the locale to use.
      * @returns {string} The more readable string representation.
      */
-    function formatNumber(number) {
-      number = String(number).split('.');
-      return number[0].replace(/(?=(?:\d{3})+$)(?!\b)/g, ',') +
-        (number[1] ? '.' + number[1] : '');
+    function formatNumber(number, locale) {
+      if (typeof Number.prototype.toLocaleString === 'function') {
+        return number.toLocaleString(locale);
+      } else {
+        number = String(number).split('.');
+        return number[0].replace(/(?=(?:\d{3})+$)(?!\b)/g, ',') +
+          (number[1] ? '.' + number[1] : '');
+      }
     }
 
     /**
@@ -1759,6 +1809,7 @@
           error = bench.error,
           hz = bench.hz,
           id = bench.id,
+          locale = bench.locale,
           stats = bench.stats,
           size = stats.sample.length,
           pm = '\xb1',
@@ -1777,7 +1828,7 @@
         result += ': ' + errorStr;
       }
       else {
-        result += ' x ' + formatNumber(hz.toFixed(hz < 100 ? 2 : 0)) + ' ops/sec ' + pm +
+        result += ' x ' + formatNumber(hz.toFixed(hz < 100 ? 2 : 0), locale) + ' ops/sec ' + pm +
           stats.rme.toFixed(2) + '% (' + size + ' run' + (size === 1 ? '' : 's') + ' sampled)';
       }
       return result;
@@ -1793,13 +1844,13 @@
      * @returns {number} The time taken.
      */
     var clock;
-    clock = function genClock() {
+    clock = function benchmarkClockSetupOuter(clone) {
       var options = Benchmark.options,
           templateData = {},
           timers = [{ ns: timer.ns, res: max(0.0015, getRes('ms')), unit: 'ms' }];
 
       // Lazy define for hi-res timers.
-      clock = function runClock(clone) {
+      clock = function benchmarkClockSetupInner(clone) {
         var deferred;
 
         if (clone instanceof Deferred) {
@@ -1809,7 +1860,7 @@
         var bench = clone._original,
             stringable = isStringable(bench.fn),
             count = bench.count = clone.count,
-            decompilable = stringable || (support.decompilation && (clone.setup !== _.noop || clone.teardown !== _.noop)),
+            decompilable = (stringable && support.decompilation),
             id = bench.id,
             name = bench.name || (typeof id == 'number' ? '<Test #' + id + '>' : id),
             result = 0;
@@ -1821,23 +1872,23 @@
         // Create a new compiled test, instead of using the cached `bench.compiled`,
         // to avoid potential engine optimizations enabled over the life of the test.
         var funcBody = deferred
-          ? 'var d# = this,⚫${fnArg} = d#,⚫m# = d#.benchmark._original,⚫f# = m#.fn,⚫su# = m#.setup,⚫td# = m#.teardown;⚫' +
+          ? 'var d# = this,⚫m# = d#.benchmark._original,⚫f# = m#.fn,⚫su# = m#.setup,⚫td# = m#.teardown;⚫' +
             // When `deferred.cycles` is `0` then...
             'if (!d#.cycles) {⚫' +
             // set `deferred.fn`,
-            'd#.fn = function ()⚫{⚫var ${fnArg} = this;⚫if (typeof f# === "function") {⚫try {⚫${fn}⚫} catch (e#) {⚫f#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${fn}⚫}⚫};⚫' +
+            'd#.fn = function ()⚫{⚫var ${fnBaseArg} = this;⚫if (typeof f# === "function") {⚫try {⚫${fn}⚫} catch (e#) {⚫f#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${fn}⚫}⚫};⚫' +
             // set `deferred.teardown`,
-            'd#.teardown = function () {⚫this.cycles = 0;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
+            'd#.teardown = function () {⚫this.cycles = 0;⚫var ${fnBaseArg} = this;⚫if (typeof td# === "function") {⚫try {⚫${teardown}⚫} catch (e#) {⚫td#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${teardown}⚫}⚫};⚫' +
             // generate setup resolve function
-            'd#.suResolve = function () {⚫if (d#.execState === 1) {⚫throw new Error("suResolve invoked multiple times for a single run");⚫}⚫d#.execState = 1;⚫t#.start(d#);⚫d#.fn();⚫};⚫' +
+            'd#.suResolve = function () {⚫t#.start(d#);⚫d#.fn();⚫};⚫' +
             // execute the benchmark's `setup` with `deferred.suResolve` executing `deferred.fn`
-            'if (typeof su# === "function") {⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(d#, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫}⚫' +
-            // When `deferred.cycles` is not `0` then just execute `deferred.fn`
-            '}⚫else {⚫d#.fn();⚫}⚫' +
-            // and return a dummy object.
-            'return {⚫uid: "${uid}"⚫};'
+            'if (typeof su# === "function") {⚫var ${fnBaseArg} = this;⚫try {⚫${setup}⚫} catch (e#) {⚫su#.call(this, d#, global, Benchmark, t#);⚫}⚫} else {⚫${setup}⚫}⚫' +
+            // start timer,
+            't#.start(d#);⚫' +
+            // and then execute `deferred.fn` and return a dummy object.
+            '}⚫d#.fn();⚫return {⚫uid: "${uid}"⚫};'
 
-          : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫f# = m#.fn,⚫i# = m#.count,⚫n# = t#.ns;⚫${setup}⚫${begin};⚫' +
+          : 'var r#, s#,⚫m# = this,⚫${fnBaseArg} = m#,⚫f# = m#.fn,⚫i# = m#.count,⚫n# = t#.ns;⚫${setup}⚫${begin};⚫' +
             'while (i#--) {⚫${fn}⚫}⚫${end};⚫${teardown}⚫return {⚫elapsed: r#,⚫uid: "${uid}"⚫};';
 
         var compiled = createCompiled(bench, decompilable, deferred, funcBody),
@@ -1877,8 +1928,8 @@
           bench.compiled_mode = clone.compiled_mode = compiled_mode = 2;
           funcBody = (
             stringable || (decompilable && !clone.error)
-              ? 'function f#(bench, global, Benchmark, timer) {⚫${fn}⚫}⚫var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫i# = m#.count'
-              : 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫f# = m#.fn,⚫i# = m#.count'
+              ? 'function f#(bench, global, Benchmark, timer) {⚫${fn}⚫}⚫var r#, s#,⚫m# = this,⚫${fnBaseArg} = m#,⚫i# = m#.count'
+              : 'var r#, s#,⚫m# = this,⚫${fnBaseArg} = m#,⚫f# = m#.fn,⚫i# = m#.count'
             ) +
             ',⚫n# = t#.ns;⚫${setup}⚫${begin};⚫m#.f# = f#;⚫while (i#--) {⚫m#.f#(m#, global, Benchmark, t#);⚫}⚫${end};⚫' +
             'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
@@ -1916,7 +1967,7 @@
         // Second fallback when a test exits early or errors during pretest and first fallback above did not deliver.
         if (!compiled && !deferred && !isEmpty && decompilable) {
           bench.compiled_mode = clone.compiled_mode = compiled_mode = 3;
-          funcBody = 'var r#, s#,⚫m# = this,⚫${fnArg} = m#,⚫d# = m#,⚫f# = m#.fn,⚫i# = m#.count' +
+          funcBody = 'var r#, s#,⚫m# = this,⚫${fnBaseArg} = m#,⚫f# = m#.fn,⚫i# = m#.count' +
             ',⚫n# = t#.ns;⚫${setup}⚫${begin};⚫m#.f# = f#;⚫while (i#--) {⚫m#.f#(m#, global, Benchmark, t#);⚫}⚫${end};⚫' +
             'delete m#.f#;⚫${teardown}⚫return {⚫elapsed: r#⚫};';
 
@@ -1992,9 +2043,10 @@
         var setup = bench.setup,
             fn = bench.fn,
             teardown = bench.teardown,
-            suArg = getFirstArgument(setup) || (deferred ? 'deferred' : 'bench'),
-            fnArg = getFirstArgument(fn) || (deferred ? 'deferred' : 'bench'),
-            tdArg = getFirstArgument(teardown) || (deferred ? 'deferred' : 'bench'),
+            suArgs = getArguments(setup),
+            fnArgs = getArguments(fn),
+            tdArgs = getArguments(teardown),
+            fnBaseArg = (deferred ? 'deferred' : 'bench'),
             suSource = decompilable ? getSource(setup) : '',
             fnSource = decompilable ? getSource(fn) : '',
             tdSource = decompilable ? getSource(teardown) : '',
@@ -2068,6 +2120,7 @@
             end: interpolate('r# = (new n#().getTime() - s#) / 1e3')
           });
         }
+
         // Define `timer` methods.
         timer.start = createFunction(
           interpolate('o#'),
@@ -2180,7 +2233,7 @@
       // Resolve time span required to achieve a percent uncertainty of at most 1%.
       // For more information see http://spiff.rit.edu/classes/phys273/uncert/uncert.html.
       options.minTime || (options.minTime = max(timer.res / 2 / 0.01, 0.05));
-      return clock.apply(null, arguments);
+      return clock(clone);
     }
 
     /*------------------------------------------------------------------------*/
@@ -2202,6 +2255,7 @@
           elapsed = 0,
           initCount = bench.initCount,
           minSamples = bench.minSamples,
+          endAtRME = bench.endAtRME,
           maxSamples = (bench.maxSamples >= minSamples ? bench.maxSamples : Infinity),
           queue = [],
           sample = bench.stats.sample;
@@ -2305,6 +2359,11 @@
             sem: sem,
             variance: variance
           });
+
+          // Exit early if we have reached a satisfying answer
+          if (size >= minSamples && rme < endAtRME) {
+            maxedOut = true;
+          }
 
           // Abort the cycle loop when the minimum sample size has been collected
           // and the elapsed time exceeds the maximum time allowed per benchmark.
@@ -2633,6 +2692,16 @@
         minTime: 0,
 
         /**
+         * Exit the benchmark early if relative margin of error drops below
+         * this number. The benchmark will still adhere to the minSamples
+         * option.
+         *
+         * @memberOf Benchmark.options
+         * @type number
+         */
+        endAtRME: 0,
+
+        /**
          * The maximum sample size required to perform statistical analysis.
          *
          * @memberOf Benchmark.options
@@ -2694,7 +2763,15 @@
          * @memberOf Benchmark.options
          * @type Function
          */
-        onStart: undefined
+        onStart: undefined,
+
+        /**
+         * The locale used for formatting numbers
+         *
+         * @memberOf Benchmark.options
+         * @type string
+         */
+        locale: undefined
       },
 
       /**
@@ -2726,7 +2803,7 @@
        * @memberOf Benchmark
        * @type string
        */
-      version: '2.1.4-33'
+      version: '2.1.4-35'
     });
 
     _.assign(Benchmark, {

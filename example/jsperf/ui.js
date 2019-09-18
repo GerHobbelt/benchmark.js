@@ -1,8 +1,8 @@
 /*!
  * ui.js
- * Copyright Mathias Bynens <https://mths.be/>
- * Modified by John-David Dalton <http://allyoucanleet.com/>
- * Available under MIT license <https://mths.be/mit>
+ * Copyright Mathias Bynens
+ * Modified by John-David Dalton
+ * Available under MIT license
  */
 (function(window, document) {
 
@@ -929,9 +929,9 @@
   };
 
   ui.initFromJSON = function (json) {
-    setHTML('test-title-1', mdRenderInline(json.title));
-    setHTML('test-title-2', mdRenderInline(json.title));
-    setHTML('test-description', mdRender(json.description));
+    setHTML('test-title-1', mdRenderInline(json.title || '???'));
+    setHTML('test-title-2', mdRenderInline(json.title || '???'));
+    setHTML('test-description', mdRender(json.description || '(none)'));
 
     if (ui.browserscope) {
       ui.browserscope.key = json.browserscope_API_key;
@@ -983,6 +983,14 @@
 
           // and give every benchmark/sub-group an index within its own parent/group.
           bench._group_item_index = i;
+
+          // and copy all attributes from the group into the item, but DO NOT
+          // overwrite any existing attributes!
+          for (var key in group_parent) {
+            if (key !== 'tests' && !(key in bench)) {
+              bench[key] = group_parent[key];
+            }
+          }
         }
 
         // check if the entry is a group-spec rather than a bench-spec:

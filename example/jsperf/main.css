@@ -252,7 +252,8 @@ input[disabled] {
 
 input[type="checkbox"],
 input[type="radio"] {
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   
   padding: 0;
   
@@ -265,6 +266,7 @@ input[type="radio"] {
 input[type="search"] {
   -webkit-appearance: textfield;
   
+  -webkit-box-sizing: content-box;
   
   box-sizing: content-box;
 }
@@ -345,7 +347,7 @@ body {
 }
 a {
   color: #357ab0;
-  padding: .2em;
+  padding: 0.2em;
 }
 a:hover,
 a:focus {
@@ -357,7 +359,7 @@ blockquote {
   border-left: solid 6px orange;
   font-size: 85%;
   margin: 0 1em 0.5em 1em;
-  padding: 3px .5em 3px 1em;
+  padding: 3px 0.5em 3px 1em;
 }
 blockquote a {
   color: #75f6ff;
@@ -383,6 +385,7 @@ li.current a:focus,
 form h3,
 #comments .owner .meta {
   background: #1a6ab9;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#6ca5dd), to(#1a6ab9));
   background-image: linear-gradient(top, #6ca5dd, #1a6ab9);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#6ca5dd', EndColorStr='#1a6ab9');
   color: #fff;
@@ -390,6 +393,7 @@ form h3,
 caption,
 #comments .meta {
   background: #bcbcbc;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#d0d0d0), to(#a7a7a7));
   background-image: linear-gradient(top, #d0d0d0, #a7a7a7);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#d0d0d0', EndColorStr='#a7a7a7');
   color: #555;
@@ -443,12 +447,12 @@ td.results {
 .results span,
 small {
   display: block;
-  font-size: .8em;
+  font-size: 0.8em;
 }
 td,
 th,
 caption {
-  padding: .2em .5em;
+  padding: 0.2em 0.5em;
 }
 td.fastest {
   background: #9cee82;
@@ -479,11 +483,12 @@ tr.no-ranking th {
 }
 button,
 .submit {
-  padding: .35em .5em;
+  padding: 0.35em 0.5em;
   cursor: pointer;
   color: #000;
   border: 1px solid #999;
   background: #dadada;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#ebebeb), to(#b8b8b8));
   background-image: linear-gradient(top, #ebebeb, #b8b8b8);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#ebebeb', EndColorStr='#b8b8b8');
 }
@@ -507,14 +512,17 @@ article {
 }
 #controls.show {
   display: block;
+  display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
   -ms-flex-wrap: wrap;
       flex-wrap: wrap;
-  -ms-flex-pack: center;
-      justify-content: center;
-  -ms-flex-align: center;
-      align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 #controls:after {
   content: "";
@@ -531,7 +539,7 @@ button:focus,
   border-color: #357ab0;
 }
 #add-buttons button {
-  padding: .15em .4em;
+  padding: 0.15em 0.4em;
   font-size: 11px;
   font-weight: bold;
 }
@@ -541,7 +549,7 @@ form label {
   cursor: pointer;
   text-align: right;
   margin-right: 1em;
-  padding: .4em;
+  padding: 0.4em;
 }
 label.inline {
   float: none;
@@ -586,7 +594,7 @@ textarea {
 input,
 textarea {
   border: 1px solid #b4b4b4;
-  padding: .4em;
+  padding: 0.4em;
 }
 #visible {
   border: 0;
@@ -613,9 +621,11 @@ pre {
   overflow: hidden;
   background-color: #f7f7f7;
   margin: 0;
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   white-space: pre-wrap;
   word-wrap: break-word;
+  font-size: 0.83em;
 }
 table #results-1 {
   width: 100px;
@@ -630,7 +640,7 @@ table td.code {
 }
 mark {
   background: #ff9;
-  padding: .2em .1em;
+  padding: 0.2em 0.1em;
 }
 h1,
 h2,
@@ -644,8 +654,8 @@ h1 {
   font-size: 1.4em;
 }
 form h3 {
-  padding-top: .2em;
-  padding-bottom: .2em;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
 }
 h1 em {
   font-style: normal;
@@ -673,7 +683,7 @@ li.current a {
 footer {
   display: block;
   margin-top: 2em;
-  padding: .5em 0 1.5em;
+  padding: 0.5em 0 1.5em;
   border-top: 2px solid #c4c4c4;
   text-align: center;
   background-color: #efefef;
@@ -687,7 +697,7 @@ footer .jsperf-remains-down {
   font-style: italic;
 }
 #add-test {
-  margin-right: .3em;
+  margin-right: 0.3em;
 }
 #bs-chart {
   overflow: auto;
@@ -708,21 +718,22 @@ applet {
   display: block;
   width: 232px;
   height: 39px;
-  filter: none;
+  -webkit-filter: none;
+          filter: none;
   background: url(https://www.browserscope.org/static/img/logo.png) 0 0 no-repeat;
 }
 #bs-ua {
-  padding: .5em .5em 0;
+  padding: 0.5em 0.5em 0;
   color: #555;
 }
 #bs-results .bs-rt {
   font-size: 10pt;
-  padding: .5em;
+  padding: 0.5em;
   background: #ddd;
 }
 #bs-results td {
   border: 1px solid #ddd;
-  padding: .4em;
+  padding: 0.4em;
   white-space: nowrap;
 }
 #bs-results .rt-ua-cur {
@@ -780,10 +791,10 @@ applet {
 #status strong {
   background: pink;
   border: 1px solid #b00b00;
-  padding: .4em;
+  padding: 0.4em;
 }
 #error-info.show {
-  padding: .5em 1em;
+  padding: 0.5em 1em;
 }
 #error-info,
 code,
@@ -792,7 +803,7 @@ var,
 textarea,
 #slug {
   font-family: Monaco, monospace;
-  font-size: .9em;
+  font-size: 0.9em;
 }
 #java strong {
   background: #ffffdc;
@@ -815,21 +826,21 @@ textarea,
 #faq dt:target + dd {
   background: #90ee85;
   margin: 0 -0.8em;
-  padding: 0 .8em;
+  padding: 0 0.8em;
 }
 #faq dt:target + dd {
-  padding-bottom: .5em;
+  padding-bottom: 0.5em;
   margin-bottom: -0.5em;
 }
 #faq dt:target {
-  margin-top: .5em;
-  padding-top: .5em;
+  margin-top: 0.5em;
+  padding-top: 0.5em;
 }
 #firebug,
 #java,
 #status {
   margin: 0 0 1em;
-  padding: .3em 0;
+  padding: 0.3em 0;
 }
 #prep-code pre {
   padding: 6px 0 6px 6px;
@@ -908,6 +919,7 @@ textarea,
   body,
   #comments .meta {
     width: 100%;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
   }
 }

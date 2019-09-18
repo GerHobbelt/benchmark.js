@@ -166,6 +166,8 @@
 
       var compiled = bench.compiled;
 
+console.error(bench);
+console.error('compiled:',String(bench.compiled));
       assert.ok(bench.compiled_mode === 1, 'inlining the test code is mode 1 (best) and is expected here');
       assert.ok(/var a\s*=\s*1/.test(compiled) && /var a\s*=\s*2/.test(compiled) && /var a\s*=\s*3/.test(compiled), 'compiled benchmark code MUST have inlined the test function et al');
     });
@@ -700,6 +702,40 @@
     QUnit.test('should format negative numbers correctly', function(assert) {
       assert.strictEqual(Benchmark.formatNumber(-1234.56), '-1,234.56');
     });
+
+    QUnit.test('should format a million correctly when passing a locale', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(1e6, 'nl-NL'), '1.000.000');
+    });
+
+    QUnit.test('should format less than 100 correctly when passing a locale', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(23, 'nl-NL'), '23');
+    });
+
+    QUnit.test('should format numbers with decimal values correctly when passing a locale', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(1234.56, 'nl-NL'), '1.234,56');
+    });
+
+    QUnit.test('should format negative numbers correctly when passing a locale', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(-1234.56, 'nl-NL'), '-1.234,56');
+    });
+
+    var toLocaleString = Number.prototype.toLocaleString
+    Number.prototype.toLocaleString = undefined
+    QUnit.test('should format a million correctly when toLocaleString undefined', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(1e6), '1,000,000');
+    });
+    QUnit.test('should format less than 100 correctly when toLocaleString undefined', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(23), '23');
+    });
+
+    QUnit.test('should format numbers with decimal values correctly when toLocaleString undefined', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(1234.56), '1,234.56');
+    });
+
+    QUnit.test('should format negative numbers correctly when toLocaleString undefined', function(assert) {
+      assert.strictEqual(Benchmark.formatNumber(-1234.56), '-1,234.56');
+    });
+    Number.prototype.toLocaleString = toLocaleString
   }());
 
   /*--------------------------------------------------------------------------*/
