@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@gerhobbelt/json5": "1.0.1-32",
-    "lodash": "4.17.10",
+    "lodash": "4.17.17",
     "@gerhobbelt/platform": "1.3.5-7"
   },
   "comment": "added glob to devdeps to fix crash in gulp on node 8.0 due to antique vinyl-fs and glob loading outdated graceful-fs",
